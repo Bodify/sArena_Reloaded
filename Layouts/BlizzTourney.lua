@@ -1,6 +1,7 @@
 local layoutName = "BlizzTourney"
 local layout = {}
 layout.name = "|cff00b4ffBlizz|r Tourney"
+local L = sArenaMixin.L
 
 layout.defaultSettings = {
     posX = 330,
@@ -136,7 +137,7 @@ local function setupOptionsTable(self)
 
     layout.optionsTable.arenaFrames.args.positioning.args.mirrored = {
         order = 5,
-        name = "Mirrored Frames",
+        name = L["Option_MirroredFrames"],
         type = "toggle",
         width = "full",
         get = getSetting,
@@ -145,8 +146,8 @@ local function setupOptionsTable(self)
 
     layout.optionsTable.arenaFrames.args.other.args.trinketCircleBorder = {
         order = 6,
-        name = "Trinket Circle Border",
-        desc = "Enable circular border for trinket icons",
+        name = L["Option_TrinketCircleBorder"],
+        desc = L["Option_TrinketCircleBorder_Desc"],
         type = "toggle",
         get = getSetting,
         set = setSetting,

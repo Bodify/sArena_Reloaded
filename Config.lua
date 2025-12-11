@@ -1,12 +1,13 @@
 local LSM = LibStub("LibSharedMedia-3.0")
 local isRetail = sArenaMixin.isRetail
 local isMidnight = sArenaMixin.isMidnight
+local L = sArenaMixin.L
 
 local midnightInfo
 if not isMidnight then
-    midnightInfo = "|cff00ff00UPDATE: All now available on Midnight.|r\n\nI'm planning to continue developing |cffffffffsArena |cffff8000Reloaded|r |T135884:13:13|t for Midnight as well.\n\nSome features will need to be adjusted or removed but the addon should stick around.\nMidnight is still in early Alpha and I haven't started preparing yet (14th Oct), but I will soon.\n\nPlans might change, but I'm confident |cffffffffsArena |cffff8000Reloaded|r |T135884:13:13|t and my other addons\n|A:gmchat-icon-blizz:16:16|aBetter|cff00c0ffBlizz|rFrames & |A:gmchat-icon-blizz:16:16|aBetter|cff00c0ffBlizz|rPlates will stick around for Midnight (with changes/removals).\n\nI have a lot of work ahead of me, and any support is greatly appreciated. (|cff00c0ff@bodify|r)\nI'll update this section with more detailed information as I know more in some weeks/months."
+    midnightInfo = L["Midnight_UpdateInfo"]
 else
-    midnightInfo = "Welcome to Midnight! My other addons |A:gmchat-icon-blizz:16:16|aBetter|cff00c0ffBlizz|rFrames & |A:gmchat-icon-blizz:16:16|aBetter|cff00c0ffBlizz|rPlates are also being worked on.\n\nThings will change rapidly during development here, especially as new API becomes available.\nThis Midnight Beta is premature and a lot of stuff is still missing in the game.\nI will experiment with a lot of things until the release of Midnight.\n\nCurrently this has changed:\n1) DR's are now handled by Blizzard, sArena only tweaks as much as allowed.\n 1.1) Gap setting is gone.\n 1.2) Individual sizing is gone.\n 1.3) Grow up/down is gone.\n 1.4) Icons are now Blizzards weird icons so those settings are gone.\n2) Non-CC auras are no longer shown, only CC that Blizzard lets us see.\n3) Absorbs on frames are gone.\n4)Racial cooldown can't be tracked, but racial is still visible.\n5) Dispels are gone..\n\nNot everything is fully set in stone and there might be new stuff popping up but we will see. I will keep this updated here."
+    midnightInfo = L["Midnight_BetaInfo"]
 end
 
 local function GetSpellInfoCompat(spellID)
@@ -56,13 +57,13 @@ end
 
 local function validateCombat()
     if (InCombatLockdown()) then
-        return "Must leave combat first."
+        return L["Message_MustLeaveCombat"]
     end
 
     return true
 end
 
-local growthValues = { "Down", "Up", "Right", "Left" }
+local growthValues = { L["Direction_Down"], L["Direction_Up"], L["Direction_Right"], L["Direction_Left"] }
 local drCategories
 local racialCategories
 local dispelCategories
@@ -223,7 +224,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
     local optionsTable = {
         arenaFrames = {
             order = 1,
-            name = "Arena Frames",
+            name = L["Category_ArenaFrames"],
             type = "group",
             get = function(info) return info.handler.db.profile.layoutSettings[layoutName][info[#info]] end,
             set = function(info, val)
@@ -233,15 +234,15 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             args = {
                 textures = {
                     order  = 0.1,
-                    name   = "Textures",
+                    name   = L["Textures"],
                     type   = "group",
                     inline = true,
                     args   = {
                         generalTexture = {
                             order         = 1,
                             type          = "select",
-                            name          = "|A:UI-LFG-RoleIcon-DPS-Micro:20:20|a General Texture",
-                            desc          = "Tip: If you have replaced your default WoW Textures with custom ones and want that then select \"Blizzard Raid Bar\".",
+                            name          = L["Texture_General"],
+                            desc          = L["Texture_General_Desc"],
                             style         = "dropdown",
                             dialogControl = "LSM30_Statusbar",
                             values        = StatusbarValues,
@@ -265,8 +266,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         healerTexture = {
                             order         = 2,
                             type          = "select",
-                            name          = "|A:UI-LFG-RoleIcon-Healer-Micro:20:20|a Healer Texture",
-                            desc          = "Tip: Only active when there is Class Stacking by default. Uncheck \"Class Stacking Only\" if you want it to always change the texture.",
+                            name          = L["Texture_Healer"],
+                            desc          = L["Texture_Healer_Desc"],
                             style         = "dropdown",
                             dialogControl = "LSM30_Statusbar",
                             values        = StatusbarValues,
@@ -290,9 +291,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         healerClassStackOnly = {
                             order = 3,
                             type  = "toggle",
-                            name  = "Class Stacking Only",
-                            desc  =
-                            "Only change the Healer texture when there is class stacking.\n\nFor example when there is both a Resto and a Feral Druid on the enemy team.",
+                            name  = L["Texture_ClassStackingOnly"],
+                            desc  = L["Texture_ClassStackingOnly_Desc"],
                             get   = function(info)
                                 local layout = info.handler.db.profile.layoutSettings[layoutName]
                                 return layout.retextureHealerClassStackOnly or false
@@ -308,22 +308,22 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 other = {
                     order  = 0.5,
-                    name   = "Options",
+                    name   = L["Options"],
                     type   = "group",
                     inline = true,
                     args   = {
                         replaceClassIcon = {
                             order = 2,
                             type  = "toggle",
-                            name  = "Replace Class Icon",
-                            desc  = "Replace the class icon with spec icon instead and hide the little \"spec icon button\"",
+                            name  = L["Option_ReplaceClassIcon"],
+                            desc  = L["Option_ReplaceClassIcon_Desc"],
                             get   = getSetting,
                             set   = setSetting,
                         },
                         showSpecManaText = {
                             order = 3,
                             type  = "toggle",
-                            name  = "Spec Text on Manabar",
+                            name  = L["Option_SpecTextOnManabar"],
                             get   = getSetting,
                             set   = setSetting,
                         },
@@ -331,13 +331,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 positioning = {
                     order = 1,
-                    name = "Positioning",
+                    name = L["Positioning"],
                     type = "group",
                     inline = true,
                     args = {
                         posX = {
                             order = 1,
-                            name = "Horizontal",
+                            name = L["Horizontal"],
                             type = "range",
                             min = -1000,
                             max = 1000,
@@ -346,7 +346,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         posY = {
                             order = 2,
-                            name = "Vertical",
+                            name = L["Vertical"],
                             type = "range",
                             min = -1000,
                             max = 1000,
@@ -355,8 +355,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         spacing = {
                             order = 3,
-                            name = "Spacing",
-                            desc = "Spacing between each arena frame",
+                            name = L["Spacing"],
+                            desc = L["Option_SpacingBetweenFrames_Desc"],
                             type = "range",
                             min = 0,
                             max = 100,
@@ -364,7 +364,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         growthDirection = {
                             order = 4,
-                            name = "Growth Direction",
+                            name = L["Option_GrowthDirection"],
                             type = "select",
                             style = "dropdown",
                             values = growthValues,
@@ -373,13 +373,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 sizing = {
                     order = 0.3,
-                    name = "Sizing",
+                    name = L["Sizing"],
                     type = "group",
                     inline = true,
                     args = {
                         scale = {
                             order = 1,
-                            name = "Scale",
+                            name = L["Scale"],
                             type = "range",
                             min = 0.1,
                             max = 5.0,
@@ -391,8 +391,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         classIconFontSize = {
                             order = 2,
-                            name = "Class Icon CD Font Size",
-                            desc = "Only works with Blizzard cooldown count (not OmniCC)",
+                            name = L["Option_ClassIconCDFontSize"],
+                            desc = L["Option_FontSize_Desc"],
                             type = "range",
                             min = 2,
                             max = 48,
@@ -406,7 +406,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
         },
         specIcon = {
             order = 2,
-            name = "Spec Icons",
+            name = L["Category_SpecIcons"],
             type = "group",
             get = function(info) return info.handler.db.profile.layoutSettings[layoutName].specIcon[info[#info]] end,
             set = function(info, val)
@@ -416,13 +416,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             args = {
                 positioning = {
                     order = 1,
-                    name = "Positioning",
+                    name = L["Positioning"],
                     type = "group",
                     inline = true,
                     args = {
                         posX = {
                             order = 1,
-                            name = "Horizontal",
+                            name = L["Horizontal"],
                             type = "range",
                             min = -700,
                             max = 700,
@@ -433,7 +433,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         posY = {
                             order = 2,
-                            name = "Vertical",
+                            name = L["Vertical"],
                             type = "range",
                             min = -700,
                             max = 700,
@@ -446,13 +446,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 sizing = {
                     order = 2,
-                    name = "Sizing",
+                    name = L["Sizing"],
                     type = "group",
                     inline = true,
                     args = {
                         scale = {
                             order = 1,
-                            name = "Scale",
+                            name = L["Scale"],
                             type = "range",
                             min = 0.1,
                             max = 5.0,
@@ -468,7 +468,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
         },
         trinket = {
             order = 3,
-            name = "Trinkets",
+            name = L["Category_Trinkets"],
             type = "group",
             get = function(info) return info.handler.db.profile.layoutSettings[layoutName].trinket[info[#info]] end,
             set = function(info, val)
@@ -478,13 +478,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             args = {
                 positioning = {
                     order = 1,
-                    name = "Positioning",
+                    name = L["Positioning"],
                     type = "group",
                     inline = true,
                     args = {
                         posX = {
                             order = 1,
-                            name = "Horizontal",
+                            name = L["Horizontal"],
                             type = "range",
                             min = -700,
                             max = 700,
@@ -495,7 +495,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         posY = {
                             order = 2,
-                            name = "Vertical",
+                            name = L["Vertical"],
                             type = "range",
                             min = -700,
                             max = 700,
@@ -508,13 +508,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 sizing = {
                     order = 2,
-                    name = "Sizing",
+                    name = L["Sizing"],
                     type = "group",
                     inline = true,
                     args = {
                         scale = {
                             order = 1,
-                            name = "Scale",
+                            name = L["Scale"],
                             type = "range",
                             min = 0.1,
                             max = 5.0,
@@ -526,8 +526,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         fontSize = {
                             order = 3,
-                            name = "Font Size",
-                            desc = "Only works with Blizzard cooldown count (not OmniCC)",
+                            name = L["Option_FontSize"],
+                            desc = L["Option_FontSize_Desc"],
                             type = "range",
                             min = 2,
                             max = 48,
@@ -541,7 +541,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
         },
         racial = {
             order = 4,
-            name = "Racials",
+            name = L["Category_Racials"],
             type = "group",
             get = function(info) return info.handler.db.profile.layoutSettings[layoutName].racial[info[#info]] end,
             set = function(info, val)
@@ -551,13 +551,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             args = {
                 positioning = {
                     order = 1,
-                    name = "Positioning",
+                    name = L["Positioning"],
                     type = "group",
                     inline = true,
                     args = {
                         posX = {
                             order = 1,
-                            name = "Horizontal",
+                            name = L["Horizontal"],
                             type = "range",
                             min = -700,
                             max = 700,
@@ -568,7 +568,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         posY = {
                             order = 2,
-                            name = "Vertical",
+                            name = L["Vertical"],
                             type = "range",
                             min = -700,
                             max = 700,
@@ -581,13 +581,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 sizing = {
                     order = 2,
-                    name = "Sizing",
+                    name = L["Sizing"],
                     type = "group",
                     inline = true,
                     args = {
                         scale = {
                             order = 1,
-                            name = "Scale",
+                            name = L["Scale"],
                             type = "range",
                             min = 0.1,
                             max = 5.0,
@@ -599,8 +599,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         fontSize = {
                             order = 3,
-                            name = "Font Size",
-                            desc = "Only works with Blizzard cooldown count (not OmniCC)",
+                            name = L["Option_FontSize"],
+                            desc = L["Option_FontSize_Desc"],
                             type = "range",
                             min = 2,
                             max = 48,
@@ -614,7 +614,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
         },
         dispel = {
             order = 4.5,
-            name = "Dispels",
+            name = L["Category_Dispels"],
             type = "group",
             get = function(info) return info.handler.db.profile.layoutSettings[layoutName].dispel[info[#info]] end,
             set = function(info, val)
@@ -624,13 +624,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             args = {
                 positioning = {
                     order = 1,
-                    name = "Positioning",
+                    name = L["Positioning"],
                     type = "group",
                     inline = true,
                     args = {
                         posX = {
                             order = 1,
-                            name = "Horizontal",
+                            name = L["Horizontal"],
                             type = "range",
                             min = -700,
                             max = 700,
@@ -641,7 +641,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         posY = {
                             order = 2,
-                            name = "Vertical",
+                            name = L["Vertical"],
                             type = "range",
                             min = -700,
                             max = 700,
@@ -654,13 +654,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 sizing = {
                     order = 2,
-                    name = "Sizing",
+                    name = L["Sizing"],
                     type = "group",
                     inline = true,
                     args = {
                         scale = {
                             order = 1,
-                            name = "Scale",
+                            name = L["Scale"],
                             type = "range",
                             min = 0.1,
                             max = 5.0,
@@ -672,8 +672,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         fontSize = {
                             order = 3,
-                            name = "Font Size",
-                            desc = "Only works with Blizzard cooldown count (not OmniCC)",
+                            name = L["Option_FontSize"],
+                            desc = L["Option_FontSize_Desc"],
                             type = "range",
                             min = 2,
                             max = 48,
@@ -687,7 +687,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
         },
         castBar = {
             order = 5,
-            name = "Cast Bars",
+            name = L["Category_CastBars"],
             type = "group",
             get = function(info) return info.handler.db.profile.layoutSettings[layoutName].castBar[info[#info]] end,
             set = function(info, val)
@@ -699,15 +699,15 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             args = {
                 castBarLook = {
                     order  = 0,
-                    name   = "Castbar Look",
+                    name   = L["Castbar_Look"],
                     type   = "group",
                     inline = true,
                     args   = {
                         useModernCastbars = {
                             order = 1,
                             type  = "toggle",
-                            name  = "Use modern castbars",
-                            desc  = "Use the new modern retail castbars.",
+                            name  = L["Castbar_UseModern"],
+                            desc  = L["Castbar_UseModern_Desc"],
                             width = "75%",
                             set   = function(info, val)
                                 local castDB = info.handler.db.profile.layoutSettings[layoutName].castBar
@@ -721,9 +721,9 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         keepDefaultModernTextures = {
                             order    = 2,
                             type     = "toggle",
-                            name     = "Keep default modern textures",
+                            name     = L["Castbar_KeepDefaultModernTextures"],
                             width    = "90%",
-                            desc     = "Keeps the new modern textures for modern castbars. Ignores the set texture.",
+                            desc     = L["Castbar_KeepDefaultModernTextures_Desc"],
                             disabled = function(info)
                                 return not info.handler.db.profile.layoutSettings[layoutName].castBar.useModernCastbars
                             end,
@@ -739,9 +739,9 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         simpleCastbar = {
                             order    = 2.3,
                             type     = "toggle",
-                            name     = "Simple Castbar",
+                            name     = L["Castbar_Simple"],
                             width    = "75%",
-                            desc     = "Hides the castbar text background and moves the castbar text inside the castbar.",
+                            desc     = L["Castbar_Simple_Desc"],
                             disabled = function(info)
                                 return not info.handler.db.profile.layoutSettings[layoutName].castBar.useModernCastbars
                             end,
@@ -764,8 +764,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
 
                         hideBorderShield = {
                             order = 2.5,
-                            name = "Hide Shield on Un-Interruptible",
-                            desc = "Hides the shield texture around spell icon on un-interruptible casts.",
+                            name = L["Castbar_HideShield"],
+                            desc = L["Castbar_HideShield_Desc"],
                             type = "toggle",
                             get = function(info)
                                 return info.handler.db.profile.layoutSettings[layoutName].castBar.hideBorderShield
@@ -778,8 +778,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
 
                         hideCastbarSpark = {
                             order = 2.6,
-                            name = "Hide Castbar Spark",
-                            desc = "Hides the trailing spark on the castbar",
+                            name = L["Castbar_HideSpark"],
+                            desc = L["Castbar_HideSpark_Desc"],
                             type = "toggle",
                             get = function(info)
                                 return info.handler.db.profile.layoutSettings[layoutName].castBar.hideCastbarSpark
@@ -792,8 +792,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
 
                         hideCastbarIcon = {
                             order = 2.7,
-                            name = "Hide Castbar Icon",
-                            desc = "Hides the spell icon on the castbar",
+                            name = L["Castbar_HideIcon"],
+                            desc = L["Castbar_HideIcon_Desc"],
                             type = "toggle",
                             get = function(info)
                                 return info.handler.db.profile.layoutSettings[layoutName].castBar.hideCastbarIcon
@@ -814,7 +814,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         castbarStatusBarTexture = {
                             order         = 3,
                             type          = "select",
-                            name          = "|A:GarrMission_ClassIcon-DemonHunter-Outcast:20:20|a Castbar Texture",
+                            name          = L["Castbar_Texture"],
                             style         = "dropdown",
                             dialogControl = "LSM30_Statusbar",
                             values        = StatusbarValues,
@@ -842,7 +842,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         castbarUninterruptibleTexture = {
                             order         = 3.5,
                             type          = "select",
-                            name          = "|A:GarrMission_ClassIcon-DemonHunter-Outcast:20:20|a Uninterruptible Texture",
+                            name          = L["Castbar_UninterruptibleTexture"],
                             style         = "dropdown",
                             dialogControl = "LSM30_Statusbar",
                             values        = StatusbarValues,
@@ -870,15 +870,15 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         castBarColorsGroup = {
                             order = 4,
                             type = "group",
-                            name = "Castbar Colors",
+                            name = L["Castbar_Colors"],
                             inline = true,
                             args = {
                                 recolorCastbar = {
                                     order = 0,
                                     type = "toggle",
                                     width = "full",
-                                    name = "Recolor Castbar",
-                                    desc = "Enable custom castbar colors",
+                                    name = L["Castbar_RecolorCastbar"],
+                                    desc = L["Castbar_RecolorCastbar_Desc"],
                                     get = function(info)
                                         local layout = info.handler.db.profile.layoutSettings[layoutName]
                                         return layout.castBar.recolorCastbar or false
@@ -898,7 +898,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                         return not layout.castBar.recolorCastbar
                                     end,
                                     type = "color",
-                                    name = "Cast",
+                                    name = L["Castbar_Cast"],
                                     hasAlpha = true,
                                     get = function(info)
                                         local colors = info.handler.db.profile.castBarColors
@@ -918,7 +918,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                 channel = {
                                     order = 2,
                                     type = "color",
-                                    name = "Channeled",
+                                    name = L["Castbar_Channeled"],
                                     hasAlpha = true,
                                     disabled = function(info)
                                         local layout = info.handler.db.profile.layoutSettings[layoutName]
@@ -942,7 +942,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                 uninterruptable = {
                                     order = 3,
                                     type = "color",
-                                    name = "Uninterruptible",
+                                    name = L["Castbar_Uninterruptible"],
                                     hasAlpha = true,
                                     disabled = function(info)
                                         local layout = info.handler.db.profile.layoutSettings[layoutName]
@@ -968,15 +968,15 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         interruptNotReadyGroup = {
                             order = 5,
                             type = "group",
-                            name = "Interrupt Not Ready",
+                            name = L["Castbar_InterruptNotReady"],
                             inline = true,
                             args = {
                                 interruptStatusColorOn = {
                                     order = 1,
                                     type = "toggle",
                                     width = "full",
-                                    name = "Enable No Interrupt Color",
-                                    desc = "Enable to color the castbars this color when you have no interrupt ready",
+                                    name = L["Castbar_EnableNoInterruptColor"],
+                                    desc = L["Castbar_EnableNoInterruptColor_Desc"],
                                     get = function(info)
                                         local layout = info.handler.db.profile.layoutSettings[layoutName]
                                         return layout.castBar.interruptStatusColorOn or false
@@ -992,7 +992,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                 interruptNotReady = {
                                     order = 2,
                                     type = "color",
-                                    name = "Interrupt Not Ready Color",
+                                    name = L["Castbar_InterruptNotReadyColor"],
                                     width = "full",
                                     hasAlpha = true,
                                     disabled = function(info)
@@ -1020,13 +1020,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 castbarPosition = {
                     order = 1,
-                    name = "Castbar Position",
+                    name = L["Castbar_Position"],
                     type = "group",
                     inline = true,
                     args = {
                         posX = {
                             order = 1,
-                            name = "Horizontal",
+                            name = L["Horizontal"],
                             type = "range",
                             min = -700,
                             max = 700,
@@ -1037,7 +1037,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         posY = {
                             order = 2,
-                            name = "Vertical",
+                            name = L["Vertical"],
                             type = "range",
                             min = -700,
                             max = 700,
@@ -1050,13 +1050,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 iconPosition = {
                     order = 3,
-                    name = "Icon Position",
+                    name = L["Castbar_IconPosition"],
                     type = "group",
                     inline = true,
                     args = {
                         iconPosX = {
                             order = 1,
-                            name = "Horizontal",
+                            name = L["Horizontal"],
                             type = "range",
                             min = -500,
                             max = 500,
@@ -1067,7 +1067,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         iconPosY = {
                             order = 2,
-                            name = "Vertical",
+                            name = L["Vertical"],
                             type = "range",
                             min = -500,
                             max = 500,
@@ -1080,13 +1080,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 castbarSize = {
                     order = 2,
-                    name = "Castbar Size",
+                    name = L["Castbar_CastbarSize"],
                     type = "group",
                     inline = true,
                     args = {
                         scale = {
                             order = 1,
-                            name = "Scale",
+                            name = L["Scale"],
                             type = "range",
                             min = 0.1,
                             max = 5.0,
@@ -1098,7 +1098,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         width = {
                             order = 2,
-                            name = "Width",
+                            name = L["Width"],
                             type = "range",
                             min = 10,
                             max = 400,
@@ -1108,13 +1108,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 iconSize = {
                     order = 4,
-                    name = "Icon Size",
+                    name = L["Castbar_IconSize"],
                     type = "group",
                     inline = true,
                     args = {
                         iconScale = {
                             order = 1,
-                            name = "Icon Scale",
+                            name = L["Castbar_IconScale"],
                             type = "range",
                             min = 0.1,
                             max = 5.0,
@@ -1130,7 +1130,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
         },
         dr = {
             order = 6,
-            name = "Diminishing Returns",
+            name = L["Category_DiminishingReturns"],
             type = "group",
             get = function(info) return info.handler.db.profile.layoutSettings[layoutName].dr[info[#info]] end,
             set = function(info, val)
@@ -1142,13 +1142,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             args = {
                 options = {
                     order = 0,
-                    name = "Options",
+                    name = L["Options"],
                     type = "group",
                     inline = true,
                     args = {
                         brightDRBorder = {
                             order = 1,
-                            name  = "Bright DR Border",
+                            name  = L["DR_BrightBorder"],
                             type  = "toggle",
                             get = function(info)
                                 return info.handler.db.profile.layoutSettings[layoutName].dr.brightDRBorder
@@ -1167,9 +1167,9 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         blackDRBorder = {
                             order = 2,
-                            name  = "Black DR Border",
+                            name  = L["DR_BlackBorder"],
                             type  = "toggle",
-                            desc  = "Makes DR borders black. Combine this with Show DR Text setting",
+                            desc  = L["DR_BlackBorder_Desc"],
                             get = function(info)
                                 return info.handler.db.profile.layoutSettings[layoutName].dr.blackDRBorder
                             end,
@@ -1183,8 +1183,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         showDRText = {
                             order = 3,
-                            name = "Show DR Text",
-                            desc = "Show text on DR icons displaying the current DR status.",
+                            name = L["DR_ShowText"],
+                            desc = L["DR_ShowText_Desc"],
                             type = "toggle",
                             get = function(info)
                                 return info.handler.db.profile.layoutSettings[layoutName].dr.showDRText
@@ -1197,7 +1197,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         drBorderGlowOff = {
                             order = 4,
-                            name  = "Disable DR Border Glow",
+                            name  = L["DR_DisableBorderGlow"],
                             type  = "toggle",
                             get = function(info)
                                 return info.handler.db.profile.layoutSettings[layoutName].dr.drBorderGlowOff
@@ -1218,7 +1218,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         thickPixelBorder = {
                             order = 5,
-                            name  = "Thick Pixel Border",
+                            name  = L["DR_ThickPixelBorder"],
                             type  = "toggle",
                             get = function(info)
                                 return info.handler.db.profile.layoutSettings[layoutName].dr.thickPixelBorder
@@ -1239,7 +1239,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         thinPixelBorder = {
                             order = 5.5,
-                            name  = "Thin Pixel Border",
+                            name  = L["DR_ThinPixelBorder"],
                             type  = "toggle",
                             get = function(info)
                                 return info.handler.db.profile.layoutSettings[layoutName].dr.thinPixelBorder
@@ -1260,9 +1260,9 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         disableDRBorder = {
                             order = 6,
-                            name  = "Disable DR Border",
+                            name  = L["DR_DisableBorder"],
                             type  = "toggle",
-                            desc  = "Completely hides the DR border frames",
+                            desc  = L["DR_DisableBorder_Desc"],
                             get = function(info)
                                 return info.handler.db.profile.layoutSettings[layoutName].dr.disableDRBorder
                             end,
@@ -1278,13 +1278,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 positioning = {
                     order = 1,
-                    name = "Positioning",
+                    name = L["Positioning"],
                     type = "group",
                     inline = true,
                     args = {
                         posX = {
                             order = 1,
-                            name = "Horizontal",
+                            name = L["Horizontal"],
                             type = "range",
                             min = -700,
                             max = 700,
@@ -1295,7 +1295,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         posY = {
                             order = 2,
-                            name = "Vertical",
+                            name = L["Vertical"],
                             type = "range",
                             min = -700,
                             max = 700,
@@ -1306,7 +1306,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         spacing = {
                             order = 3,
-                            name = "Spacing",
+                            name = L["Spacing"],
                             type = "range",
                             min = 0,
                             max = 32,
@@ -1319,7 +1319,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         growthDirection = {
                             order = 4,
-                            name = "Growth Direction",
+                            name = L["Option_GrowthDirection"],
                             type = "select",
                             style = "dropdown",
                             values = growthValues,
@@ -1328,13 +1328,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 sizing = {
                     order = 2,
-                    name = "Sizing",
+                    name = L["Sizing"],
                     type = "group",
                     inline = true,
                     args = {
                         size = {
                             order = 1,
-                            name = "Size",
+                            name = L["Size"],
                             type = "range",
                             min = 2,
                             max = 128,
@@ -1344,7 +1344,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         borderSize = {
                             order = 2,
-                            name = "Border Size",
+                            name = L["DR_BorderSize"],
                             type = "range",
                             min = 0,
                             max = 24,
@@ -1359,8 +1359,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                         fontSize = {
                             order = 3,
-                            name = "Font Size",
-                            desc = "Only works with Blizzard cooldown count (not OmniCC)",
+                            name = L["Option_FontSize"],
+                            desc = L["Option_FontSize_Desc"],
                             type = "range",
                             min = 2,
                             max = 48,
@@ -1372,7 +1372,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 },
                 drCategorySizing = {
                     order = 3,
-                    name = "DR Specific Size Adjustment",
+                    name = L["DR_SpecificSizeAdjustment"],
                     type = "group",
                     inline = true,
                     disabled = function() return isMidnight end,
@@ -1395,7 +1395,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
     for categoryKey, categoryName in pairs(drCategories) do
         optionsTable.dr.args.drCategorySizing.args[categoryKey] = {
             order = drCategoryOrder[categoryKey],
-            name = categoryName,
+            name = L["DR_" .. categoryKey] or categoryName,
             type = "range",
             min = -25,
             max = 25,
@@ -1419,7 +1419,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
     -- Widgets options
     optionsTable.widgets = {
         order = 6.5,
-        name = "Widgets |A:NewCharacter-Alliance:38:65|a",
+        name = L["Category_Widgets"] .. " |A:NewCharacter-Alliance:38:65|a",
         type = "group",
         get = function(info)
             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
@@ -1444,14 +1444,14 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
         args = {
             combatIndicator = {
                 order = 1,
-                name = "Combat Indicator |A:Food:23:23|a",
+                name = L["Widget_CombatIndicator"],
                 type = "group",
                 inline = true,
                 args = {
                     enabled = {
                         order = 1,
-                        name = "Enable Combat Indicator",
-                        desc = "Shows a food icon when the enemy is not in combat",
+                        name = L["Widget_CombatIndicator_Enable"],
+                        desc = L["Widget_CombatIndicator_Desc"],
                         type = "toggle",
                         width = "full",
                         set = function(info, val)
@@ -1466,7 +1466,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     scale = {
                         order = 2,
-                        name = "Scale",
+                        name = L["Scale"],
                         type = "range",
                         min = 0.1,
                         max = 3.0,
@@ -1481,7 +1481,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     posX = {
                         order = 3,
-                        name = "Horizontal",
+                        name = L["Horizontal"],
                         type = "range",
                         min = -500,
                         max = 500,
@@ -1495,7 +1495,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     posY = {
                         order = 4,
-                        name = "Vertical",
+                        name = L["Vertical"],
                         type = "range",
                         min = -500,
                         max = 500,
@@ -1509,7 +1509,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     resetCombatIndicator = {
                         order = 5,
-                        name = "Reset",
+                        name = L["Reset"],
                         width = 0.4,
                         type = "execute",
                         func = function(info)
@@ -1532,14 +1532,14 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             },
             targetIndicator = {
                 order = 2,
-                name = "Target Indicator |A:TargetCrosshairs:45:45|a",
+                name = L["Widget_TargetIndicator"],
                 type = "group",
                 inline = true,
                 args = {
                     enabled = {
                         order = 1,
-                        name = "Enable Target Indicator",
-                        desc = "Shows an icon on your current target",
+                        name = L["Widget_TargetIndicator_Enable"],
+                        desc = L["Widget_TargetIndicator_Desc"],
                         type = "toggle",
                         width = "full",
                         set = function(info, val)
@@ -1554,7 +1554,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     scale = {
                         order = 2,
-                        name = "Scale",
+                        name = L["Scale"],
                         type = "range",
                         min = 0.1,
                         max = 3.0,
@@ -1569,7 +1569,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     posX = {
                         order = 3,
-                        name = "Horizontal",
+                        name = L["Horizontal"],
                         type = "range",
                         min = -500,
                         max = 500,
@@ -1583,7 +1583,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     posY = {
                         order = 4,
-                        name = "Vertical",
+                        name = L["Vertical"],
                         type = "range",
                         min = -500,
                         max = 500,
@@ -1597,7 +1597,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     resetTargetIndicator = {
                         order = 5,
-                        name = "Reset",
+                        name = L["Reset"],
                         width = 0.4,
                         type = "execute",
                         func = function(info)
@@ -1620,14 +1620,14 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             },
             focusIndicator = {
                 order = 3,
-                name = "Focus Indicator |TInterface\\AddOns\\sArena_Reloaded\\Textures\\Waypoint-MapPin-Untracked.tga:23:23|t",
+                name = L["Widget_FocusIndicator"],
                 type = "group",
                 inline = true,
                 args = {
                     enabled = {
                         order = 1,
-                        name = "Enable Focus Indicator",
-                        desc = "Shows an icon on your current focus",
+                        name = L["Widget_FocusIndicator_Enable"],
+                        desc = L["Widget_FocusIndicator_Desc"],
                         type = "toggle",
                         width = "full",
                         set = function(info, val)
@@ -1642,7 +1642,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     scale = {
                         order = 2,
-                        name = "Scale",
+                        name = L["Scale"],
                         type = "range",
                         min = 0.1,
                         max = 3.0,
@@ -1657,7 +1657,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     posX = {
                         order = 3,
-                        name = "Horizontal",
+                        name = L["Horizontal"],
                         type = "range",
                         min = -500,
                         max = 500,
@@ -1671,7 +1671,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     posY = {
                         order = 4,
-                        name = "Vertical",
+                        name = L["Vertical"],
                         type = "range",
                         min = -500,
                         max = 500,
@@ -1685,7 +1685,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     resetFocusIndicator = {
                         order = 5,
-                        name = "Reset",
+                        name = L["Reset"],
                         width = 0.4,
                         type = "execute",
                         func = function(info)
@@ -1708,14 +1708,14 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             },
             partyTargetIndicators = {
                 order = 4,
-                name = "Party Target Indicators |TInterface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga:19:19|t",
+                name = L["Widget_PartyTargetIndicators"],
                 type = "group",
                 inline = true,
                 args = {
                     enabled = {
                         order = 1,
-                        name = "Enable Party Target Indicators",
-                        desc = "Shows class colored icons on the arena frames that your party members are targeting",
+                        name = L["Widget_PartyTargetIndicators_Enable"],
+                        desc = L["Widget_PartyTargetIndicators_Desc"],
                         type = "toggle",
                         width = "full",
                         set = function(info, val)
@@ -1730,7 +1730,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     scale = {
                         order = 2,
-                        name = "Scale",
+                        name = L["Scale"],
                         type = "range",
                         min = 0.1,
                         max = 3.0,
@@ -1745,7 +1745,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     posX = {
                         order = 3,
-                        name = "Horizontal",
+                        name = L["Horizontal"],
                         type = "range",
                         min = -500,
                         max = 500,
@@ -1759,7 +1759,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     posY = {
                         order = 4,
-                        name = "Vertical",
+                        name = L["Vertical"],
                         type = "range",
                         min = -500,
                         max = 500,
@@ -1773,7 +1773,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     resetPartyTargetIndicators = {
                         order = 5,
-                        name = "Reset",
+                        name = L["Reset"],
                         width = 0.4,
                         type = "execute",
                         func = function(info)
@@ -1800,28 +1800,28 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
     -- Text Settings options
     optionsTable.textSettings = {
         order = 1.1,
-        name = "Text Settings",
+        name = L["Category_TextSettings"],
         type = "group",
         args = {
             fonts = {
                 order  = 0,
-                name   = "Fonts",
+                name   = L["Text_Fonts"],
                 type   = "group",
                 inline = true,
                 args   = {
                     changeFont = {
                         order = 0,
                         type = "toggle",
-                        name  = "Change Font",
-                        desc  = "Change the fonts used by sArena",
+                        name  = L["Text_ChangeFont"],
+                        desc  = L["Text_ChangeFont_Desc"],
                         width = "full",
                         get   = getSetting,
                         set   = setSetting,
                     },
                     frameFont = {
                         order = 1, type = "select",
-                        name  = "Frame Font",
-                        desc  = "Used for labels like name, health/power values, cast text, etc.",
+                        name  = L["Text_FrameFont"],
+                        desc  = L["Text_FrameFont_Desc"],
                         style = "dropdown",
                         width = 0.7,
                         dialogControl = "LSM30_Font",
@@ -1834,8 +1834,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     cdFont = {
                         order = 2, type = "select",
-                        name  = "Cooldown Font",
-                        desc  = "Used for cooldown numbers (trinket, DRs, racials, etc.).",
+                        name  = L["Text_CooldownFont"],
+                        desc  = L["Text_CooldownFont_Desc"],
                         style = "dropdown",
                         width = 0.7,
                         dialogControl = "LSM30_Font",
@@ -1848,8 +1848,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     fontOutline = {
                         order = 3, type = "select",
-                        name  = "Font Outline",
-                        desc  = "Choose font outline style for all text elements.",
+                        name  = L["Text_FontOutline"],
+                        desc  = L["Text_FontOutline_Desc"],
                         style = "dropdown",
                         width = 0.7,
                         values = sArenaMixin.FontOutlineValues,
@@ -1863,20 +1863,20 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             },
             nameText = {
                 order = 1,
-                name = "Name Text",
+                name = L["Text_NameText"],
                 type = "group",
                 inline = true,
                 args = {
                     nameAnchor = {
                         order = 1,
-                        name = "Anchor Point",
+                        name = L["Text_AnchorPoint"],
                         type = "select",
                         style = "dropdown",
                         width = 0.5,
                         values = {
-                            ["LEFT"] = "Left",
-                            ["CENTER"] = "Center",
-                            ["RIGHT"] = "Right",
+                            ["LEFT"] = L["Direction_Left"],
+                            ["CENTER"] = L["Direction_Center"],
+                            ["RIGHT"] = L["Direction_Right"],
                         },
                         get = function(info)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
@@ -1892,7 +1892,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     nameSize = {
                         order = 2,
-                        name = "Size",
+                        name = L["Size"],
                         type = "range",
                         min = 0.2,
                         max = 3,
@@ -1915,7 +1915,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     nameOffsetX = {
                         order = 3,
-                        name = "Horizontal",
+                        name = L["Horizontal"],
                         type = "range",
                         softMin = -200,
                         softMax = 200,
@@ -1935,7 +1935,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     nameOffsetY = {
                         order = 4,
-                        name = "Vertical",
+                        name = L["Vertical"],
                         type = "range",
                         softMin = -200,
                         softMax = 200,
@@ -1955,7 +1955,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     resetNameText = {
                         order = 5,
-                        name = "Reset",
+                        name = L["Reset"],
                         width = 0.4,
                         type = "execute",
                         func = function(info)
@@ -1975,20 +1975,20 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             },
             healthText = {
                 order = 2,
-                name = "Health Text",
+                name = L["Text_HealthText"],
                 type = "group",
                 inline = true,
                 args = {
                     healthAnchor = {
                         order = 1,
-                        name = "Anchor Point",
+                        name = L["Text_AnchorPoint"],
                         type = "select",
                         style = "dropdown",
                         width = 0.5,
                         values = {
-                            ["LEFT"] = "Left",
-                            ["CENTER"] = "Center",
-                            ["RIGHT"] = "Right",
+                            ["LEFT"] = L["Direction_Left"],
+                            ["CENTER"] = L["Direction_Center"],
+                            ["RIGHT"] = L["Direction_Right"],
                         },
                         get = function(info)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
@@ -2004,7 +2004,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     healthSize = {
                         order = 2,
-                        name = "Size",
+                        name = L["Size"],
                         type = "range",
                         min = 0.05,
                         max = 5,
@@ -2025,7 +2025,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     healthOffsetX = {
                         order = 3,
-                        name = "Horizontal",
+                        name = L["Horizontal"],
                         type = "range",
                         softMin = -200,
                         softMax = 200,
@@ -2045,7 +2045,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     healthOffsetY = {
                         order = 4,
-                        name = "Vertical",
+                        name = L["Vertical"],
                         type = "range",
                         softMin = -200,
                         softMax = 200,
@@ -2065,7 +2065,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     resetHealthText = {
                         order = 5,
-                        name = "Reset",
+                        name = L["Reset"],
                         width = 0.4,
                         type = "execute",
                         func = function(info)
@@ -2085,20 +2085,20 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             },
             powerText = {
                 order = 2.5,
-                name = "Mana Text",
+                name = L["Text_ManaText"],
                 type = "group",
                 inline = true,
                 args = {
                     powerAnchor = {
                         order = 1,
-                        name = "Anchor Point",
+                        name = L["Text_AnchorPoint"],
                         type = "select",
                         style = "dropdown",
                         width = 0.5,
                         values = {
-                            ["LEFT"] = "Left",
-                            ["CENTER"] = "Center",
-                            ["RIGHT"] = "Right",
+                            ["LEFT"] = L["Direction_Left"],
+                            ["CENTER"] = L["Direction_Center"],
+                            ["RIGHT"] = L["Direction_Right"],
                         },
                         get = function(info)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
@@ -2114,7 +2114,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     powerSize = {
                         order = 2,
-                        name = "Size",
+                        name = L["Size"],
                         type = "range",
                         min = 0.05,
                         max = 5,
@@ -2135,7 +2135,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     powerOffsetX = {
                         order = 3,
-                        name = "Horizontal",
+                        name = L["Horizontal"],
                         type = "range",
                         softMin = -200,
                         softMax = 200,
@@ -2155,7 +2155,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     powerOffsetY = {
                         order = 4,
-                        name = "Vertical",
+                        name = L["Vertical"],
                         type = "range",
                         softMin = -200,
                         softMax = 200,
@@ -2175,7 +2175,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     resetPowerText = {
                         order = 5,
-                        name = "Reset",
+                        name = L["Reset"],
                         width = 0.4,
                         type = "execute",
                         func = function(info)
@@ -2195,20 +2195,20 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             },
             specNameText = {
                 order = 3,
-                name = "Spec Name Text",
+                name = L["Text_SpecNameText"],
                 type = "group",
                 inline = true,
                 args = {
                     specNameAnchor = {
                         order = 1,
-                        name = "Anchor Point",
+                        name = L["Text_AnchorPoint"],
                         type = "select",
                         style = "dropdown",
                         width = 0.5,
                         values = {
-                            ["LEFT"] = "Left",
-                            ["CENTER"] = "Center",
-                            ["RIGHT"] = "Right",
+                            ["LEFT"] = L["Direction_Left"],
+                            ["CENTER"] = L["Direction_Center"],
+                            ["RIGHT"] = L["Direction_Right"],
                         },
                         get = function(info)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
@@ -2224,7 +2224,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     specNameSize = {
                         order = 2,
-                        name = "Size",
+                        name = L["Size"],
                         type = "range",
                         min = 0.05,
                         max = 5,
@@ -2245,7 +2245,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     specNameOffsetX = {
                         order = 3,
-                        name = "Horizontal",
+                        name = L["Horizontal"],
                         type = "range",
                         softMin = -200,
                         softMax = 200,
@@ -2265,7 +2265,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     specNameOffsetY = {
                         order = 4,
-                        name = "Vertical",
+                        name = L["Vertical"],
                         type = "range",
                         softMin = -200,
                         softMax = 200,
@@ -2285,7 +2285,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     resetSpecNameText = {
                         order = 5,
-                        name = "Reset",
+                        name = L["Reset"],
                         width = 0.4,
                         type = "execute",
                         func = function(info)
@@ -2305,20 +2305,20 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             },
             castbarText = {
                 order = 4,
-                name = "Castbar Text",
+                name = L["Text_CastbarText"],
                 type = "group",
                 inline = true,
                 args = {
                     castbarAnchor = {
                         order = 1,
-                        name = "Anchor Point",
+                        name = L["Text_AnchorPoint"],
                         type = "select",
                         style = "dropdown",
                         width = 0.5,
                         values = {
-                            ["LEFT"] = "Left",
-                            ["CENTER"] = "Center",
-                            ["RIGHT"] = "Right",
+                            ["LEFT"] = L["Direction_Left"],
+                            ["CENTER"] = L["Direction_Center"],
+                            ["RIGHT"] = L["Direction_Right"],
                         },
                         get = function(info)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
@@ -2334,7 +2334,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     castbarSize = {
                         order = 2,
-                        name = "Size",
+                        name = L["Size"],
                         type = "range",
                         min = 0.05,
                         max = 5,
@@ -2355,7 +2355,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     castbarOffsetX = {
                         order = 3,
-                        name = "Horizontal",
+                        name = L["Horizontal"],
                         type = "range",
                         softMin = -200,
                         softMax = 200,
@@ -2375,7 +2375,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     castbarOffsetY = {
                         order = 4,
-                        name = "Vertical",
+                        name = L["Vertical"],
                         type = "range",
                         softMin = -200,
                         softMax = 200,
@@ -2395,7 +2395,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     resetCastbarText = {
                         order = 5,
-                        name = "Reset",
+                        name = L["Reset"],
                         width = 0.4,
                         type = "execute",
                         func = function(info)
@@ -2415,26 +2415,26 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             },
             drText = {
                 order = 5,
-                name = "DR Text",
+                name = L["Text_DRText"],
                 type = "group",
                 inline = true,
                 args = {
                     drTextAnchor = {
                         order = 1,
-                        name = "Anchor Point",
+                        name = L["Text_AnchorPoint"],
                         type = "select",
                         style = "dropdown",
                         width = 0.5,
                         values = {
-                            ["TOPLEFT"] = "TopLeft",
-                            ["TOP"] = "Top",
-                            ["TOPRIGHT"] = "TopRight",
-                            ["LEFT"] = "Left",
-                            ["CENTER"] = "Center",
-                            ["RIGHT"] = "Right",
-                            ["BOTTOMLEFT"] = "BotLeft",
-                            ["BOTTOM"] = "Bottom",
-                            ["BOTTOMRIGHT"] = "BotRight",
+                            ["TOPLEFT"] = L["Direction_TopLeft"],
+                            ["TOP"] = L["Direction_Top"],
+                            ["TOPRIGHT"] = L["Direction_TopRight"],
+                            ["LEFT"] = L["Direction_Left"],
+                            ["CENTER"] = L["Direction_Center"],
+                            ["RIGHT"] = L["Direction_Right"],
+                            ["BOTTOMLEFT"] = L["Direction_BottomLeft"],
+                            ["BOTTOM"] = L["Direction_Bottom"],
+                            ["BOTTOMRIGHT"] = L["Direction_BottomRight"],
                         },
                         get = function(info)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
@@ -2450,7 +2450,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     drTextSize = {
                         order = 2,
-                        name = "Scale",
+                        name = L["Scale"],
                         type = "range",
                         min = 0.5,
                         max = 3,
@@ -2471,7 +2471,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     drTextOffsetX = {
                         order = 3,
-                        name = "Horizontal",
+                        name = L["Horizontal"],
                         type = "range",
                         softMin = -50,
                         softMax = 50,
@@ -2491,7 +2491,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     drTextOffsetY = {
                         order = 4,
-                        name = "Vertical",
+                        name = L["Vertical"],
                         type = "range",
                         softMin = -50,
                         softMax = 50,
@@ -2511,7 +2511,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     },
                     resetDRText = {
                         order = 5,
-                        name = "Reset",
+                        name = L["Reset"],
                         width = 0.4,
                         type = "execute",
                         func = function(info)
@@ -3665,6 +3665,10 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
             dr.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
             dr.Cooldown:SetSwipeTexture(1)
 
+            local currentLayout = self.db and self.db.profile and self.db.profile.currentLayout
+            local layoutSettings = self.db and self.db.profile and self.db.profile.layoutSettings and self.db.profile.layoutSettings[currentLayout]
+            local cropIcons = layoutSettings and layoutSettings.cropIcons or false
+
             if db.disableDRBorder then
                 dr.Border:Hide()
                 if dr.PixelBorder then
@@ -4016,18 +4020,18 @@ local function setDRIcons()
                     if classColor then
                         coloredText = "|c" .. classColor.colorStr .. coloredText .. "|r"
                     end
-                    return "Configure DR Icons (Per Spec: " .. coloredText .. ")"
+                    return string.format(L["DR_IconsPerSpec"], coloredText)
                 elseif db.profile.drStaticIconsPerClass then
-                    local className = select(1, UnitClass("player")) or "Unknown"
+                    local className = select(1, UnitClass("player")) or L["Unknown"]
                     local classKey = select(2, UnitClass("player"))
                     local classColor = RAID_CLASS_COLORS[classKey]
                     local coloredText = className
                     if classColor then
                         coloredText = "|c" .. classColor.colorStr .. coloredText .. "|r"
                     end
-                    return "Configure DR Icons (Per Class: " .. coloredText .. ")"
+                    return string.format(L["DR_IconsPerClass"], coloredText)
                 else
-                    return "Configure DR Icons (Global)"
+                    return L["DR_IconsGlobal"]
                 end
             end,
             fontSize = "medium",
@@ -4065,7 +4069,7 @@ local function setDRIcons()
                 end
                 return textureString .. category .. ":"
             end,
-            desc = "Default icon: " .. defaultIcon .. " |T" .. defaultIcon .. ":24|t",
+            desc = string.format(L["Option_DefaultIcon_Desc"], defaultIcon, defaultIcon),
             type = "input",
             width = "full",
             get = function(info)
@@ -4172,14 +4176,14 @@ if sArenaMixin:CompatibilityIssueExists() then
         args = {
             ImportOtherForkSettings = {
                 order = 1,
-                name = "Addon Conflict",
-                desc = "Multiple sArena versions detected",
+                name = L["Option_AddonConflict"],
+                desc = L["Conflict_MultipleVersions"],
                 type = "group",
                 args = {
                     warningTitle = {
                         order = 1,
                         type = "description",
-                        name = "|A:services-icon-warning:20:20|a |cffff4444Two different versions of sArena are enabled|r |A:services-icon-warning:20:20|a",
+                        name = L["Conflict_Warning"],
                         fontSize = "large",
                     },
                     spacer1 = {
@@ -4190,7 +4194,7 @@ if sArenaMixin:CompatibilityIssueExists() then
                     explanation = {
                         order = 1.2,
                         type = "description",
-                        name = "|cffffffffTwo different versions of sArena cannot function properly together.\nYou will have to use only one. You have 3 options:|r",
+                        name = L["Conflict_Explanation"],
                         fontSize = "medium",
                     },
                     spacer2 = {
@@ -4201,21 +4205,21 @@ if sArenaMixin:CompatibilityIssueExists() then
                     option1 = {
                         order = 2,
                         type = "execute",
-                        name = "|cffffffffUse other sArena|r",
-                        desc = "This will disable |cffffffffsArena |cffff8000Reloaded|r |T135884:13:13|t and instead use your other sArena and reload your UI.",
+                        name = L["Conflict_UseOther"],
+                        desc = L["Conflict_UseOther_Desc"],
                         func = function()
                             C_AddOns.DisableAddOn("sArena_Reloaded")
                             ReloadUI()
                         end,
                         width = "full",
                         confirm = true,
-                        confirmText = "This will disable |cffffffffsArena |cffff8000Reloaded|r |T135884:13:13|t and use the other sArena instead and reload your UI.\n\nContinue?",
+                        confirmText = L["Conflict_UseOther_Confirm"],
                     },
                     option2 = {
                         order = 3,
                         type = "execute",
-                        name = "|cffffffffUse sArena |cffff8000Reloaded|r |T135884:13:13|t: Import other settings",
-                        desc = "This will copy your current profile and existing settings from the other sArena, disable the other sArena for compatibility, and reload your UI so you can start using sArena |cffff8000Reloaded|r |T135884:13:13|t",
+                        name = L["Conflict_UseReloaded_Import"],
+                        desc = L["Conflict_UseReloaded_Import_Desc"],
                         func = function()
                             if sArenaMixin.ImportOtherForkSettings then
                                 sArenaMixin:ImportOtherForkSettings()
@@ -4223,20 +4227,20 @@ if sArenaMixin:CompatibilityIssueExists() then
                         end,
                         width = "full",
                         confirm = true,
-                        confirmText = "This will copy your current profile and existing settings from the other sArena, disable the other sArena for compatibility, and reload your UI so you can start using sArena |cffff8000Reloaded|r |T135884:13:13|t\n\nContinue?",
+                        confirmText = L["Conflict_UseReloaded_Import_Confirm"],
                     },
                     option3 = {
                         order = 4,
                         type = "execute",
-                        name = "|cffffffffUse sArena |cffff8000Reloaded|r |T135884:13:13|t: Don't import other settings",
-                        desc = "This will disable the other sArena for compatibility and reload your UI so you can start using sArena |cffff8000Reloaded|r |T135884:13:13|t without your other settings.",
+                        name = L["Conflict_UseReloaded_NoImport"],
+                        desc = L["Conflict_UseReloaded_NoImport_Desc"],
                         func = function()
                             sArenaMixin:CompatibilityEnsurer()
                             ReloadUI()
                         end,
                         width = "full",
                         confirm = true,
-                        confirmText = "This will disable the other sArena for compatibility and reload your UI so you can start using sArena |cffff8000Reloaded|r |T135884:13:13|t without your other settings.\n\nContinue?",
+                        confirmText = L["Conflict_UseReloaded_NoImport_Confirm"],
                     },
                     spacer3 = {
                         order = 4.5,
@@ -4262,7 +4266,7 @@ else
         args = {
             setLayout = {
                 order = 1,
-                name = "Layout",
+                name = L["Option_Layout"],
                 type = "select",
                 style = "dropdown",
                 get = function(info) return info.handler.db.profile.currentLayout end,
@@ -4271,14 +4275,14 @@ else
             },
             test = {
                 order = 2,
-                name = "Test",
+                name = L["Option_Test"],
                 type = "execute",
                 func = "Test",
                 width = "half",
             },
             hide = {
                 order = 3,
-                name = "Hide",
+                name = L["Option_Hide"],
                 type = "execute",
                 func = function(info)
                     for i = 1, sArenaMixin.maxArenaOpponents do
@@ -4289,40 +4293,40 @@ else
             },
             dragNotice = {
                 order = 4,
-                name = "|cffff3300     |T132961:16|t Ctrl+shift+click to drag stuff|r",
+                name = L["Drag_Hint"],
                 type = "description",
                 fontSize = "medium",
                 width = 1.5,
             },
             layoutSettingsGroup = {
                 order = 5,
-                name = "Layout Settings",
-                desc = "These settings apply only to the selected layout",
+                name = L["Layout_Settings"],
+                desc = L["Layout_Settings_Desc"],
                 type = "group",
                 args = {},
             },
             globalSettingsGroup = {
                 order = 6,
-                name = "Global Settings",
-                desc = "These settings apply to all layouts",
+                name = L["Global_Settings"],
+                desc = L["Global_Settings_Desc"],
                 type = "group",
                 childGroups = "tree",
                 args = {
                     framesGroup = {
                         order = 1,
-                        name = "Arena Frames",
+                        name = L["Option_ArenaFrames"],
                         type = "group",
                         args = {
                             statusText = {
                                 order = 5,
-                                name = "Status Text",
+                                name = L["Option_StatusText"],
                                 type = "group",
                                 inline = true,
                                 args = {
                                     alwaysShow = {
                                         order = 1,
-                                        name = "Always Show",
-                                        desc = "If disabled, text only shows on mouseover",
+                                        name = L["Option_AlwaysShow"],
+                                        desc = L["Text_ShowOnMouseover_Desc"],
                                         type = "toggle",
                                         get = function(info) return info.handler.db.profile.statusText.alwaysShow end,
                                         set = function(info, val)
@@ -4334,7 +4338,7 @@ else
                                     },
                                     usePercentage = {
                                         order = 2,
-                                        name = "Use Percentage",
+                                        name = L["Option_UsePercentage"],
                                         type = "toggle",
                                         get = function(info) return info.handler.db.profile.statusText.usePercentage end,
                                         set = function(info, val)
@@ -4351,8 +4355,8 @@ else
                                     },
                                     formatNumbers = {
                                         order = 3,
-                                        name = "Format Numbers",
-                                        desc = "Format large numbers. 18888 K -> 18.88 M",
+                                        name = L["Option_FormatNumbers"],
+                                        desc = L["Text_FormatLargeNumbers_Desc"],
                                         type = "toggle",
                                         get = function(info) return info.handler.db.profile.statusText.formatNumbers end,
                                         set = function(info, val)
@@ -4369,8 +4373,8 @@ else
                                     },
                                     hidePowerText = {
                                         order = 4,
-                                        name = "Hide Power Text",
-                                        desc = "Hide mana/rage/energy text",
+                                        name = L["Text_HidePowerText"],
+                                        desc = L["Text_HidePowerText_Desc"],
                                         type = "toggle",
                                         get = function(info) return info.handler.db.profile.hidePowerText end,
                                         set = function(info, val)
@@ -4384,17 +4388,17 @@ else
                             },
                             darkModeGroup = {
                                 order = 5.5,
-                                name = "Dark Mode",
+                                name = L["Option_DarkMode"],
                                 type = "group",
                                 inline = true,
                                 args = {
                                     darkMode = {
                                         order = 1,
-                                        name = "Enable Dark Mode",
+                                        name = L["DarkMode_Enable"],
                                         type = "toggle",
                                         width = 1,
                                         desc = function(info)
-                                            local baseDesc = "Enable Dark Mode for Arena Frames."
+                                            local baseDesc = L["DarkMode_Enable_Desc"]
                                             local layout = info.handler.db.profile.currentLayout
                                             if layout == "BlizzCompact" then
                                                 return baseDesc .. "\n\nCan be combined with Class Color FrameTexture. When combined, class colors take priority - use 'Only Class Icon' to apply class color to the icon while Dark Mode colors the rest."
@@ -4410,10 +4414,10 @@ else
                                     },
                                     darkModeValue = {
                                         order = 2,
-                                        name = "Dark Mode Value",
+                                        name = L["DarkMode_Value"],
                                         type = "range",
                                         width = 0.75,
-                                        desc = "Set the darkness value for Dark Mode frames (0 = black, 1 = normal brightness).",
+                                        desc = L["DarkMode_Value_Desc"],
                                         min = 0,
                                         max = 1,
                                         step = 0.01,
@@ -4433,10 +4437,10 @@ else
                                     },
                                     darkModeDesaturate = {
                                         order = 3,
-                                        name = "Desaturate",
+                                        name = L["Option_Desaturate"],
                                         type = "toggle",
                                         width = 0.75,
-                                        desc = "Remove all color from textures getting dark moded.\n\n|cff888888This is the default behaviour but with some layouts you might prefer to have some original color shine through.|r",
+                                        desc = L["DarkMode_Desaturate_Desc"],
                                         disabled = function(info)
                                             return not info.handler.db.profile.darkMode
                                         end,
@@ -4455,14 +4459,14 @@ else
                             },
                             misc = {
                                 order = 6,
-                                name = "Options",
+                                name = L["Option_Miscellaneous"],
                                 type = "group",
                                 inline = true,
                                 args = {
                                     classColors = {
                                         order = 1,
-                                        name = "Class Color Healthbars",
-                                        desc = "When disabled, health bars will be green",
+                                        name = L["ClassColor_Healthbars"],
+                                        desc = L["ClassColor_Healthbars_Desc"],
                                         type = "toggle",
                                         width = "full",
                                         get = function(info) return info.handler.db.profile.classColors end,
@@ -4485,8 +4489,8 @@ else
                                     },
                                     classColorFrameTexture = {
                                         order = 1.05,
-                                        name = "Class Color FrameTexture",
-                                        desc = "Apply class colors to frame textures (Borders)",
+                                        name = L["ClassColor_FrameTexture"],
+                                        desc = L["ClassColor_FrameTexture_Desc"],
                                         type = "toggle",
                                         width = 1.1,
                                         get = function(info) return info.handler.db.profile.classColorFrameTexture end,
@@ -4502,8 +4506,8 @@ else
                                     },
                                     classColorFrameTextureOnlyClassIcon = {
                                         order = 1.06,
-                                        name = "Only Class Icon",
-                                        desc = "Only apply class color to the Class Icon border, not other frame textures",
+                                        name = L["ClassColor_OnlyClassIcon"],
+                                        desc = L["ClassColor_OnlyClassIcon_Desc"],
                                         type = "toggle",
                                         width = 0.8,
                                         hidden = function(info)
@@ -4524,8 +4528,8 @@ else
                                     },
                                     classColorFrameTextureHealerGreen = {
                                         order = 1.07,
-                                        name = "Color Healer Green",
-                                        desc = "Change healer frames to bright green instead of class color",
+                                        name = L["ClassColor_HealerGreen"],
+                                        desc = L["ClassColor_HealerGreen_Desc"],
                                         type = "toggle",
                                         disabled = function(info) return not info.handler.db.profile.classColorFrameTexture end,
                                         get = function(info) return info.handler.db.profile.classColorFrameTextureHealerGreen end,
@@ -4541,8 +4545,8 @@ else
                                     },
                                     classColorNames = {
                                         order = 1.1,
-                                        name = "Class Color Names",
-                                        desc = "When enabled, player names will be colored by class",
+                                        name = L["Option_ClassColorNames"],
+                                        desc = L["ClassColor_NameText_Desc"],
                                         type = "toggle",
                                         width = "full",
                                         get = function(info) return info.handler.db.profile.classColorNames end,
@@ -4558,10 +4562,10 @@ else
                                     },
                                     replaceHealerIcon = {
                                         order = 2,
-                                        name = "Replace Healer Icon",
+                                        name = L["Option_ReplaceHealerIcon"],
                                         type = "toggle",
                                         width = "full",
-                                        desc = "Replace Healers Class/Spec Icon with a Healer Icon.",
+                                        desc = L["Icon_ReplaceHealerWithHealerIcon_Desc"],
                                         get = function(info) return info.handler.db.profile.replaceHealerIcon end,
                                         set = function(info, val)
                                             info.handler.db.profile.replaceHealerIcon = val
@@ -4570,7 +4574,7 @@ else
                                     },
                                     showNames = {
                                         order = 4,
-                                        name = "Show Names",
+                                        name = L["Option_ShowNames"],
                                         type = "toggle",
                                         width = "full",
                                         get = function(info) return info.handler.db.profile.showNames end,
@@ -4586,7 +4590,7 @@ else
                                     },
                                     showArenaNumber = {
                                         order = 5,
-                                        name = "Show Arena Number",
+                                        name = L["Option_ShowArenaNumber"],
                                         type = "toggle",
                                         width = "full",
                                         get = function(info) return info.handler.db.profile.showArenaNumber end,
@@ -4601,8 +4605,8 @@ else
                                     },
                                     reverseBarsFill = {
                                         order = 6,
-                                        name = "Reverse Bars Fill",
-                                        desc = "Make health and power bars fill from right to left instead of left to right",
+                                        name = L["Option_ReverseBarsFill"],
+                                        desc = L["Healthbar_ReverseFill_Desc"],
                                         type = "toggle",
                                         width = "full",
                                         get = function(info) return info.handler.db.profile.reverseBarsFill end,
@@ -4617,10 +4621,10 @@ else
                                     },
                                     hideClassIcon = {
                                         order = 6,
-                                        name = "Hide Class Icon (Show Auras Only)",
+                                        name = L["Option_HideClassIconShowAurasOnly"],
                                         type = "toggle",
                                         width = "full",
-                                        desc = "Hide the Class Icon and only show Auras when they are active.",
+                                        desc = L["ClassIcon_HideAndShowOnlyAuras_Desc"],
                                         get = function(info) return info.handler.db.profile.hideClassIcon end,
                                         set = function(info, val)
                                             info.handler.db.profile.hideClassIcon = val
@@ -4640,10 +4644,10 @@ else
                                     },
                                     disableAurasOnClassIcon = {
                                         order = 7,
-                                        name = "Disable Auras on Class Icon",
+                                        name = L["Option_DisableAurasOnClassIcon"],
                                         type = "toggle",
                                         width = "full",
-                                        desc = "Do not show any auras on Class Icons instead always show Class/Spec Icon.",
+                                        desc = L["ClassIcon_DontShowAuras_Desc"],
                                         get = function(info) return info.handler.db.profile.disableAurasOnClassIcon end,
                                         set = function(info, val)
                                             info.handler.db.profile.disableAurasOnClassIcon = val
@@ -4652,10 +4656,10 @@ else
                                     },
                                     colorTrinket = {
                                         order = 8,
-                                        name = "Color Trinket",
+                                        name = L["Option_ColorTrinket"],
                                         type = "toggle",
                                         width = "full",
-                                        desc = "Replace Trinket texture with a solid green color when it's up and red when it's on cooldown.",
+                                        desc = L["Trinket_MinimalistDesign_Desc"],
                                         get = function(info) return info.handler.db.profile.colorTrinket end,
                                         set = function(info, val)
                                             info.handler.db.profile.colorTrinket = val
@@ -4675,10 +4679,10 @@ else
                                     },
                                     colorMysteryGray = {
                                         order = 9,
-                                        name = "Color Non-Visible Frames Gray",
+                                        name = L["Option_ColorNonVisibleFramesGray"],
                                         type = "toggle",
                                         width = "full",
-                                        desc = "Colors mystery players with gray status bars instead of their class colors. Mystery players are unseen players, aka before gates open and stealthed ones.",
+                                        desc = L["MysteryPlayer_GrayBars_Desc"],
                                         get = function(info) return info.handler.db.profile.colorMysteryGray end,
                                         set = function(info, val)
                                             info.handler.db.profile.colorMysteryGray = val
@@ -4686,9 +4690,8 @@ else
                                     },
                                     showDecimalsClassIcon = {
                                         order = 10,
-                                        name = "Show Decimals on Class Icon",
-                                        desc =
-                                        "Show Decimals on Class Icon when duration is below 6 seconds.\n\nOnly for non-OmniCC users.",
+                                        name = L["Option_ShowDecimalsOnClassIcon"],
+                                        desc = L["Option_ShowDecimalsOnClassIcon_Desc"],
                                         type = "toggle",
                                         width = 1.4,
                                         get = function(info) return info.handler.db.profile.showDecimalsClassIcon end,
@@ -4699,8 +4702,8 @@ else
                                     },
                                     decimalThreshold = {
                                         order = 11,
-                                        name = "Decimal Threshold",
-                                        desc = "Show decimals when remaining time is below this threshold. Default is 6 seconds.",
+                                        name = L["Option_DecimalThreshold"],
+                                        desc = L["Cooldown_ShowDecimalsThreshold_Desc"],
                                         type = "range",
                                         min = 1,
                                         max = 10,
@@ -4719,16 +4722,16 @@ else
                             },
                             swipeAnimations = {
                                 order = 7,
-                                name = "Swipe Animations",
+                                name = L["Option_SwipeAnimations"],
                                 type = "group",
                                 inline = true,
                                 args = {
                                     disableSwipeEdge = {
                                         order = 0,
-                                        name = "Disable Cooldown Swipe Edge",
+                                        name = L["Option_DisableCooldownSwipeEdge"],
                                         type = "toggle",
                                         width = "full",
-                                        desc = "Disables the bright edge on cooldown spirals for all icons.",
+                                        desc = L["Cooldown_DisableBrightEdge_Desc"],
                                         get = function(info) return info.handler.db.profile.disableSwipeEdge end,
                                         set = function(info, val)
                                             info.handler.db.profile.disableSwipeEdge = val
@@ -4747,10 +4750,10 @@ else
                                     },
                                     disableClassIconSwipe = {
                                         order = 1,
-                                        name = "Disable Class Icon Swipe",
+                                        name = L["Option_DisableClassIconSwipe"],
                                         type = "toggle",
                                         width = "full",
-                                        desc = "Disables the spiral cooldown swipe animation on Class Icon.",
+                                        desc = L["Cooldown_DisableClassIconSwipe_Desc"],
                                         get = function(info) return info.handler.db.profile.disableClassIconSwipe end,
                                         set = function(info, val)
                                             info.handler.db.profile.disableClassIconSwipe = val
@@ -4761,8 +4764,8 @@ else
                                     },
                                     disableDRSwipe = {
                                         order = 2,
-                                        name = "Disable DR Swipe Animation",
-                                        desc = "Disables the spiral cooldown swipe on DR icons.",
+                                        name = L["Option_DisableDRSwipeAnimation"],
+                                        desc = L["Cooldown_DisableDRSwipe_Desc"],
                                         type = "toggle",
                                         width = "full",
                                         get = function(info)
@@ -4782,10 +4785,10 @@ else
                                     },
                                     disableTrinketRacialSwipe = {
                                         order = 3,
-                                        name = "Disable Trinket & Racial Swipe",
+                                        name = L["Option_DisableTrinketRacialSwipe"],
                                         type = "toggle",
                                         width = "full",
-                                        desc = "Disables the spiral cooldown swipe animation on Trinket and Racial icons.",
+                                        desc = L["Cooldown_DisableTrinketRacialSwipe_Desc"],
                                         get = function(info) return info.handler.db.profile.disableTrinketRacialSwipe end,
                                         set = function(info, val)
                                             info.handler.db.profile.disableTrinketRacialSwipe = val
@@ -4796,10 +4799,10 @@ else
                                     },
                                     invertClassIconCooldown = {
                                         order = 4,
-                                        name = "Reverse Class Icon Swipe",
+                                        name = L["Option_ReverseClassIconSwipe"],
                                         type = "toggle",
                                         width = "full",
-                                        desc = "Reverses the cooldown sweep direction for Class Icon cooldowns. Changes whether they start empty and fill up, or start full and empty out.",
+                                        desc = L["Cooldown_ReverseClassIcon_Desc"],
                                         disabled = function(info) return info.handler.db.profile.disableClassIconSwipe end,
                                         get = function(info) return info.handler.db.profile.invertClassIconCooldown end,
                                         set = function(info, val)
@@ -4811,8 +4814,8 @@ else
                                     },
                                     invertDRCooldown = {
                                         order = 5,
-                                        name = "Reverse DR Swipe Animation",
-                                        desc = "Reverses the DR cooldown swipe direction.",
+                                        name = L["Option_ReverseDRSwipeAnimation"],
+                                        desc = L["Cooldown_ReverseDR_Desc"],
                                         type = "toggle",
                                         width = "full",
                                         disabled = function(info) return info.handler.db.profile.drSwipeOff end,
@@ -4828,10 +4831,10 @@ else
                                     },
                                     invertTrinketRacialCooldown = {
                                         order = 6,
-                                        name = "Reverse Trinket & Racial Swipe",
+                                        name = L["Option_ReverseTrinketRacialSwipe"],
                                         type = "toggle",
                                         width = "full",
-                                        desc = "Reverses the cooldown sweep direction for Trinket and Racial cooldowns. Changes whether they start empty and fill up, or start full and empty out.",
+                                        desc = L["Cooldown_ReverseTrinketRacial_Desc"],
                                         disabled = function(info) return info.handler.db.profile.disableTrinketRacialSwipe end,
                                         get = function(info) return info.handler.db.profile.invertTrinketRacialCooldown end,
                                         set = function(info, val)
@@ -4845,14 +4848,14 @@ else
                             },
                             masque = {
                                 order = 8,
-                                name = "Miscellaneous",
+                                name = L["Option_Miscellaneous"],
                                 type = "group",
                                 inline = true,
                                 args = {
                                     enableMasque = {
                                         order = 1,
-                                        name = "Enable Masque Support",
-                                        desc = "Click to enable Masque support to reskin Icon borders.\n\nCurrently this requires you to disable Backdrop in Masque settings for a proper look. I'm not sure if I will make time to improve on this as lots of things will need to be reworked I think.",
+                                        name = L["Option_EnableMasqueSupport"],
+                                        desc = L["Masque_Support_Desc"],
                                         type = "toggle",
                                         width = "full",
                                         get = function(info) return info.handler.db.profile.enableMasque end,
@@ -4864,8 +4867,8 @@ else
                                     },
                                     removeUnequippedTrinketTexture = {
                                         order = 2,
-                                        name = "Remove Un-Equipped Trinket Texture",
-                                        desc = "Enable this setting to hide the Trinket entirely when the enemy does have a one equipped, instead of showing the default White Flag indicating no Trinket.",
+                                        name = L["Option_RemoveUnEquippedTrinketTexture"],
+                                        desc = L["Trinket_HideWhenNoTrinket_Desc"],
                                         type = "toggle",
                                         width = "full",
                                         get = function(info) return info.handler.db.profile.removeUnequippedTrinketTexture end,
@@ -4880,8 +4883,8 @@ else
                                     },
                                     desaturateTrinketCD = {
                                         order = 2.1,
-                                        name = "Desaturate Trinket CD",
-                                        desc = "Desaturate the Trinket icon when it is on cooldown.",
+                                        name = L["Option_DesaturateTrinketCD"],
+                                        desc = L["Trinket_DesaturateOnCD_Desc"],
                                         type = "toggle",
                                         width = "full",
                                         get = function(info) return info.handler.db.profile.desaturateTrinketCD end,
@@ -4891,8 +4894,8 @@ else
                                     },
                                     desaturateDispelCD = {
                                         order = 2.2,
-                                        name = "Desaturate Dispel CD",
-                                        desc = "Desaturate the Dispel icon when it is on cooldown.",
+                                        name = L["Option_DesaturateDispelCD"],
+                                        desc = L["Dispel_DesaturateOnCD_Desc"],
                                         type = "toggle",
                                         width = "full",
                                         get = function(info) return info.handler.db.profile.desaturateDispelCD end,
@@ -4902,8 +4905,8 @@ else
                                     },
                                     disableOvershields = {
                                         order = 2.3,
-                                        name = "Disable Overshields",
-                                        desc = "Disable absorbs showing backwards onto healthbar when absorbs exceeds max hp",
+                                        name = L["Option_DisableOvershields"],
+                                        desc = L["Option_DisableOvershields_Desc"],
                                         type = "toggle",
                                         width = "full",
                                         get = function(info) return info.handler.db.profile.disableOvershields end,
@@ -4917,18 +4920,18 @@ else
                     },
                     drGroup = {
                         order = 2,
-                        name = "Diminishing Returns",
+                        name = L["Category_DiminishingReturns"],
                         type = "group",
                         args = {
                             drOptions = {
                                 order = 1,
                                 type = "group",
-                                name = "Options",
+                                name = L["Option_Miscellaneous"],
                                 inline = true,
                                 args = {
                                     drResetTime = {
                                         order = 1,
-                                        name = "DR Reset Time",
+                                        name = L["Option_DRResetTime"],
                                         disabled = function() return isMidnight end,
                                         desc = isRetail and
                                         "Blizzard no longer uses a dynamic timer for DR resets, it is 18 seconds\n\nBy default sArena has a 0.5 leeway added so a total of 18.5 seconds." or
@@ -4954,9 +4957,8 @@ else
                                     },
                                     showDecimalsDR = {
                                         order = 2,
-                                        name = "Show Decimals on DR's",
-                                        desc =
-                                        "Show Decimals on DR's when duration is below 6 seconds.\n\nOnly for non-OmniCC users.",
+                                        name = L["Option_ShowDecimalsOnDRs"],
+                                        desc = L["Option_ShowDecimalsOnDRs_Desc"],
                                         type = "toggle",
                                         width = 1.2,
                                         get = function(info) return info.handler.db.profile.showDecimalsDR end,
@@ -4967,8 +4969,8 @@ else
                                     },
                                     decimalThresholdDR = {
                                         order = 2.5,
-                                        name = "Decimal Threshold",
-                                        desc = "Show decimals when remaining time is below this threshold. Default is 6 seconds.",
+                                        name = L["Option_DecimalThreshold"],
+                                        desc = L["Cooldown_ShowDecimalsThreshold_Desc"],
                                         type = "range",
                                         min = 1,
                                         max = 10,
@@ -4986,15 +4988,15 @@ else
                             },
                             categories = {
                                 order = 2,
-                                name = "DR Categories",
+                                name = L["Option_DRCategories"],
                                 type = "group",
                                 disabled = function() return isMidnight end,
                                 inline = true,
                                 args = {
                                     drCategoriesPerClass = {
                                         order = 1,
-                                        name = "Per Class",
-                                        desc = "When enabled, the DR categories below become class-specific for your current class.\n\n|cff888888It still includes all default categories so you won't see an immediate change, you must manually change any you want to customize.|r",
+                                        name = L["Option_PerClass"],
+                                        desc = L["DR_ClassSpecific_Desc"],
                                         type = "toggle",
                                         get = function(info) return info.handler.db.profile.drCategoriesPerClass end,
                                         set = function(info, val)
@@ -5007,8 +5009,8 @@ else
                                     },
                                     drCategoriesPerSpec = {
                                         order = 2,
-                                        name = "Per Spec",
-                                        desc = "When enabled, the DR categories below become specialization-specific for your current spec.\n\n|cff888888It still includes all default categories so you won't see an immediate change, you must manually change any you want to customize.|r",
+                                        name = L["Option_PerSpec"],
+                                        desc = L["DR_SpecSpecific_Desc"],
                                         type = "toggle",
                                         get = function(info) return info.handler.db.profile.drCategoriesPerSpec end,
                                         set = function(info, val)
@@ -5033,18 +5035,18 @@ else
                                                 if classColor then
                                                     coloredText = "|c" .. classColor.colorStr .. coloredText .. "|r"
                                                 end
-                                                return "Categories (Per Spec: " .. coloredText .. ")"
+                                                return string.format(L["DR_CategoriesPerSpec"], coloredText)
                                             elseif db.profile.drCategoriesPerClass then
-                                                local className = select(1, UnitClass("player")) or "Unknown"
+                                                local className = select(1, UnitClass("player")) or L["Unknown"]
                                                 local classKey = select(2, UnitClass("player"))
                                                 local classColor = RAID_CLASS_COLORS[classKey]
                                                 local coloredText = className
                                                 if classColor then
                                                     coloredText = "|c" .. classColor.colorStr .. coloredText .. "|r"
                                                 end
-                                                return "Categories (Per Class: " .. coloredText .. ")"
+                                                return string.format(L["DR_CategoriesPerClass"], coloredText)
                                             else
-                                                return "Categories (Global)"
+                                                return L["DR_CategoriesGlobal"]
                                             end
                                         end,
                                         type = "multiselect",
@@ -5094,15 +5096,15 @@ else
                             },
                             dynamicIcons = {
                                 order = 3,
-                                name = "DR Icons",
+                                name = L["Option_DRIcons"],
                                 disabled = function() return isMidnight end,
                                 type = "group",
                                 inline = true,
                                 args = {
                                     drStaticIcons = {
                                         order = 1,
-                                        name = "Enable Static Icons",
-                                        desc = "DR icons will always use a specific icon for each DR category.",
+                                        name = L["Option_EnableStaticIcons"],
+                                        desc = L["DR_FixedIcons_Desc"],
                                         type = "toggle",
                                         get = function(info) return info.handler.db.profile.drStaticIcons end,
                                         set = function(info, val)
@@ -5112,8 +5114,8 @@ else
                                     },
                                     dynamicIconsPerClass = {
                                         order = 2,
-                                        name = "Per Class",
-                                        desc = "When enabled, the icons below become class-specific for your current class.\n\n|cff888888It still includes all default icons so you won't see an immediate change, you must manually change any you want to customize.|r",
+                                        name = L["Option_PerClass"],
+                                        desc = L["DR_ClassSpecificIcons_Desc"],
                                         type = "toggle",
                                         disabled = function(info) return not info.handler.db.profile.drStaticIcons end,
                                         get = function(info) return info.handler.db.profile.drStaticIconsPerClass end,
@@ -5127,8 +5129,8 @@ else
                                     },
                                     dynamicIconsPerSpec = {
                                         order = 3,
-                                        name = "Per Spec",
-                                        desc = "When enabled, the icons below become specialization-specific for your current spec.\n\n|cff888888It still includes all default icons so you won't see an immediate change, you must manually change any you want to customize.|r",
+                                        name = L["Option_PerSpec"],
+                                        desc = L["DR_SpecSpecificIcons_Desc"],
                                         type = "toggle",
                                         disabled = function(info) return not info.handler.db.profile.drStaticIcons end,
                                         get = function(info) return info.handler.db.profile.drStaticIconsPerSpec end,
@@ -5196,13 +5198,13 @@ else
                     },
                     racialGroup = {
                         order = 3,
-                        name = "Racials",
+                        name = L["Category_Racials"],
                         type = "group",
                         args = (function()
                             local args = {
                                 categories = {
                                     order = 1,
-                                    name = "Categories",
+                                    name = L["Option_Categories"],
                                     type = "multiselect",
                                     get = function(info, key) return info.handler.db.profile.racialCategories[key] end,
                                     set = function(info, key, val) info.handler.db.profile.racialCategories[key] = val end,
@@ -5212,13 +5214,13 @@ else
                             args.racialOptions = {
                                 order = 2,
                                 type = "group",
-                                name = "Options",
+                                name = L["Options"],
                                 inline = true,
                                 args = {
                                     swapRacialTrinket = {
                                         order = 1,
-                                        name = "Swap missing Trinket with Racial",
-                                        desc = "If the enemy doesn't have a Trinket equipped, remove the gap and show their Racial ability in the spot of the Trinket instead.",
+                                        name = L["Option_SwapMissingTrinketWithRacial"],
+                                        desc = L["Racial_ShowInTrinketSlot_Desc"],
                                         type = "toggle",
                                         width = "full",
                                         get = function(info) return info.handler.db.profile.swapRacialTrinket end,
@@ -5228,8 +5230,8 @@ else
                                     },
                                     forceShowTrinketOnHuman = {
                                         order = 2,
-                                        name = "Force Show Trinket on Human",
-                                        desc = "Always show the Alliance trinket texture on Human players, even if they don't have a trinket equipped.",
+                                        name = L["Option_ForceShowTrinketOnHuman"],
+                                        desc = L["Human_AlwaysShowTrinket_Desc"],
                                         type = "toggle",
                                         width = "full",
                                         hidden = function() return isRetail end,
@@ -5243,8 +5245,8 @@ else
                                     },
                                     replaceHumanRacialWithTrinket = {
                                         order = 3,
-                                        name = "Replace Human Racial with Trinket",
-                                        desc = "Replace the Human racial ability with the Alliance trinket texture in the racial slot.",
+                                        name = L["Option_ReplaceHumanRacialWithTrinket"],
+                                        desc = L["Option_ReplaceHumanRacialWithTrinket_Desc"],
                                         type = "toggle",
                                         width = "full",
                                         hidden = function() return isRetail end,
@@ -5264,15 +5266,15 @@ else
                     },
                     dispelGroup = {
                         order = 4,
-                        name = "Dispels",
+                        name = L["Category_Dispels"],
                         disabled = function() return isMidnight end,
                         type = "group",
                         args = (function()
                             local args = {
                                 showDispels = {
                                     order = 0,
-                                    name = "Show Dispels",
-                                    desc = "Enable to show Dispel Cooldown on Arena Frames.",
+                                    name = L["Option_ShowDispels"],
+                                    desc = L["Option_ShowDispels_Desc"],
                                     type = "toggle",
                                     width = "full",
                                     get = function(info) return info.handler.db.profile.showDispels end,
@@ -5306,7 +5308,7 @@ else
                             if next(healerDispels) then
                                 args["healer_dispels"] = {
                                     order = order,
-                                    name = "Healer Dispels",
+                                    name = L["Option_HealerDispels"],
                                     type = "group",
                                     inline = true,
                                     disabled = function(info) return not info.handler.db.profile.showDispels end,
@@ -5341,8 +5343,8 @@ else
                                             local spellName = GetSpellInfoCompat(spellID)
                                             local spellDesc = GetSpellDescriptionCompat(spellID)
 
-                                            spellName = spellName or data.name or "Unknown Spell"
-                                            local cooldownText = data.cooldown and ("Cooldown: " .. data.cooldown .. " seconds") or ""
+                                            spellName = spellName or data.name or L["Unknown_Spell"]
+                                            local cooldownText = data.cooldown and string.format(L["Cooldown_Seconds"], data.cooldown) or ""
 
                                             local tooltipLines = {}
                                             table.insert(tooltipLines, "|cFFFFD700" .. spellName .. "|r")
@@ -5365,7 +5367,7 @@ else
                             if next(dpsDispels) then
                                 args["dps_dispels"] = {
                                     order = order,
-                                    name = "DPS Dispels",
+                                    name = L["Option_DPSDispels"],
                                     type = "group",
                                     inline = true,
                                     disabled = function(info) return not info.handler.db.profile.showDispels end,
@@ -5373,7 +5375,7 @@ else
                                         description = {
                                             order = 1,
                                             type = "description",
-                                            name = "|cFFFFFF00Note:|r DPS dispels only appear after having been used once.",
+                                            name = L["Option_DPSDispelsNote"],
                                             fontSize = "medium",
                                         }
                                     }
@@ -5407,8 +5409,8 @@ else
                                             local spellName = GetSpellInfoCompat(spellID)
                                             local spellDesc = GetSpellDescriptionCompat(spellID)
 
-                                            spellName = spellName or data.name or "Unknown Spell"
-                                            local cooldownText = data.cooldown and ("Cooldown: " .. data.cooldown .. " seconds") or ""
+                                            spellName = spellName or data.name or L["Unknown_Spell"]
+                                            local cooldownText = data.cooldown and string.format(L["Cooldown_Seconds"], data.cooldown) or ""
 
                                             local tooltipLines = {}
                                             table.insert(tooltipLines, "|cFFFFD700" .. spellName .. "|r")
@@ -5432,7 +5434,7 @@ else
                             args["betaNotice"] = {
                                 order = 999,
                                 type = "description",
-                                name = "\n|cFF808080Dispels are in BETA.\nStill need to confirm some spell ids, especially in Mists of Pandaria.\nThings still need more testing (waiting for PTR) and things may see changes along the way.\nIf you want to contribute info/feedback/spell ids please do!|r",
+                                name = L["Option_DispelsBetaNotice"],
                                 fontSize = "medium",
                                 width = "full",
                             }
@@ -5444,21 +5446,21 @@ else
             },
             ImportOtherForkSettings = {
                 order = 7,
-                name = "Other sArena",
-                desc = "Import settings from another sArena",
+                name = L["Option_OthersArena"],
+                desc = L["Option_OthersArena_Desc"],
                 type = "group",
                 args = {
                     description = {
                         order = 1,
                         type = "description",
-                        name = "This will import your other sArena settings into the new sArena |cffff8000Reloaded|r |T135884:13:13|t version.\n\nMake sure both addons are enabled, then click the button below.",
+                        name = L["Option_ImportDescription"],
                         fontSize = "medium",
                     },
                     convertButton = {
                         order = 2,
                         type = "execute",
-                        name = "Import settings",
-                        desc = "Import your settings from the other sArena version.",
+                        name = L["Option_ImportSettings"],
+                        desc = L["Option_ImportSettings_Desc"],
                         func = sArenaMixin.ImportOtherForkSettings,
                         width = "normal",
                         disabled = function() return sArenaMixin.conversionInProgress end,
@@ -5475,7 +5477,7 @@ else
             midnightExpansion = {
                 order = 8,
                 name = "|cffcc66ffMidnight|r |T136221:16:16|t",
-                desc = "World of Warcraft: Midnight plans",
+                desc = L["Option_MidnightPlans_Desc"],
                 type = "group",
                 args = {
                     description = {
@@ -5489,19 +5491,19 @@ else
             },
             shareProfile = {
                 order = 9,
-                name = "Share Profile",
-                desc = "Export or import a sArena profile",
+                name = L["Option_ShareProfile"],
+                desc = L["Option_ShareProfile_Desc"],
                 type = "group",
                 args = {
                     exportHeader = {
                         order = 0,
                         type = "description",
-                        name = "|cffffff00Export Profile:|r",
+                        name = L["Option_ExportProfileHeader"],
                         fontSize = "large",
                     },
                     exportButton = {
                         order = 1,
-                        name = "Export Current Profile",
+                        name = L["Option_ExportCurrentProfile"],
                         type = "execute",
                         func = function(info)
                             local exportString, err = sArenaMixin:ExportProfile()
@@ -5510,16 +5512,16 @@ else
                                 sArenaMixin.importInputText = ""
                                 LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
                             else
-                                sArenaMixin:Print("Export failed:", err)
+                                sArenaMixin:Print(L["Message_ExportFailed"], err)
                             end
                         end,
                         width = "normal",
                     },
                     exportText = {
                         order = 2,
-                        name = "Export String",
+                        name = L["Option_ExportString"],
                         type = "input",
-                        desc = "|cff32f795Ctrl+A|r to select all, |cff32f795Ctrl+C|r to copy",
+                        desc = L["Option_ExportString_Desc"],
                         width = "full",
                         multiline = 5,
                         get = function()
@@ -5535,13 +5537,13 @@ else
                     importHeader = {
                         order = 4,
                         type = "description",
-                        name = "|cffffff00Import Profile:|r",
+                        name = L["Option_ImportProfileHeader"],
                         fontSize = "large",
                     },
                     importInput = {
                         order = 5,
-                        name = "Paste Profile String",
-                        desc = "|cff32f795Ctrl+V|r to paste copied profile string",
+                        name = L["Option_PasteProfileString"],
+                        desc = L["Option_PasteProfileString_Desc"],
                         type = "input",
                         width = "full",
                         multiline = 5,
@@ -5553,7 +5555,7 @@ else
                             local str = sArenaMixin.importInputText
                             local success, err = sArenaMixin:ImportProfile(str)
                             if not success then
-                                sArenaMixin:Print("|cffff4040Import failed:|r", err)
+                                sArenaMixin:Print(L["Message_ImportFailed"], err)
                             else
                                 sArena_ReloadedDB.reOpenOptions = true
                             end
@@ -5567,7 +5569,7 @@ else
                     streamerProfilesHeader = {
                         order = 7,
                         type = "description",
-                        name = "|cffffff00Streamer Profiles:|r",
+                        name = L["Option_StreamerProfilesHeader"],
                         fontSize = "large",
                     },
                     streamerProfilesDesc = {
@@ -5578,7 +5580,7 @@ else
                             realm = realm or GetRealmName()
                             local fullKey = name .. " - " .. realm
                             local currentProfileKey = sArena_ReloadedDB.profileKeys[fullKey] or "Default"
-                            return "Import pre-configured profiles from popular streamers.\nYou'll keep all your current profiles including your active \"|cff00ff00" .. currentProfileKey .. "|r\" profile.\nTo change profiles again go to the Profiles tab."
+                            return string.format(L["Option_StreamerProfiles_Desc"], currentProfileKey)
                         end,
                         fontSize = "medium",
                     },
@@ -5641,7 +5643,7 @@ else
                                 args[key] = {
                                     order = order,
                                     name = string.format("|A:%s:16:16|a %s%s|r", icon, color, profile.name),
-                                    desc = "Import " .. profile.name .. "'s profile settings.\n\n" .. color .. "www.twitch.tv/" .. profile.stream .. "|r",
+                                    desc = string.format(L["Option_ImportProfile_Desc"], profile.name, color, profile.stream),
                                     type = "execute",
                                     func = function(info)
                                         info.handler:ImportStreamerProfile(profile.name:gsub(" ", ""), profile.profileString, profile.name, color)

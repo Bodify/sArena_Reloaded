@@ -12,6 +12,7 @@
     <Script file="Ace3\Libs\LibSerialize\LibSerialize.lua"/>
 
     <Script file="sArena_Init.lua"/>
+    <Include file="locales\locales.xml"/>
     <Script file="sArena.lua"/>
     <Script file="Modules\Interrupt.lua"/>
     <Script file="Modules\Racials.lua"/>

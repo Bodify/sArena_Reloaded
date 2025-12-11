@@ -1,6 +1,7 @@
 local layoutName = "BlizzCompact"
 local layout = {}
 layout.name = "|cff00b4ffBlizz|r Compact |A:NewCharacter-Alliance:38:65|a"
+local L = sArenaMixin.L
 
 layout.defaultSettings = {
     posX = 400,
@@ -137,7 +138,7 @@ local function setupOptionsTable(self)
 
     layout.optionsTable.arenaFrames.args.positioning.args.mirrored = {
         order = 5,
-        name = "Mirrored Frames",
+        name = L["Option_MirroredFrames"],
         type = "toggle",
         width = "full",
         get = getSetting,

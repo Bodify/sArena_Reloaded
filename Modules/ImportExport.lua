@@ -1,5 +1,6 @@
 local LibDeflate = LibStub("LibDeflate")
 local LibSerialize = LibStub("LibSerialize")
+local L = sArenaMixin.L
 
 -- Reusable confirmation dialog frame
 local confirmDialog
@@ -30,7 +31,7 @@ local function ShowImportConfirmDialog(message, onAccept, data)
         -- Title
         frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         frame.title:SetPoint("TOP", 0, -15)
-        frame.title:SetText("sArena Import Confirmation")
+        frame.title:SetText(L["ImportExport_DialogTitle"])
         
         -- Message text
         frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -42,13 +43,13 @@ local function ShowImportConfirmDialog(message, onAccept, data)
         frame.yesButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
         frame.yesButton:SetSize(100, 22)
         frame.yesButton:SetPoint("BOTTOM", frame, "BOTTOM", -55, 20)
-        frame.yesButton:SetText("Yes")
+        frame.yesButton:SetText(L["Yes"])
         
         -- No button
         frame.noButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
         frame.noButton:SetSize(100, 22)
         frame.noButton:SetPoint("BOTTOM", frame, "BOTTOM", 55, 20)
-        frame.noButton:SetText("No")
+        frame.noButton:SetText(L["No"])
         frame.noButton:SetScript("OnClick", function()
             frame:Hide()
         end)
@@ -75,12 +76,12 @@ function sArenaMixin:ExportProfile()
 
     local profileKey = sArena_ReloadedDB.profileKeys[fullKey]
     if not profileKey then
-        return nil, "No profile found for current character."
+        return nil, L["Message_NoProfileFound"]
     end
 
     local profileTable = sArena_ReloadedDB.profiles[profileKey]
     if not profileTable then
-        return nil, "Profile data not found."
+        return nil, L["Message_ProfileDataNotFound"]
     end
 
     local exportTable = {
@@ -100,7 +101,7 @@ function sArenaMixin:ImportProfile(encodedString, customProfileName)
     encodedString = encodedString:match("^%s*(.-)%s*$")
 
     if not encodedString:match("^!sArena:.+:sArena!$") then
-        return nil, "Invalid format."
+        return nil, L["Message_InvalidFormat"]
     end
 
     local encoded = encodedString:match("^!sArena:(.+):sArena!$")
@@ -108,16 +109,16 @@ function sArenaMixin:ImportProfile(encodedString, customProfileName)
     local serialized, decompressErr = LibDeflate:DecompressDeflate(compressed)
 
     if not serialized then
-        return nil, "Decompression error: " .. (decompressErr or "unknown")
+        return nil, string.format(L["Message_DecompressionError"], decompressErr or "unknown")
     end
 
     local success, importTable = LibSerialize:Deserialize(serialized)
     if not success or type(importTable) ~= "table" then
-        return nil, "Deserialization error or invalid format."
+        return nil, L["Message_DeserializationError"]
     end
 
     if importTable.dataType ~= "sArenaProfile" or type(importTable.data) ~= "table" then
-        return nil, "Incorrect data type."
+        return nil, L["Message_IncorrectDataType"]
     end
 
     local newName
@@ -173,7 +174,7 @@ function sArenaMixin:ImportStreamerProfile(streamerName, profileString, displayN
     if not profileExists then
         local success, err = sArenaMixin:ImportProfile(data.profileString, data.profileName)
         if not success then
-            sArenaMixin:Print("|cffff4040Import failed:|r", err)
+            sArenaMixin:Print(L["Message_ImportFailed"], err)
         end
         return
     end
@@ -181,11 +182,11 @@ function sArenaMixin:ImportStreamerProfile(streamerName, profileString, displayN
     -- Profile exists, ask for confirmation to overwrite
     -- Format the name with class color like the button does
     local coloredName = (classColor or "|cffffffff") .. (displayName or streamerName) .. "|r"
-    local message = "You already have " .. coloredName .. "'s profile. Re-importing it will overwrite all your settings for this profile. Are you sure you want to continue?"
+    local message = string.format(L["Message_ProfileOverwrite"], coloredName)
     ShowImportConfirmDialog(message, function(d)
         local success, err = sArenaMixin:ImportProfile(d.profileString, d.profileName)
         if not success then
-            sArenaMixin:Print("|cffff4040Import failed:|r", err)
+            sArenaMixin:Print(L["Message_ImportFailed"], err)
         end
     end, data)
 end

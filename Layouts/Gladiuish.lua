@@ -1,6 +1,7 @@
 local layoutName = "Gladiuish"
 local layout = {}
 layout.name = "Gladiuish |A:NewCharacter-Alliance:38:65|a"
+local L = sArenaMixin.L
 
 layout.defaultSettings = {
     posX = 355,
@@ -130,7 +131,7 @@ local function setupOptionsTable(self)
 
     layout.optionsTable.arenaFrames.args.positioning.args.mirrored = {
         order = 5,
-        name = "Mirrored Frames",
+        name = L["Option_MirroredFrames"],
         type = "toggle",
         width = "full",
         get = getSetting,
@@ -139,7 +140,7 @@ local function setupOptionsTable(self)
 
     layout.optionsTable.arenaFrames.args.sizing.args.width = {
         order = 3,
-        name = "Width",
+        name = L["Width"],
         type = "range",
         min = 40,
         max = 400,
@@ -150,7 +151,7 @@ local function setupOptionsTable(self)
 
     layout.optionsTable.arenaFrames.args.sizing.args.height = {
         order = 4,
-        name = "Height",
+        name = L["Height"],
         type = "range",
         min = 2,
         max = 100,
@@ -161,7 +162,7 @@ local function setupOptionsTable(self)
 
     layout.optionsTable.arenaFrames.args.sizing.args.powerBarHeight = {
         order = 5,
-        name = "Power Bar Height",
+        name = L["Option_PowerBarHeight"],
         type = "range",
         min = 1,
         max = 50,
@@ -172,7 +173,7 @@ local function setupOptionsTable(self)
 
     layout.optionsTable.arenaFrames.args.other.args.cropIcons = {
         order = 5,
-        name = "Crop Icons",
+        name = L["Option_CropIcons"],
         type = "toggle",
         get = getSetting,
         set = setSetting,

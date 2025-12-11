@@ -1,6 +1,7 @@
 local isRetail = sArenaMixin.isRetail
 local isMidnight = sArenaMixin.isMidnight
 local isTBC = sArenaMixin.isTBC
+local L = sArenaMixin.L
 
 sArenaMixin.layouts = {}
 sArenaMixin.defaultSettings = {
@@ -93,9 +94,9 @@ end
 
 function sArenaMixin:FontOutlineValues()
     return {
-        [""] = "No outline",
-        ["OUTLINE"] = "Outline",
-        ["THICKOUTLINE"] = "Thick outline"
+        [""] = L["Outline_None"],
+        ["OUTLINE"] = L["Outline_Normal"],
+        ["THICKOUTLINE"] = L["Outline_Thick"]
     }
 end
 
@@ -286,7 +287,7 @@ end
 local db
 local emptyLayoutOptionsTable = {
     notice = {
-        name = "The selected layout doesn't appear to have any settings.",
+        name = L["Message_NoLayoutSettings"],
         type = "description",
     }
 }
@@ -1036,18 +1037,18 @@ function sArenaMixin:ShowMidnightDRWarning()
 
     local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOP", frame, "TOP", 0, -20)
-    title:SetText("|cffa020f0Midnight Beta Warning|r")
+    title:SetText(L["Message_MidnightWarningTitle"])
 
     local text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     text:SetPoint("TOP", title, "BOTTOM", 0, -15)
     text:SetWidth(400)
     text:SetJustifyH("CENTER")
-    text:SetText("Midnight is in Beta and Edit Mode is causing\nthe new DR's to error.\n\n|cffFFFF00Reload UI to fix.|r\n\nThis warning will be removed as soon as\nBlizzard fixes Edit Mode and DR's.")
+    text:SetText(L["Message_MidnightWarningText"])
 
     local reloadButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
     reloadButton:SetSize(150, 30)
     reloadButton:SetPoint("BOTTOM", frame, "BOTTOM", 0, 20)
-    reloadButton:SetText("Reload UI")
+    reloadButton:SetText(L["Button_ReloadUI"])
     reloadButton:SetScript("OnClick", function()
         EnsureArenaFramesEnabled()
         ReloadUI()

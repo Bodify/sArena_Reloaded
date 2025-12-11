@@ -1,6 +1,7 @@
 local layoutName = "Pixelated"
 local layout = {}
 layout.name = "Pixelated |A:NewCharacter-Alliance:38:65|a"
+local L = sArenaMixin.L
 
 layout.defaultSettings = {
     posX = 433,
@@ -312,7 +313,7 @@ local function setupOptionsTable(self)
 
     layout.optionsTable.arenaFrames.args.positioning.args.mirrored = {
         order = 5,
-        name = "Mirrored Frames",
+        name = L["Option_MirroredFrames"],
         type = "toggle",
         width = "full",
         get = getSetting,
@@ -321,7 +322,7 @@ local function setupOptionsTable(self)
 
     layout.optionsTable.arenaFrames.args.sizing.args.width = {
         order = 3,
-        name = "Width",
+        name = L["Width"],
         type = "range",
         min = 40,
         max = 400,
@@ -332,7 +333,7 @@ local function setupOptionsTable(self)
 
     layout.optionsTable.arenaFrames.args.sizing.args.height = {
         order = 4,
-        name = "Height",
+        name = L["Height"],
         type = "range",
         min = 2,
         max = 100,
@@ -343,7 +344,7 @@ local function setupOptionsTable(self)
 
     layout.optionsTable.arenaFrames.args.sizing.args.powerBarHeight = {
         order = 5,
-        name = "Power Bar Height",
+        name = L["Option_PowerBarHeight"],
         type = "range",
         min = 1,
         max = 50,
@@ -353,7 +354,7 @@ local function setupOptionsTable(self)
     }
     layout.optionsTable.arenaFrames.args.other.args.cropIcons = {
         order = 5,
-        name = "Crop Icons",
+        name = L["Option_CropIcons"],
         type = "toggle",
         width = "full",
         get = getSetting,
@@ -361,7 +362,7 @@ local function setupOptionsTable(self)
     }
     layout.optionsTable.arenaFrames.args.other.args.pixelBorderSize = {
         order = 6,
-        name = "Pixel Border Size",
+        name = L["Option_PixelBorderSize"],
         type = "range",
         min = 0.5,
         max = 3,
@@ -371,7 +372,7 @@ local function setupOptionsTable(self)
     }
     layout.optionsTable.arenaFrames.args.other.args.pixelBorderOffset = {
         order = 7,
-        name = "Pixel Border Offset",
+        name = L["Option_PixelBorderOffset"],
         type = "range",
         min = -3,
         max = 3,
@@ -381,7 +382,7 @@ local function setupOptionsTable(self)
     }
     layout.optionsTable.arenaFrames.args.other.args.drPixelBorderSize = {
         order = 8,
-        name = "DR Pixel Border Size",
+        name = L["Option_DRPixelBorderSize"],
         type = "range",
         min = 0.5,
         max = 3,
@@ -393,7 +394,7 @@ local function setupOptionsTable(self)
     -- Add classIcon settings specific to Pixelated layout
     layout.optionsTable.classIcon = {
         order = 1.5,
-        name = "Class Icon",
+        name = L["Category_ClassIcon"],
         type = "group",
         get = function(info) 
             return layout.db.classIcon[info[#info]] 
@@ -411,13 +412,13 @@ local function setupOptionsTable(self)
         args = {
             positioning = {
                 order = 1,
-                name = "Positioning",
+                name = L["Positioning"],
                 type = "group",
                 inline = true,
                 args = {
                     posX = {
                         order = 1,
-                        name = "Horizontal",
+                        name = L["Horizontal"],
                         type = "range",
                         min = -700,
                         max = 700,
@@ -428,7 +429,7 @@ local function setupOptionsTable(self)
                     },
                     posY = {
                         order = 2,
-                        name = "Vertical",
+                        name = L["Vertical"],
                         type = "range",
                         min = -700,
                         max = 700,
@@ -441,13 +442,13 @@ local function setupOptionsTable(self)
             },
             sizing = {
                 order = 2,
-                name = "Sizing",
+                name = L["Sizing"],
                 type = "group",
                 inline = true,
                 args = {
                     scale = {
                         order = 1,
-                        name = "Scale",
+                        name = L["Scale"],
                         type = "range",
                         min = 0.1,
                         max = 5.0,
