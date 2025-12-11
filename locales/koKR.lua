@@ -44,7 +44,6 @@ L["Direction_TopRight"] = "오른쪽 위"
 L["Direction_BottomLeft"] = "왼쪽 아래"
 L["Direction_Bottom"] = "아래"
 L["Direction_BottomRight"] = "오른쪽 아래"
-L["Direction_Center"] = "가운데"
 
 ---------------------------------------
 -- Font Outlines
