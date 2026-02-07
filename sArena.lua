@@ -4779,15 +4779,196 @@ end
 
 function sArenaMixin:CastbarOnEvent(castBar)
     local colors = sArenaMixin.castbarColors
-    if sArenaMixin.modernCastbars then
-        if not sArenaMixin.keepDefaultModernTextures then
+    if isMidnight then
+        if sArenaMixin.modernCastbars then
+            if not sArenaMixin.keepDefaultModernTextures then
+                local textureToUse = sArenaMixin.castTexture
+                -- if castBar.barType == "uninterruptable" and sArenaMixin.castUninterruptibleTexture then
+                --     textureToUse = sArenaMixin.castUninterruptibleTexture
+                -- end
+                if textureToUse then
+                    castBar:SetStatusBarTexture(textureToUse)
+                end
+                if colors.enabled then
+                    -- if castBar.barType == "uninterruptable" then
+                    --     castBar:SetStatusBarColor(unpack(colors.uninterruptable or { 0.7, 0.7, 0.7, 1 }))
+                    if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
+                        castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                    elseif castBar.channeling then
+                        castBar:SetStatusBarColor(unpack(colors.channel or { 0.0, 1.0, 0.0, 1 }))
+                    -- elseif castBar.barType == "interrupted" then
+                    --     castBar:SetStatusBarColor(1, 0, 0)
+                    else
+                        castBar:SetStatusBarColor(unpack(colors.standard or { 1.0, 0.7, 0.0, 1 }))
+                    end
+                else
+                    -- if castBar.barType == "uninterruptable" then
+                    --     castBar:SetStatusBarColor(0.7, 0.7, 0.7)
+                    if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
+                        castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                    elseif castBar.channeling then
+                        castBar:SetStatusBarColor(0, 1, 0)
+                    -- elseif castBar.barType == "interrupted" then
+                    --     castBar:SetStatusBarColor(1, 0, 0)
+                    else
+                        castBar:SetStatusBarColor(1, 0.7, 0)
+                    end
+                end
+                castBar.changedBarColor = true
+            elseif colors.enabled then
+                -- if sArenaMixin.isMoP then
+                --     castBar:SetStatusBarTexture(castBar.barType == "uninterruptable" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Uninterruptable" or castBar.barType == "channel" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Channel" or "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Standard")
+                -- end
+                local castTexture = castBar:GetStatusBarTexture()
+                if castTexture then
+                    castTexture:SetDesaturated(true)
+                end
+                -- if castBar.barType == "uninterruptable" then
+                --     castBar:SetStatusBarColor(unpack(colors.uninterruptable or { 0.7, 0.7, 0.7, 1 }))
+                if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
+                    castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                elseif castBar.channeling then
+                    castBar:SetStatusBarColor(unpack(colors.channel or { 0.0, 1.0, 0.0, 1 }))
+                -- elseif castBar.barType == "interrupted" then
+                --     castBar:SetStatusBarColor(1, 0, 0)
+                else
+                    castBar:SetStatusBarColor(unpack(colors.standard or { 1.0, 0.7, 0.0, 1 }))
+                end
+                castBar.changedBarColor = true
+            elseif sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
+                local castTexture = castBar:GetStatusBarTexture()
+                if castTexture then
+                    castTexture:SetDesaturated(true)
+                end
+                castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                castBar.changedBarColor = true
+            elseif castBar.changedBarColor or sArenaMixin.keepDefaultModernTextures then
+                local castTexture = castBar:GetStatusBarTexture()
+                if castTexture then
+                    castTexture:SetDesaturated(false)
+                end
+                castBar:SetStatusBarColor(1, 1, 1)
+                if isRetail then
+                    castBar:SetStatusBarTexture(castBar.channeling and "UI-CastingBar-Filling-Channel" or "ui-castingbar-filling-standard")
+                else
+                    castBar:SetStatusBarTexture(castBar.channeling and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Channel" or "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Standard")
+                end
+                castBar.changedBarColor = nil
+            end
+        else
+            local textureToUse = sArenaMixin.castTexture
+            -- if castBar.barType == "uninterruptable" and sArenaMixin.castUninterruptibleTexture then
+            --     textureToUse = sArenaMixin.castUninterruptibleTexture
+            -- end
+            castBar:SetStatusBarTexture(textureToUse or "Interface\\RaidFrame\\Raid-Bar-Hp-Fill")
+            if colors.enabled then
+                -- if castBar.barType == "uninterruptable" then
+                --     castBar:SetStatusBarColor(unpack(colors.uninterruptable or { 0.7, 0.7, 0.7, 1 }))
+                if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
+                    castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                elseif castBar.channeling then
+                    castBar:SetStatusBarColor(unpack(colors.channel or { 0.0, 1.0, 0.0, 1 }))
+                -- elseif castBar.barType == "interrupted" then
+                --     castBar:SetStatusBarColor(1, 0, 0)
+                else
+                    castBar:SetStatusBarColor(unpack(colors.standard or { 1.0, 0.7, 0.0, 1 }))
+                end
+            else
+                -- if castBar.barType == "uninterruptable" then
+                --     castBar:SetStatusBarColor(0.7, 0.7, 0.7)
+                if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
+                    castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                elseif castBar.channeling then
+                    castBar:SetStatusBarColor(0, 1, 0)
+                -- elseif castBar.barType == "interrupted" then
+                --     castBar:SetStatusBarColor(1, 0, 0)
+                else
+                    castBar:SetStatusBarColor(1, 0.7, 0)
+                end
+            end
+        end
+    else
+        if sArenaMixin.modernCastbars then
+            if not sArenaMixin.keepDefaultModernTextures then
+                local textureToUse = sArenaMixin.castTexture
+                if castBar.barType == "uninterruptable" and sArenaMixin.castUninterruptibleTexture then
+                    textureToUse = sArenaMixin.castUninterruptibleTexture
+                end
+                if textureToUse then
+                    castBar:SetStatusBarTexture(textureToUse)
+                end
+                if colors.enabled then
+                    if castBar.barType == "uninterruptable" then
+                        castBar:SetStatusBarColor(unpack(colors.uninterruptable or { 0.7, 0.7, 0.7, 1 }))
+                    elseif sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
+                        castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                    elseif castBar.barType == "channel" then
+                        castBar:SetStatusBarColor(unpack(colors.channel or { 0.0, 1.0, 0.0, 1 }))
+                    elseif castBar.barType == "interrupted" then
+                        castBar:SetStatusBarColor(1, 0, 0)
+                    else
+                        castBar:SetStatusBarColor(unpack(colors.standard or { 1.0, 0.7, 0.0, 1 }))
+                    end
+                else
+                    if castBar.barType == "uninterruptable" then
+                        castBar:SetStatusBarColor(0.7, 0.7, 0.7)
+                    elseif sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
+                        castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                    elseif castBar.barType == "channel" then
+                        castBar:SetStatusBarColor(0, 1, 0)
+                    elseif castBar.barType == "interrupted" then
+                        castBar:SetStatusBarColor(1, 0, 0)
+                    else
+                        castBar:SetStatusBarColor(1, 0.7, 0)
+                    end
+                end
+                castBar.changedBarColor = true
+            elseif colors.enabled then
+                if sArenaMixin.isMoP then
+                    castBar:SetStatusBarTexture(castBar.barType == "uninterruptable" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Uninterruptable" or castBar.barType == "channel" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Channel" or "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Standard")
+                end
+                local castTexture = castBar:GetStatusBarTexture()
+                if castTexture then
+                    castTexture:SetDesaturated(true)
+                end
+                if castBar.barType == "uninterruptable" then
+                    castBar:SetStatusBarColor(unpack(colors.uninterruptable or { 0.7, 0.7, 0.7, 1 }))
+                elseif sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
+                    castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                elseif castBar.barType == "channel" then
+                    castBar:SetStatusBarColor(unpack(colors.channel or { 0.0, 1.0, 0.0, 1 }))
+                elseif castBar.barType == "interrupted" then
+                    castBar:SetStatusBarColor(1, 0, 0)
+                else
+                    castBar:SetStatusBarColor(unpack(colors.standard or { 1.0, 0.7, 0.0, 1 }))
+                end
+                castBar.changedBarColor = true
+            elseif sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady and castBar.barType ~= "uninterruptable" then
+                local castTexture = castBar:GetStatusBarTexture()
+                if castTexture then
+                    castTexture:SetDesaturated(true)
+                end
+                castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                castBar.changedBarColor = true
+            elseif castBar.changedBarColor or sArenaMixin.keepDefaultModernTextures then
+                local castTexture = castBar:GetStatusBarTexture()
+                if castTexture then
+                    castTexture:SetDesaturated(false)
+                end
+                castBar:SetStatusBarColor(1, 1, 1)
+                if isRetail then
+                    castBar:SetStatusBarTexture(castBar.barType == "uninterruptable" and "UI-CastingBar-Uninterruptable" or castBar.barType == "channel" and "UI-CastingBar-Filling-Channel" or "ui-castingbar-filling-standard")
+                else
+                    castBar:SetStatusBarTexture(castBar.barType == "uninterruptable" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Uninterruptable" or castBar.barType == "channel" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Channel" or "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Standard")
+                end
+                castBar.changedBarColor = nil
+            end
+        else
             local textureToUse = sArenaMixin.castTexture
             if castBar.barType == "uninterruptable" and sArenaMixin.castUninterruptibleTexture then
                 textureToUse = sArenaMixin.castUninterruptibleTexture
             end
-            if textureToUse then
-                castBar:SetStatusBarTexture(textureToUse)
-            end
+            castBar:SetStatusBarTexture(textureToUse or "Interface\\RaidFrame\\Raid-Bar-Hp-Fill")
             if colors.enabled then
                 if castBar.barType == "uninterruptable" then
                     castBar:SetStatusBarColor(unpack(colors.uninterruptable or { 0.7, 0.7, 0.7, 1 }))
@@ -4813,86 +4994,15 @@ function sArenaMixin:CastbarOnEvent(castBar)
                     castBar:SetStatusBarColor(1, 0.7, 0)
                 end
             end
-            castBar.changedBarColor = true
-        elseif colors.enabled then
-            if sArenaMixin.isMoP then
-                castBar:SetStatusBarTexture(castBar.barType == "uninterruptable" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Uninterruptable" or castBar.barType == "channel" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Channel" or "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Standard")
-            end
-            local castTexture = castBar:GetStatusBarTexture()
-            if castTexture then
-                castTexture:SetDesaturated(true)
-            end
-            if castBar.barType == "uninterruptable" then
-                castBar:SetStatusBarColor(unpack(colors.uninterruptable or { 0.7, 0.7, 0.7, 1 }))
-            elseif sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
-                castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
-            elseif castBar.barType == "channel" then
-                castBar:SetStatusBarColor(unpack(colors.channel or { 0.0, 1.0, 0.0, 1 }))
-            elseif castBar.barType == "interrupted" then
-                castBar:SetStatusBarColor(1, 0, 0)
-            else
-                castBar:SetStatusBarColor(unpack(colors.standard or { 1.0, 0.7, 0.0, 1 }))
-            end
-            castBar.changedBarColor = true
-        elseif sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady and castBar.barType ~= "uninterruptable" then
-            local castTexture = castBar:GetStatusBarTexture()
-            if castTexture then
-                castTexture:SetDesaturated(true)
-            end
-            castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
-            castBar.changedBarColor = true
-        elseif castBar.changedBarColor or sArenaMixin.keepDefaultModernTextures then
-            local castTexture = castBar:GetStatusBarTexture()
-            if castTexture then
-                castTexture:SetDesaturated(false)
-            end
-            castBar:SetStatusBarColor(1, 1, 1)
-            if isRetail then
-                castBar:SetStatusBarTexture(castBar.barType == "uninterruptable" and "UI-CastingBar-Uninterruptable" or castBar.barType == "channel" and "UI-CastingBar-Filling-Channel" or "ui-castingbar-filling-standard")
-            else
-                castBar:SetStatusBarTexture(castBar.barType == "uninterruptable" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Uninterruptable" or castBar.barType == "channel" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Channel" or "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Standard")
-            end
-            castBar.changedBarColor = nil
         end
-    else
-        local textureToUse = sArenaMixin.castTexture
-        if castBar.barType == "uninterruptable" and sArenaMixin.castUninterruptibleTexture then
-            textureToUse = sArenaMixin.castUninterruptibleTexture
-        end
-        castBar:SetStatusBarTexture(textureToUse or "Interface\\RaidFrame\\Raid-Bar-Hp-Fill")
-        if colors.enabled then
-            if castBar.barType == "uninterruptable" then
-                castBar:SetStatusBarColor(unpack(colors.uninterruptable or { 0.7, 0.7, 0.7, 1 }))
-            elseif sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
-                castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
-            elseif castBar.barType == "channel" then
-                castBar:SetStatusBarColor(unpack(colors.channel or { 0.0, 1.0, 0.0, 1 }))
-            elseif castBar.barType == "interrupted" then
-                castBar:SetStatusBarColor(1, 0, 0)
-            else
-                castBar:SetStatusBarColor(unpack(colors.standard or { 1.0, 0.7, 0.0, 1 }))
-            end
-        else
-            if castBar.barType == "uninterruptable" then
-                castBar:SetStatusBarColor(0.7, 0.7, 0.7)
-            elseif sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
-                castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
-            elseif castBar.barType == "channel" then
-                castBar:SetStatusBarColor(0, 1, 0)
-            elseif castBar.barType == "interrupted" then
-                castBar:SetStatusBarColor(1, 0, 0)
-            else
-                castBar:SetStatusBarColor(1, 0.7, 0)
-            end
-        end
-    end
-    if not isMidnight and isRetail then
-        if self.barType == "uninterruptable" then
-            if self.ChargeTier1 then
+        if not isMidnight and isRetail then
+            if self.barType == "uninterruptable" then
+                if self.ChargeTier1 then
+                    HideChargeTiers(self)
+                end
+            elseif self.barType == "empowered" then
                 HideChargeTiers(self)
             end
-        elseif self.barType == "empowered" then
-            HideChargeTiers(self)
         end
     end
 end
