@@ -1,7 +1,7 @@
 ## Interface: 30405, 38000
 ## Title: sArena |cffff8000Reloaded|r |T135884:16:16|t
 ## Notes: Enhanced Arena Frames
-## Version: 2.3.4
+## Version: @project-version@
 ## Author: Stako, "reloaded" by Bodify
 ## IconTexture: 135884
 ## OptionalDeps: sArena, sArena_Updated2_by_sammers
