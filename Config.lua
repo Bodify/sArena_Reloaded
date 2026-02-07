@@ -3322,6 +3322,10 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
                                 drFrame.Cooldown:SetSwipeTexture(1)
                             end
                         end
+
+                        if drFrame.DRTextFrame then
+                            drFrame.DRTextFrame:SetShown(db.showDRText == true)
+                        end
                     end
                 end
             end
@@ -3557,6 +3561,10 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
                             if fakeDRFrame.Cooldown then
                                 fakeDRFrame.Cooldown:SetSwipeTexture(1)
                             end
+                        end
+
+                        if fakeDRFrame.DRTextFrame then
+                            fakeDRFrame.DRTextFrame:SetShown(db.showDRText == true)
                         end
                     end
                 end
