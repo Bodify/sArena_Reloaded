@@ -20,7 +20,3 @@ local L_mt = {
 }
 
 setmetatable(sArenaMixin.L, L_mt)
-
--- Create global L alias for convenience
-L = sArenaMixin.L
-
