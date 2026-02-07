@@ -1100,62 +1100,13 @@ local function IsMatchStartedMessage(msg)
 end
 
 local function EnsureArenaFramesEnabled()
-    local accountSettings = EditModeManagerFrame
-        and EditModeManagerFrame.AccountSettings
+    local accountSettings = EditModeManagerFrame and EditModeManagerFrame.AccountSettings
     if not accountSettings then return end
 
-    if EditModeManagerFrame
-        and EditModeManagerFrame.EnableAdvancedOptionsCheckButton
-        and EditModeManagerFrame.EnableAdvancedOptionsCheckButton.Button
-        and not EditModeManagerFrame.EnableAdvancedOptionsCheckButton.Button:GetChecked()
-    then
-        EditModeManagerFrame.EnableAdvancedOptionsCheckButton.Button:Click()
-    end
-
-    local framesContainer = accountSettings.SettingsContainer
-        and accountSettings.SettingsContainer.ScrollChild
-        and accountSettings.SettingsContainer.ScrollChild.AdvancedOptionsContainer
-        and accountSettings.SettingsContainer.ScrollChild.AdvancedOptionsContainer.FramesContainer
-
-    if not framesContainer then return end
-
-    local children = { framesContainer:GetChildren() }
-
-    for _, child in ipairs(children) do
-        local label = child.Label
-        if label and label.GetText then
-            local text = label:GetText()
-            if text == "Arena Frames" then
-                local button = child.Button
-                if button and not button:GetChecked() then
-                    button:Click()
-                end
-                return
-            end
-        end
-    end
-
-    local arenaFramesButton
-    local bestX, bestY
-
-    for _, child in ipairs(children) do
-        local label = child.Label
-        if label and label.GetPoint then
-            local _, _, _, x, y = child:GetPoint()
-            if x and y then
-                if not arenaFramesButton
-                    or x > bestX
-                    or (x == bestX and y < bestY)
-                then
-                    arenaFramesButton = child
-                    bestX, bestY = x, y
-                end
-            end
-        end
-    end
-
-    if arenaFramesButton and arenaFramesButton.Button and not arenaFramesButton.Button:GetChecked() then
-        arenaFramesButton.Button:Click()
+    local arenaFramesEnabled = EditModeManagerFrame:GetAccountSettingValueBool(Enum.EditModeAccountSetting.ShowArenaFrames)
+    if not arenaFramesEnabled then
+        EditModeManagerFrame:OnAccountSettingChanged(Enum.EditModeAccountSetting.ShowArenaFrames, true)
+        EditModeManagerFrame.AccountSettings:RefreshArenaFrames()
     end
 end
 
