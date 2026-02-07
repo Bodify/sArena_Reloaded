@@ -3326,6 +3326,9 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
                         if drFrame.DRTextFrame then
                             drFrame.DRTextFrame:SetShown(db.showDRText == true)
                         end
+                        if drFrame.DRText2 then
+                            drFrame.DRText2:SetShown(db.showDRText == true)
+                        end
                     end
                 end
             end
