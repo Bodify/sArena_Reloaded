@@ -2610,14 +2610,16 @@ function sArenaFrameMixin:OnLoad()
         self.otherHealPredictionBar:Hide()
         self.totalAbsorbBarOverlay:Hide()
         self.myHealPredictionBar:Hide()
-        local healthBar = self.HealthBar
 
         local debuffFrame = blizzArenaFrame.DebuffFrame
         if debuffFrame then
             hooksecurefunc(debuffFrame.Icon, "SetTexture", function(_, tex)
                 if tex == "INTERFACE\\ICONS\\INV_MISC_QUESTIONMARK.BLP" or (db and db.profile.disableAurasOnClassIcon) then
                     self:UpdateClassIcon(true)
+                    self.ClassIcon.Cooldown:Clear()
+                    self.ClassIcon.ccActive = false
                 else
+                    self.ClassIcon.ccActive = true
                     self.ClassIcon.Texture:SetTexture(tex)
                 end
             end)
@@ -2632,7 +2634,16 @@ function sArenaFrameMixin:OnLoad()
             trinketFrame:SetAlpha(0)
             hooksecurefunc(trinketFrame.Cooldown, "SetCooldown", function(_, start, duration)
                 self.Trinket.Cooldown:SetCooldown(start, duration)
-                self.Trinket.Texture:SetDesaturated(db and db.profile.desaturateTrinketCD)
+                self.Trinket.Texture:SetDesaturated(db and db.profile.desaturateTrinketCD and not db.profile.colorTrinket)
+                if db and db.profile.colorTrinket then
+                    self.Trinket.Texture:SetColorTexture(1, 0, 0)
+                end
+            end)
+
+            hooksecurefunc(trinketFrame.Cooldown, "Clear", function()
+                if db and db.profile.colorTrinket then
+                    self.Trinket.Texture:SetColorTexture(0, 1, 0)
+                end
             end)
         end
 
@@ -3469,21 +3480,6 @@ function sArenaFrameMixin:UpdateSpecIcon()
         self.SpecIcon:Show()
         if self.SpecIconMsq then
             self.SpecIconMsq:Show()
-        end
-    end
-end
-
-function sArenaFrameMixin:UpdateClassIcon()
-    local db = self.parent.db
-    if not db then return end
-
-    if self.specTexture then
-        if db.profile.hideClassIcon then
-            if self.ClassIconMsq then
-                self.ClassIconMsq:Hide()
-            end
-        elseif db.profile.layoutSettings[db.profile.currentLayout].replaceClassIcon and self.specTexture then
-            self.SpecIconMsq:Hide()
         end
     end
 end
