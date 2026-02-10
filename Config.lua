@@ -2637,20 +2637,27 @@ function sArenaMixin:UpdateCastbarColors()
     local defaultUninterruptable = { 0.7, 0.7, 0.7, 1 }
     local defaultInterruptNotReady = { 1.0, 0.0, 0.0, 1 }
 
-    if colors then
-        local standardColor = colors.standard or defaultStandard
-        local channelColor = colors.channel or defaultChannel
-        local uninterruptableColor = colors.uninterruptable or defaultUninterruptable
-        local interruptNotReadyColor = colors.interruptNotReady or defaultInterruptNotReady
+    local standardColor = (colors and colors.standard) or defaultStandard
+    local channelColor = (colors and colors.channel) or defaultChannel
+    local uninterruptableColor = (colors and colors.uninterruptable) or defaultUninterruptable
+    local interruptNotReadyColor = (colors and colors.interruptNotReady) or defaultInterruptNotReady
 
-        -- Update the colors in ModernCastbar.lua's actionColors table
-        sArenaMixin.castbarColors = {
-            enabled = recolorEnabled,
-            standard = standardColor,
-            channel = channelColor,
-            uninterruptable = uninterruptableColor,
-            interruptNotReady = interruptNotReadyColor,
-        }
+    sArenaMixin.castbarColors = {
+        enabled = recolorEnabled,
+        standard = standardColor,
+        channel = channelColor,
+        uninterruptable = uninterruptableColor,
+        interruptNotReady = interruptNotReadyColor,
+    }
+
+    if isMidnight then
+        sArenaMixin.castbarColors.colorStandard = CreateColor(unpack(standardColor))
+        sArenaMixin.castbarColors.colorChannel = CreateColor(unpack(channelColor))
+        sArenaMixin.castbarColors.colorUninterruptable = CreateColor(unpack(uninterruptableColor))
+        sArenaMixin.castbarColors.colorInterruptNotReady = CreateColor(unpack(interruptNotReadyColor))
+        sArenaMixin.castbarColors.defaultStandard = CreateColor(1.0, 0.7, 0.0, 1)
+        sArenaMixin.castbarColors.defaultChannel = CreateColor(0.0, 1.0, 0.0, 1)
+        sArenaMixin.castbarColors.defaultUninterruptable = CreateColor(0.7, 0.7, 0.7, 1)
     end
 
     -- Update MoP castbar colors for already-created castbars

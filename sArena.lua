@@ -2691,7 +2691,7 @@ function sArenaFrameMixin:OnLoad()
                 end
             end
         end
-        sArenaMixin:CastbarOnEvent(self.CastBar)
+        sArenaMixin:CastbarOnEvent(self.CastBar, event)
     end)
 
     self.healthbar = self.HealthBar
@@ -4728,10 +4728,33 @@ function sArenaMixin:Test()
     end
 end
 
-function sArenaMixin:CastbarOnEvent(castBar)
+function sArenaMixin:CastbarOnEvent(castBar, event)
     local colors = sArenaMixin.castbarColors
+
+    local unitToken = castBar.unit
+    local castBarTexture = castBar:GetStatusBarTexture()
+    local notInterruptible
+
+    if unitToken then
+        if castBar.casting then
+            _, _, _, _, _, _, _, notInterruptible = UnitCastingInfo(unitToken)
+        elseif castBar.channeling then
+            _, _, _, _, _, _, notInterruptible = UnitChannelInfo(unitToken)
+        end
+    end
+
     if isMidnight then
         if sArenaMixin.modernCastbars then
+            if event == "UNIT_SPELLCAST_INTERRUPTED" then
+                self.lastEvent = event
+                castBarTexture:SetDesaturated(false)
+                self:SetStatusBarColor(1, 1, 1, 1)
+                return
+            elseif (event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" or event == "UNIT_SPELLCAST_EMPOWER_STOP") and self.lastEvent == "UNIT_SPELLCAST_INTERRUPTED" then
+                castBarTexture:SetDesaturated(false)
+                self:SetStatusBarColor(1, 1, 1, 1)
+                return
+            end
             if not sArenaMixin.keepDefaultModernTextures then
                 local textureToUse = sArenaMixin.castTexture
                 -- if castBar.barType == "uninterruptable" and sArenaMixin.castUninterruptibleTexture then
@@ -4741,28 +4764,48 @@ function sArenaMixin:CastbarOnEvent(castBar)
                     castBar:SetStatusBarTexture(textureToUse)
                 end
                 if colors.enabled then
-                    -- if castBar.barType == "uninterruptable" then
-                    --     castBar:SetStatusBarColor(unpack(colors.uninterruptable or { 0.7, 0.7, 0.7, 1 }))
                     if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
-                        castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.colorUninterruptable,
+                            colors.colorInterruptNotReady
+                        )
+                    elseif castBar.casting then
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.colorUninterruptable,
+                            colors.colorStandard
+                        )
                     elseif castBar.channeling then
-                        castBar:SetStatusBarColor(unpack(colors.channel or { 0.0, 1.0, 0.0, 1 }))
-                    -- elseif castBar.barType == "interrupted" then
-                    --     castBar:SetStatusBarColor(1, 0, 0)
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.colorUninterruptable,
+                            colors.colorChannel
+                        )
                     else
-                        castBar:SetStatusBarColor(unpack(colors.standard or { 1.0, 0.7, 0.0, 1 }))
+                        castBar:SetStatusBarColor(unpack(colors.standard))
                     end
                 else
-                    -- if castBar.barType == "uninterruptable" then
-                    --     castBar:SetStatusBarColor(0.7, 0.7, 0.7)
                     if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
-                        castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.defaultUninterruptable,
+                            colors.colorInterruptNotReady
+                        )
+                    elseif castBar.casting then
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.defaultUninterruptable,
+                            colors.defaultStandard
+                        )
                     elseif castBar.channeling then
-                        castBar:SetStatusBarColor(0, 1, 0)
-                    -- elseif castBar.barType == "interrupted" then
-                    --     castBar:SetStatusBarColor(1, 0, 0)
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.defaultUninterruptable,
+                            colors.defaultChannel
+                        )
                     else
-                        castBar:SetStatusBarColor(1, 0.7, 0)
+                        castBar:SetStatusBarColor(1.0, 0.7, 0.0, 1)
                     end
                 end
                 castBar.changedBarColor = true
@@ -4770,20 +4813,29 @@ function sArenaMixin:CastbarOnEvent(castBar)
                 -- if sArenaMixin.isMoP then
                 --     castBar:SetStatusBarTexture(castBar.barType == "uninterruptable" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Uninterruptable" or castBar.barType == "channel" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Channel" or "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Standard")
                 -- end
-                local castTexture = castBar:GetStatusBarTexture()
-                if castTexture then
-                    castTexture:SetDesaturated(true)
+                if castBarTexture then
+                    castBarTexture:SetDesaturated(true)
                 end
-                -- if castBar.barType == "uninterruptable" then
-                --     castBar:SetStatusBarColor(unpack(colors.uninterruptable or { 0.7, 0.7, 0.7, 1 }))
                 if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
-                    castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                    castBarTexture:SetVertexColorFromBoolean(
+                        notInterruptible,
+                        colors.colorUninterruptable,
+                        colors.colorInterruptNotReady
+                    )
+                elseif castBar.casting then
+                    castBarTexture:SetVertexColorFromBoolean(
+                        notInterruptible,
+                        colors.colorUninterruptable,
+                        colors.colorStandard
+                    )
                 elseif castBar.channeling then
-                    castBar:SetStatusBarColor(unpack(colors.channel or { 0.0, 1.0, 0.0, 1 }))
-                -- elseif castBar.barType == "interrupted" then
-                --     castBar:SetStatusBarColor(1, 0, 0)
+                    castBarTexture:SetVertexColorFromBoolean(
+                        notInterruptible,
+                        colors.colorUninterruptable,
+                        colors.colorChannel
+                    )
                 else
-                    castBar:SetStatusBarColor(unpack(colors.standard or { 1.0, 0.7, 0.0, 1 }))
+                    castBar:SetStatusBarColor(unpack(colors.standard))
                 end
                 castBar.changedBarColor = true
             elseif sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
@@ -4791,7 +4843,7 @@ function sArenaMixin:CastbarOnEvent(castBar)
                 if castTexture then
                     castTexture:SetDesaturated(true)
                 end
-                castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                castBar:SetStatusBarColor(unpack(colors.interruptNotReady))
                 castBar.changedBarColor = true
             elseif castBar.changedBarColor or sArenaMixin.keepDefaultModernTextures then
                 local castTexture = castBar:GetStatusBarTexture()
@@ -4812,29 +4864,59 @@ function sArenaMixin:CastbarOnEvent(castBar)
             --     textureToUse = sArenaMixin.castUninterruptibleTexture
             -- end
             castBar:SetStatusBarTexture(textureToUse or "Interface\\RaidFrame\\Raid-Bar-Hp-Fill")
+            if event == "UNIT_SPELLCAST_INTERRUPTED" then
+                self.lastEvent = event
+                castBarTexture:SetDesaturated(false)
+                self:SetStatusBarColor(1, 0, 0, 1)
+                return
+            elseif (event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" or event == "UNIT_SPELLCAST_EMPOWER_STOP") and self.lastEvent == "UNIT_SPELLCAST_INTERRUPTED" then
+                castBarTexture:SetDesaturated(false)
+                self:SetStatusBarColor(1, 0, 0, 1)
+                return
+            end
             if colors.enabled then
-                -- if castBar.barType == "uninterruptable" then
-                --     castBar:SetStatusBarColor(unpack(colors.uninterruptable or { 0.7, 0.7, 0.7, 1 }))
                 if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
-                    castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                    castBarTexture:SetVertexColorFromBoolean(
+                        notInterruptible,
+                        colors.colorUninterruptable,
+                        colors.colorInterruptNotReady
+                    )
+                elseif castBar.casting then
+                    castBarTexture:SetVertexColorFromBoolean(
+                        notInterruptible,
+                        colors.colorUninterruptable,
+                        colors.colorStandard
+                    )
                 elseif castBar.channeling then
-                    castBar:SetStatusBarColor(unpack(colors.channel or { 0.0, 1.0, 0.0, 1 }))
-                -- elseif castBar.barType == "interrupted" then
-                --     castBar:SetStatusBarColor(1, 0, 0)
+                    castBarTexture:SetVertexColorFromBoolean(
+                        notInterruptible,
+                        colors.colorUninterruptable,
+                        colors.colorChannel
+                    )
                 else
-                    castBar:SetStatusBarColor(unpack(colors.standard or { 1.0, 0.7, 0.0, 1 }))
+                    castBar:SetStatusBarColor(unpack(colors.standard))
                 end
             else
-                -- if castBar.barType == "uninterruptable" then
-                --     castBar:SetStatusBarColor(0.7, 0.7, 0.7)
                 if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
-                    castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
+                    castBarTexture:SetVertexColorFromBoolean(
+                        notInterruptible,
+                        colors.defaultUninterruptable,
+                        colors.colorInterruptNotReady
+                    )
+                elseif castBar.casting then
+                    castBarTexture:SetVertexColorFromBoolean(
+                        notInterruptible,
+                        colors.defaultUninterruptable,
+                        colors.defaultStandard
+                    )
                 elseif castBar.channeling then
-                    castBar:SetStatusBarColor(0, 1, 0)
-                -- elseif castBar.barType == "interrupted" then
-                --     castBar:SetStatusBarColor(1, 0, 0)
+                    castBarTexture:SetVertexColorFromBoolean(
+                        notInterruptible,
+                        colors.defaultUninterruptable,
+                        colors.defaultChannel
+                    )
                 else
-                    castBar:SetStatusBarColor(1, 0.7, 0)
+                    castBar:SetStatusBarColor(1.0, 0.7, 0.0, 1)
                 end
             end
         end
