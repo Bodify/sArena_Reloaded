@@ -4695,6 +4695,15 @@ function sArenaMixin:Test()
 
         TestTitle:SetPoint("TOPLEFT", t, "TOPLEFT", -5, 45)
         TestTitle:SetPoint("BOTTOMRIGHT", t, "BOTTOMRIGHT", 5, -5)
+        TestTitle:SetScript("OnMouseUp", function(frame, button)
+            if button == "RightButton" then
+                if frame:GetAlpha() > 0 then
+                    frame:SetAlpha(0)
+                else
+                    frame:SetAlpha(1)
+                end
+            end
+        end)
 
         self:SetupDrag(TestTitle, self, nil, "UpdateFrameSettings")
     end
