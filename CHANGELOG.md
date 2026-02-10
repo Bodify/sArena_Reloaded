@@ -1,3 +1,7 @@
+2.3.4d
+- Added "Hide Spec Icon" setting. So you can keep Class Icon but hide the spec.
+- Fixed Color Trinket setting on Midnight.
+
 2.3.4c
 - Fix castbar colors after Midnight restrictions. Should work fine now with uninterruptible. Please report any issues.
 - You can now right-click addon name title in test mode to toggle it off/on.
