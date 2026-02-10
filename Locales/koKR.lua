@@ -461,7 +461,7 @@ L["Option_DPSDispelsNote"] = "|cFFFFFF00참고:|r 딜러 해제는 한 번 사�
 L["Option_DispelsBetaNotice"] = "\n|cFF808080해제 기능은 베타 버전입니다.\n특히 판다리아의 안개에서 일부 주문 ID를 확인해야 합니다.\nPTR을 기다리는 동안 더 많은 테스트가 필요하며 변경될 수 있습니다.\n정보/피드백/주문 ID를 제공하고 싶으시다면 언제든지 제공해주세요!|r"
 L["Option_ExportProfileHeader"] = "|cffffff00프로필 내보내기:|r"
 L["Option_ImportProfileHeader"] = "|cffffff00프로필 가져오기:|r"
---L["Option_StreamerProfilesHeader"] = "|cffb380ffStreamer Profiles|r"
+--L["Option_StreamerProfilesHeader"] = "|A:MovieRecordingIcon:16:16|a |cffb380ffStreamer Profiles|r"
 --L["Option_StreamerProfiles_Desc_Tab"] = "Import pre-configured profiles from streamers."
 
 L["Message_InvalidFormat"] = "잘못된 형식입니다."

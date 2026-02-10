@@ -457,7 +457,7 @@ L["Option_DPSDispelsNote"] = "|cFFFFFF00Note:|r DPS dispels only appear after ha
 L["Option_DispelsBetaNotice"] = "\n|cFF808080Dispels are in BETA.\nStill need to confirm some spell ids, especially in Mists of Pandaria.\nThings still need more testing (waiting for PTR) and things may see changes along the way.\nIf you want to contribute info/feedback/spell ids please do!|r"
 L["Option_ExportProfileHeader"] = "|cffffff00Export Profile:|r"
 L["Option_ImportProfileHeader"] = "|cffffff00Import Profile:|r"
-L["Option_StreamerProfilesHeader"] = "|cffb380ffStreamer Profiles|r"
+L["Option_StreamerProfilesHeader"] = "|A:MovieRecordingIcon:16:16|a |cffb380ffStreamer Profiles|r"
 L["Option_StreamerProfiles_Desc_Tab"] = "Import pre-configured profiles from streamers."
 
 L["Message_InvalidFormat"] = "Invalid format."
