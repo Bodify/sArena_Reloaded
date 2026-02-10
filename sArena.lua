@@ -4755,13 +4755,13 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
     if isMidnight then
         if sArenaMixin.modernCastbars then
             if event == "UNIT_SPELLCAST_INTERRUPTED" then
-                self.lastEvent = event
+                castBar.lastEvent = event
                 castBarTexture:SetDesaturated(false)
-                self:SetStatusBarColor(1, 1, 1, 1)
+                castBar:SetStatusBarColor(1, 1, 1, 1)
                 return
-            elseif (event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" or event == "UNIT_SPELLCAST_EMPOWER_STOP") and self.lastEvent == "UNIT_SPELLCAST_INTERRUPTED" then
+            elseif (event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" or event == "UNIT_SPELLCAST_EMPOWER_STOP") and castBar.lastEvent == "UNIT_SPELLCAST_INTERRUPTED" then
                 castBarTexture:SetDesaturated(false)
-                self:SetStatusBarColor(1, 1, 1, 1)
+                castBar:SetStatusBarColor(1, 1, 1, 1)
                 return
             end
             if not sArenaMixin.keepDefaultModernTextures then
@@ -4874,13 +4874,13 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
             -- end
             castBar:SetStatusBarTexture(textureToUse or "Interface\\RaidFrame\\Raid-Bar-Hp-Fill")
             if event == "UNIT_SPELLCAST_INTERRUPTED" then
-                self.lastEvent = event
+                castBar.lastEvent = event
                 castBarTexture:SetDesaturated(false)
-                self:SetStatusBarColor(1, 0, 0, 1)
+                castBar:SetStatusBarColor(1, 0, 0, 1)
                 return
-            elseif (event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" or event == "UNIT_SPELLCAST_EMPOWER_STOP") and self.lastEvent == "UNIT_SPELLCAST_INTERRUPTED" then
+            elseif (event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" or event == "UNIT_SPELLCAST_EMPOWER_STOP") and castBar.lastEvent == "UNIT_SPELLCAST_INTERRUPTED" then
                 castBarTexture:SetDesaturated(false)
-                self:SetStatusBarColor(1, 0, 0, 1)
+                castBar:SetStatusBarColor(1, 0, 0, 1)
                 return
             end
             if colors.enabled then
@@ -5038,12 +5038,12 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
             end
         end
         if not isMidnight and isRetail then
-            if self.barType == "uninterruptable" then
-                if self.ChargeTier1 then
-                    HideChargeTiers(self)
+            if castBar.barType == "uninterruptable" then
+                if castBar.ChargeTier1 then
+                    HideChargeTiers(castBar)
                 end
-            elseif self.barType == "empowered" then
-                HideChargeTiers(self)
+            elseif castBar.barType == "empowered" then
+                HideChargeTiers(castBar)
             end
         end
     end
