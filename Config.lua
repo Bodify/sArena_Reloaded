@@ -3,13 +3,6 @@ local isRetail = sArenaMixin.isRetail
 local isMidnight = sArenaMixin.isMidnight
 local L = sArenaMixin.L
 
-local midnightInfo
-if not isMidnight then
-    midnightInfo = L["Midnight_UpdateInfo"]
-else
-    midnightInfo = L["Midnight_BetaInfo"]
-end
-
 local function GetSpellInfoCompat(spellID)
     if not spellID then
         return nil
@@ -5517,25 +5510,100 @@ else
                     },
                 },
             },
-            midnightExpansion = {
+            streamerProfiles = {
                 order = 8,
-                name = "|cffcc66ffMidnight|r |T136221:16:16|t",
-                desc = L["Option_MidnightPlans_Desc"],
+                name = L["Option_StreamerProfilesHeader"],
+                desc = L["Option_StreamerProfiles_Desc_Tab"],
                 type = "group",
                 args = {
-                    description = {
+                    streamerProfilesDesc = {
                         order = 1,
                         type = "description",
-                        name = midnightInfo,
+                        name = function(info)
+                            local name, realm = UnitName("player")
+                            realm = realm or GetRealmName()
+                            local fullKey = name .. " - " .. realm
+                            local currentProfileKey = sArena_ReloadedDB.profileKeys[fullKey] or "Default"
+                            return string.format(L["Option_StreamerProfiles_Desc"], currentProfileKey)
+                        end,
                         fontSize = "medium",
-                        width = "full",
+                    },
+                    streamerProfilesGroup = {
+                        order = 2,
+                        type = "group",
+                        name = "",
+                        inline = true,
+                        args = (function()
+                            local args = {}
+
+                            -- Class colors and icons
+                            local CLASS_COLORS = {
+                                ROGUE = "|cfffff569",
+                                WARRIOR = "|cffc79c6e",
+                                MAGE = "|cff40c7eb",
+                                DRUID = "|cffff7d0a",
+                                HUNTER = "|cffabd473",
+                                PRIEST = "|cffffffff",
+                                WARLOCK = "|cff8787ed",
+                                SHAMAN = "|cff0070de",
+                                PALADIN = "|cfff58cba",
+                                DEATHKNIGHT = "|cffc41f3b",
+                                MONK = "|cff00ff96",
+                                DEMONHUNTER = "|cffa330c9",
+                                EVOKER = "|cff33937f",
+                            }
+
+                            local CLASS_ICONS = {
+                                ROGUE = "groupfinder-icon-class-rogue",
+                                WARRIOR = "groupfinder-icon-class-warrior",
+                                MAGE = "groupfinder-icon-class-mage",
+                                DRUID = "groupfinder-icon-class-druid",
+                                HUNTER = "groupfinder-icon-class-hunter",
+                                PRIEST = "groupfinder-icon-class-priest",
+                                WARLOCK = "groupfinder-icon-class-warlock",
+                                SHAMAN = "groupfinder-icon-class-shaman",
+                                PALADIN = "groupfinder-icon-class-paladin",
+                                DEATHKNIGHT = "groupfinder-icon-class-deathknight",
+                                MONK = "groupfinder-icon-class-monk",
+                                DEMONHUNTER = "groupfinder-icon-class-demonhunter",
+                                EVOKER = "groupfinder-icon-class-evoker",
+                            }
+
+                            -- Create a sorted copy of profiles (alphabetically by name)
+                            local sortedProfiles = {}
+                            for _, profile in ipairs(sArenaMixin.streamProfiles) do
+                                table.insert(sortedProfiles, profile)
+                            end
+                            table.sort(sortedProfiles, function(a, b)
+                                return a.name < b.name
+                            end)
+
+                            -- Dynamically generate buttons from sorted streamProfiles table
+                            for order, profile in ipairs(sortedProfiles) do
+                                local key = profile.name:gsub(" ", ""):lower()
+                                local color = CLASS_COLORS[profile.class] or "|cffffffff"
+                                local icon = CLASS_ICONS[profile.class] or "groupfinder-icon-role-leader"
+
+                                args[key] = {
+                                    order = order,
+                                    name = string.format("|A:%s:16:16|a %s%s|r", icon, color, profile.name),
+                                    desc = string.format(L["Option_ImportProfile_Desc"], profile.name, color, profile.stream),
+                                    type = "execute",
+                                    func = function(info)
+                                        info.handler:ImportStreamerProfile(profile.name:gsub(" ", ""), profile.profileString, profile.name, color)
+                                    end,
+                                    width = "normal",
+                                }
+                            end
+                            return args
+                        end)(),
                     },
                 },
             },
-            shareProfile = {
+            importExport = {
                 order = 9,
-                name = L["Option_ShareProfile"],
-                desc = L["Option_ShareProfile_Desc"],
+                name = L["Option_ImportExport"],
+                desc = L["Option_ImportExport_Desc"],
                 type = "group",
                 args = {
                     exportHeader = {
@@ -5617,99 +5685,6 @@ else
                                 sArena_ReloadedDB.reOpenOptions = true
                             end
                         end,
-                    },
-                    spacer2 = {
-                        order = 6,
-                        type = "description",
-                        name = " ",
-                    },
-                    streamerProfilesHeader = {
-                        order = 7,
-                        type = "description",
-                        name = L["Option_StreamerProfilesHeader"],
-                        fontSize = "large",
-                    },
-                    streamerProfilesDesc = {
-                        order = 8,
-                        type = "description",
-                        name = function(info)
-                            local name, realm = UnitName("player")
-                            realm = realm or GetRealmName()
-                            local fullKey = name .. " - " .. realm
-                            local currentProfileKey = sArena_ReloadedDB.profileKeys[fullKey] or "Default"
-                            return string.format(L["Option_StreamerProfiles_Desc"], currentProfileKey)
-                        end,
-                        fontSize = "medium",
-                    },
-                    streamerProfilesGroup = {
-                        order = 9,
-                        type = "group",
-                        name = "",
-                        inline = true,
-                        args = (function()
-                            local args = {}
-                            
-                            -- Class colors and icons
-                            local CLASS_COLORS = {
-                                ROGUE = "|cfffff569",
-                                WARRIOR = "|cffc79c6e",
-                                MAGE = "|cff40c7eb",
-                                DRUID = "|cffff7d0a",
-                                HUNTER = "|cffabd473",
-                                PRIEST = "|cffffffff",
-                                WARLOCK = "|cff8787ed",
-                                SHAMAN = "|cff0070de",
-                                PALADIN = "|cfff58cba",
-                                DEATHKNIGHT = "|cffc41f3b",
-                                MONK = "|cff00ff96",
-                                DEMONHUNTER = "|cffa330c9",
-                                EVOKER = "|cff33937f",
-                            }
-                            
-                            local CLASS_ICONS = {
-                                ROGUE = "groupfinder-icon-class-rogue",
-                                WARRIOR = "groupfinder-icon-class-warrior",
-                                MAGE = "groupfinder-icon-class-mage",
-                                DRUID = "groupfinder-icon-class-druid",
-                                HUNTER = "groupfinder-icon-class-hunter",
-                                PRIEST = "groupfinder-icon-class-priest",
-                                WARLOCK = "groupfinder-icon-class-warlock",
-                                SHAMAN = "groupfinder-icon-class-shaman",
-                                PALADIN = "groupfinder-icon-class-paladin",
-                                DEATHKNIGHT = "groupfinder-icon-class-deathknight",
-                                MONK = "groupfinder-icon-class-monk",
-                                DEMONHUNTER = "groupfinder-icon-class-demonhunter",
-                                EVOKER = "groupfinder-icon-class-evoker",
-                            }
-                            
-                            -- Create a sorted copy of profiles (alphabetically by name)
-                            local sortedProfiles = {}
-                            for _, profile in ipairs(sArenaMixin.streamProfiles) do
-                                table.insert(sortedProfiles, profile)
-                            end
-                            table.sort(sortedProfiles, function(a, b)
-                                return a.name < b.name
-                            end)
-                            
-                            -- Dynamically generate buttons from sorted streamProfiles table
-                            for order, profile in ipairs(sortedProfiles) do
-                                local key = profile.name:gsub(" ", ""):lower()
-                                local color = CLASS_COLORS[profile.class] or "|cffffffff"
-                                local icon = CLASS_ICONS[profile.class] or "groupfinder-icon-role-leader"
-                                
-                                args[key] = {
-                                    order = order,
-                                    name = string.format("|A:%s:16:16|a %s%s|r", icon, color, profile.name),
-                                    desc = string.format(L["Option_ImportProfile_Desc"], profile.name, color, profile.stream),
-                                    type = "execute",
-                                    func = function(info)
-                                        info.handler:ImportStreamerProfile(profile.name:gsub(" ", ""), profile.profileString, profile.name, color)
-                                    end,
-                                    width = "normal",
-                                }
-                            end
-                            return args
-                        end)(),
                     },
                 },
             }
