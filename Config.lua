@@ -1080,8 +1080,21 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 end
             end,
             args = {
-                options = {
+                midnightDisclaimer = {
                     order = 0,
+                    type = "description",
+                    name = isMidnight and L["DR_MidnightDisclaimer"] or "",
+                    fontSize = "medium",
+                    hidden = function() return not isMidnight end,
+                },
+                midnightDisclaimerSpacer = {
+                    order = 0.1,
+                    type = "description",
+                    name = " ",
+                    hidden = function() return not isMidnight end,
+                },
+                options = {
+                    order = 0.2,
                     name = L["Options"],
                     type = "group",
                     inline = true,
