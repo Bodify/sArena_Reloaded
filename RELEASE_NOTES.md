@@ -1,6 +1,4 @@
-2.3.4b
-- Fix DR Text always being active regardless of settings.
-- Fix lua errors from now new restrictions from Blizzard related to castbar types (uninterruptible status).
-    This means currently not possible to color/texture an uninterruptible cast without some sort of wonky workaround maybe.
-    Disabled for now and will just color depending on cast/channel, this may be confusing on uninterruptible casts.
-    Consider Modern Castbars setting which uses default colored textures for now until a fix may arrive.
+2.3.4c
+- Fix castbar colors after Midnight restrictions. Should work fine now with uninterruptible. Please report any issues.
+- You can now right-click addon name title in test mode to toggle it off/on.
+- The frames bugging out seem to be related to the game taking a dump; arena1-3 macros does not work either when this happens. Hard to test and I assume its just Blizzard being Blizzard.
