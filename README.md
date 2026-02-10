@@ -1,8 +1,9 @@
 # sArena Reloaded
+[![](https://shields.io/badge/discord-5865F2?logo=discord&style=for-the-badge&logoColor=white)](https://discord.gg/cjqVaEMm25) [![](https://shields.io/badge/patreon-red?logo=patreon&style=for-the-badge)](https://www.patreon.com/bodifydev) [![](https://shields.io/badge/paypal-00457C?logo=paypal&style=for-the-badge)](https://www.paypal.com/paypalme/bodifydev) [![](https://shields.io/badge/github-gray?logo=github&style=for-the-badge&logoColor=white)](https://github.com/Bodify/sArena_Reloaded)
 
 New and updated sArena Frames with tons of new great features. Works for Midnight, TWW, MoP, Wrath and TBC. Fork of sArena addon made by Stako, and maintained by many in the PvP community.
 
-This is a further improvement of my sArena MoP Classic addon and it also brings it to Retail. This version will work on both Retail and MoP. This version will let you import settings from both sArena MoP and any other sArena version, see below.
+This is a further improvement of my sArena MoP Classic addon and it also brings it to Retail. This version will work on both all versions of WoW. This version will let you import settings from both sArena MoP and any other sArena version, see below.
 
 This version comes packed with many new features such as:
 
@@ -61,3 +62,5 @@ You can easily import your other sArena versions just by launching both addons a
 ### Healer Texture when Class Stacking (optional)
 
 ![healerStacking](https://github.com/user-attachments/assets/1f239ae9-73f1-4a46-a15c-17b772139c8f)
+
+[![](https://shields.io/badge/discord-5865F2?logo=discord&style=for-the-badge&logoColor=white)](https://discord.gg/cjqVaEMm25) [![](https://shields.io/badge/patreon-red?logo=patreon&style=for-the-badge)](https://www.patreon.com/bodifydev) [![](https://shields.io/badge/paypal-00457C?logo=paypal&style=for-the-badge)](https://www.paypal.com/paypalme/bodifydev) [![](https://shields.io/badge/github-gray?logo=github&style=for-the-badge&logoColor=white)](https://github.com/Bodify/sArena_Reloaded)
