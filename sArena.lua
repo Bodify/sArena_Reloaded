@@ -2640,7 +2640,7 @@ function sArenaFrameMixin:OnLoad()
                 end
             end)
 
-            hooksecurefunc(trinketFrame.Cooldown, "Clear", function()
+            trinketFrame.Cooldown:HookScript("OnCooldownDone", function()
                 if db and db.profile.colorTrinket then
                     self.Trinket.Texture:SetColorTexture(0, 1, 0)
                 end
