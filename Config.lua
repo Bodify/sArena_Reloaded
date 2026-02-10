@@ -260,6 +260,14 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             get   = getSetting,
                             set   = setSetting,
                         },
+                        hideSpecIcon = {
+                            order = 2.5,
+                            type  = "toggle",
+                            name  = L["Option_HideSpecIcon"],
+                            desc  = L["Option_HideSpecIcon_Desc"],
+                            get   = getSetting,
+                            set   = setSetting,
+                        },
                         showSpecManaText = {
                             order = 3,
                             type  = "toggle",
@@ -2703,7 +2711,7 @@ function sArenaMixin:RefreshTestModeCastbars()
             end
 
             if recolorEnabled and colors then
-                if frame.CastBar.BorderShield:IsShown() then
+                if frame.tempUninterruptible then
                     frame.CastBar:SetStatusBarColor(unpack(colors.uninterruptable or {0.7, 0.7, 0.7, 1}))
                 elseif frame.tempChannel then
                     frame.CastBar:SetStatusBarColor(unpack(colors.channel or {0.0, 1.0, 0.0, 1}))
@@ -2716,7 +2724,7 @@ function sArenaMixin:RefreshTestModeCastbars()
                     barTexture:SetDesaturated(false)
                     frame.CastBar:SetStatusBarColor(1, 1, 1)
                 else
-                    if frame.CastBar.BorderShield:IsShown() then
+                    if frame.tempUninterruptible then
                         frame.CastBar:SetStatusBarColor(0.7, 0.7, 0.7, 1)
                     elseif frame.tempChannel then
                         frame.CastBar:SetStatusBarColor(0, 1, 0, 1)

@@ -147,6 +147,8 @@ L["Texture_BackgroundColor_Desc"] = "체력/자원 바 하단의 색상입니다
 
 L["Option_ReplaceClassIcon"] = "직업 아이콘 교체"
 L["Option_ReplaceClassIcon_Desc"] = "직업 아이콘을 특성 아이콘으로 교체하고 작은 \"특성 아이콘 버튼\"을 숨깁니다."
+--L["Option_HideSpecIcon"] = "Hide Spec Icon"
+--L["Option_HideSpecIcon_Desc"] = "Hide the spec icon button"
 L["Option_GrowthDirection"] = "성장 방향"
 L["Option_SpacingBetweenFrames"] = "각 투기장 프레임 사이의 간격"
 L["Option_SpacingBetweenFrames_Desc"] = "각 투기장 프레임 사이의 간격"

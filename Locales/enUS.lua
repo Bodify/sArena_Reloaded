@@ -143,6 +143,8 @@ L["Texture_BackgroundColor_Desc"] = "Color for the health/power bar underlays."
 
 L["Option_ReplaceClassIcon"] = "Replace Class Icon"
 L["Option_ReplaceClassIcon_Desc"] = "Replace the class icon with spec icon instead and hide the little \"spec icon button\""
+L["Option_HideSpecIcon"] = "Hide Spec Icon"
+L["Option_HideSpecIcon_Desc"] = "Hide the spec icon button"
 L["Option_GrowthDirection"] = "Growth Direction"
 L["Option_SpacingBetweenFrames"] = "Spacing between each arena frame"
 L["Option_SpacingBetweenFrames_Desc"] = "Spacing between each arena frame"

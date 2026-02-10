@@ -3454,15 +3454,35 @@ end
 
 -- Returns the spec icon texture based on arena unit ID (1-5)
 function sArenaFrameMixin:UpdateSpecIcon()
-    if not db.profile.layoutSettings[db.profile.currentLayout].replaceClassIcon then
+    if db.profile.layoutSettings[db.profile.currentLayout].replaceClassIcon then
+        self.SpecIcon:Hide()
+        if self.SpecIconMsq then
+            self.SpecIconMsq:Hide()
+        end
+    elseif db.profile.layoutSettings[db.profile.currentLayout].hideSpecIcon then
+        self.SpecIcon:Hide()
+        if self.SpecIconMsq then
+            self.SpecIconMsq:Hide()
+        end
+    else
         self.SpecIcon.Texture:SetTexture(self.specTexture)
         self.SpecIcon:Show()
         if self.SpecIconMsq then
             self.SpecIconMsq:Show()
         end
-    else
-        self.SpecIcon:Hide()
-        if self.SpecIconMsq then
+    end
+end
+
+function sArenaFrameMixin:UpdateClassIcon()
+    local db = self.parent.db
+    if not db then return end
+
+    if self.specTexture then
+        if db.profile.hideClassIcon then
+            if self.ClassIconMsq then
+                self.ClassIconMsq:Hide()
+            end
+        elseif db.profile.layoutSettings[db.profile.currentLayout].replaceClassIcon and self.specTexture then
             self.SpecIconMsq:Hide()
         end
     end
@@ -4073,6 +4093,7 @@ function sArenaMixin:Test()
     local shuffledPlayers = Shuffle()
     local cropIcons = db.profile.layoutSettings[db.profile.currentLayout].cropIcons
     local replaceClassIcon = db.profile.layoutSettings[db.profile.currentLayout].replaceClassIcon
+    local hideSpecIcon = db.profile.layoutSettings[db.profile.currentLayout].hideSpecIcon
     local hideClassIcon = db.profile.hideClassIcon
     local colorTrinket = db.profile.colorTrinket
     local modernCastbars = db.profile.layoutSettings[db.profile.currentLayout].castBar.useModernCastbars
@@ -4166,7 +4187,7 @@ function sArenaMixin:Test()
             if frame.SpecIconMsq then
                 frame.SpecIconMsq:Hide()
             end
-            if not replaceClassIcon then
+            if not replaceClassIcon and not hideSpecIcon then
                 frame.SpecIcon:Show()
                 frame.SpecIcon.Texture:SetTexture(data.specIcon)
                 if frame.SpecIconMsq then
@@ -4181,6 +4202,13 @@ function sArenaMixin:Test()
                     frame.SpecIconMsq:Hide()
                 end
                 frame.ClassIcon.Texture:SetTexture(data.specIcon, true)
+            elseif hideSpecIcon then
+                frame.SpecIcon:Hide()
+                frame.SpecIcon.Texture:SetTexture(nil)
+                if frame.SpecIconMsq then
+                    frame.SpecIconMsq:Hide()
+                end
+                frame.ClassIcon.Texture:SetTexture(self.classIcons[data.class])
             else
                 frame.SpecIcon:Show()
                 frame.SpecIcon.Texture:SetTexture(data.specIcon)
