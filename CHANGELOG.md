@@ -1,3 +1,8 @@
+2.3.5
+- Add new name & spec name coloring options. Class Color SpecName and Custom Color for both.
+- Add Aswog profile (www.twitch.tv/aswog). Ty for sharing.
+- Add Bualock profile (www.twitch.tv/bualock). Ty for sharing.
+
 2.3.4d
 - Added "Hide Spec Icon" setting. So you can keep Class Icon but hide the spec.
 - Fixed Color Trinket setting on Midnight.
