@@ -4568,12 +4568,19 @@ else
                                             end
                                         end,
                                     },
+                                    spacerAfterFrameTexture = {
+                                        order = 1.08,
+                                        name = "",
+                                        type = "description",
+                                        width = "full",
+                                    },
                                     classColorNames = {
                                         order = 1.1,
                                         name = L["Option_ClassColorNames"],
                                         desc = L["ClassColor_NameText_Desc"],
                                         type = "toggle",
-                                        width = "full",
+                                        width = 1,
+                                        disabled = function(info) return info.handler.db.profile.colorNameEnabled end,
                                         get = function(info) return info.handler.db.profile.classColorNames end,
                                         set = function(info, val)
                                             info.handler.db.profile.classColorNames = val
@@ -4584,6 +4591,116 @@ else
                                                 end
                                             end
                                         end,
+                                    },
+                                    colorNameEnabled = {
+                                        order = 1.11,
+                                        name = L["Option_ColorName"],
+                                        desc = L["Option_ColorName_Desc"],
+                                        type = "toggle",
+                                        width = 0.7,
+                                        get = function(info) return info.handler.db.profile.colorNameEnabled end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.colorNameEnabled = val
+                                            if val then
+                                                info.handler.db.profile.classColorNames = false
+                                            end
+                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                if frame.Name:IsShown() then
+                                                    frame:UpdateNameColor()
+                                                end
+                                            end
+                                        end,
+                                    },
+                                    colorNameColor = {
+                                        order = 1.12,
+                                        name = "",
+                                        type = "color",
+                                        width = 0.15,
+                                        disabled = function(info) return not info.handler.db.profile.colorNameEnabled end,
+                                        get = function(info)
+                                            local color = info.handler.db.profile.colorNameColor
+                                            if color then
+                                                return color.r, color.g, color.b, 1
+                                            end
+                                            return 1, 1, 1, 1
+                                        end,
+                                        set = function(info, r, g, b)
+                                            info.handler.db.profile.colorNameColor = {r = r, g = g, b = b}
+                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                if frame.Name:IsShown() then
+                                                    frame:UpdateNameColor()
+                                                end
+                                            end
+                                        end,
+                                    },
+                                    spacerAfterNameColor = {
+                                        order = 1.13,
+                                        name = "",
+                                        type = "description",
+                                        width = "full",
+                                    },
+                                    classColorSpecNames = {
+                                        order = 1.15,
+                                        name = L["Option_ClassColorSpecNames"],
+                                        desc = L["Option_ClassColorSpecNames_Desc"],
+                                        type = "toggle",
+                                        width = 1,
+                                        disabled = function(info) return info.handler.db.profile.colorSpecNameEnabled end,
+                                        get = function(info) return info.handler.db.profile.classColorSpecNames end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.classColorSpecNames = val
+                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                frame:UpdateSpecNameColor()
+                                            end
+                                        end,
+                                    },
+                                    colorSpecNameEnabled = {
+                                        order = 1.16,
+                                        name = L["Option_ColorSpecName"],
+                                        desc = L["Option_ColorSpecName_Desc"],
+                                        type = "toggle",
+                                        width = 0.8,
+                                        get = function(info) return info.handler.db.profile.colorSpecNameEnabled end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.colorSpecNameEnabled = val
+                                            if val then
+                                                info.handler.db.profile.classColorSpecNames = false
+                                            end
+                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                frame:UpdateSpecNameColor()
+                                            end
+                                        end,
+                                    },
+                                    colorSpecNameColor = {
+                                        order = 1.17,
+                                        name = "",
+                                        type = "color",
+                                        width = 0.15,
+                                        disabled = function(info) return not info.handler.db.profile.colorSpecNameEnabled end,
+                                        get = function(info)
+                                            local color = info.handler.db.profile.colorSpecNameColor
+                                            if color then
+                                                return color.r, color.g, color.b, 1
+                                            end
+                                            return 1, 1, 1, 1
+                                        end,
+                                        set = function(info, r, g, b)
+                                            info.handler.db.profile.colorSpecNameColor = {r = r, g = g, b = b}
+                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                frame:UpdateSpecNameColor()
+                                            end
+                                        end,
+                                    },
+                                    spacerAfterSpecNameColor = {
+                                        order = 1.18,
+                                        name = "",
+                                        type = "description",
+                                        width = "full",
                                     },
                                     replaceHealerIcon = {
                                         order = 2,

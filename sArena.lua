@@ -3206,8 +3206,16 @@ function sArenaFrameMixin:UpdateNameColor()
     local class = (self.unit and select(2, UnitClass(self.unit))) or self.tempClass
     if not class then return end
 
+    local db = self.parent.db.profile
     local color = RAID_CLASS_COLORS[class]
-    if self.parent.db.profile.classColorNames and color then
+
+    if db.colorNameEnabled and db.colorNameColor then
+        if not self.oldNameColor then
+            local r, g, b, a = self.Name:GetTextColor()
+            self.oldNameColor = {r, g, b, a}
+        end
+        self.Name:SetTextColor(db.colorNameColor.r, db.colorNameColor.g, db.colorNameColor.b, 1)
+    elseif db.classColorNames and color then
         if not self.oldNameColor then
             local r, g, b, a = self.Name:GetTextColor()
             self.oldNameColor = {r, g, b, a}
@@ -3217,6 +3225,35 @@ function sArenaFrameMixin:UpdateNameColor()
         if self.oldNameColor then
             self.Name:SetTextColor(unpack(self.oldNameColor))
             self.oldNameColor = nil
+        end
+    end
+end
+
+function sArenaFrameMixin:UpdateSpecNameColor()
+    if not self.SpecNameText then return end
+
+    local class = (self.unit and select(2, UnitClass(self.unit))) or self.tempClass
+    if not class then return end
+
+    local db = self.parent.db.profile
+    local color = RAID_CLASS_COLORS[class]
+
+    if db.colorSpecNameEnabled and db.colorSpecNameColor then
+        if not self.oldSpecNameColor then
+            local r, g, b, a = self.SpecNameText:GetTextColor()
+            self.oldSpecNameColor = {r, g, b, a}
+        end
+        self.SpecNameText:SetTextColor(db.colorSpecNameColor.r, db.colorSpecNameColor.g, db.colorSpecNameColor.b, 1)
+    elseif db.classColorSpecNames and color then
+        if not self.oldSpecNameColor then
+            local r, g, b, a = self.SpecNameText:GetTextColor()
+            self.oldSpecNameColor = {r, g, b, a}
+        end
+        self.SpecNameText:SetTextColor(color.r, color.g, color.b, 1)
+    else
+        if self.oldSpecNameColor then
+            self.SpecNameText:SetTextColor(unpack(self.oldSpecNameColor))
+            self.oldSpecNameColor = nil
         end
     end
 end
@@ -3269,6 +3306,7 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
         self.Name:SetShown(true)
     end
     self.SpecNameText:SetText(self.specName or "")
+    self:UpdateSpecNameColor()
 
     self:UpdateStatusTextVisible()
     self:SetStatusText()
@@ -3390,6 +3428,7 @@ function sArenaFrameMixin:GetClass()
                     self.isHealer = sArenaMixin.healerSpecIDs[specID] or false
                     self.SpecNameText:SetText(specName)
                     self.SpecNameText:SetShown(db.profile.layoutSettings[db.profile.currentLayout].showSpecManaText)
+                    self:UpdateSpecNameColor()
                     self.specTexture = specTexture
                     self.class = class
                     self:UpdateSpecIcon()
@@ -4230,6 +4269,7 @@ function sArenaMixin:Test()
 
         frame.SpecNameText:SetText(data.specName)
         frame.SpecNameText:SetShown(db.profile.layoutSettings[db.profile.currentLayout].showSpecManaText)
+        frame:UpdateSpecNameColor()
 
         frame.ClassIcon.Cooldown:SetCooldown(currTime, math.random(5, 35))
 
