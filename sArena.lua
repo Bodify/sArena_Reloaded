@@ -4839,45 +4839,69 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                 end
                 if colors.enabled then
                     if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
-                        castBarTexture:SetVertexColorFromBoolean(
-                            notInterruptible,
-                            colors.colorUninterruptable,
-                            colors.colorInterruptNotReady
-                        )
+                        if notInterruptible ~= nil then
+                            castBarTexture:SetVertexColorFromBoolean(
+                                notInterruptible,
+                                colors.colorUninterruptable,
+                                colors.colorInterruptNotReady
+                            )
+                        else
+                            castBarTexture:SetVertexColor(unpack(colors.interruptNotReady))
+                        end
                     elseif castBar.casting then
-                        castBarTexture:SetVertexColorFromBoolean(
-                            notInterruptible,
-                            colors.colorUninterruptable,
-                            colors.colorStandard
-                        )
+                        if notInterruptible ~= nil then
+                            castBarTexture:SetVertexColorFromBoolean(
+                                notInterruptible,
+                                colors.colorUninterruptable,
+                                colors.colorStandard
+                            )
+                        else
+                            castBarTexture:SetVertexColor(unpack(colors.standard))
+                        end
                     elseif castBar.channeling then
-                        castBarTexture:SetVertexColorFromBoolean(
-                            notInterruptible,
-                            colors.colorUninterruptable,
-                            colors.colorChannel
-                        )
+                        if notInterruptible ~= nil then
+                            castBarTexture:SetVertexColorFromBoolean(
+                                notInterruptible,
+                                colors.colorUninterruptable,
+                                colors.colorChannel
+                            )
+                        else
+                            castBarTexture:SetVertexColor(unpack(colors.channel))
+                        end
                     else
                         castBar:SetStatusBarColor(unpack(colors.standard))
                     end
                 else
                     if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
-                        castBarTexture:SetVertexColorFromBoolean(
-                            notInterruptible,
-                            colors.defaultUninterruptable,
-                            colors.colorInterruptNotReady
-                        )
+                        if notInterruptible ~= nil then
+                            castBarTexture:SetVertexColorFromBoolean(
+                                notInterruptible,
+                                colors.defaultUninterruptable,
+                                colors.colorInterruptNotReady
+                            )
+                        else
+                            castBarTexture:SetVertexColor(unpack(colors.interruptNotReady))
+                        end
                     elseif castBar.casting then
-                        castBarTexture:SetVertexColorFromBoolean(
-                            notInterruptible,
-                            colors.defaultUninterruptable,
-                            colors.defaultStandard
-                        )
+                        if notInterruptible ~= nil then
+                            castBarTexture:SetVertexColorFromBoolean(
+                                notInterruptible,
+                                colors.defaultUninterruptable,
+                                colors.defaultStandard
+                            )
+                        else
+                            castBarTexture:SetVertexColor(unpack(colors.standard))
+                        end
                     elseif castBar.channeling then
-                        castBarTexture:SetVertexColorFromBoolean(
-                            notInterruptible,
-                            colors.defaultUninterruptable,
-                            colors.defaultChannel
-                        )
+                        if notInterruptible ~= nil then
+                            castBarTexture:SetVertexColorFromBoolean(
+                                notInterruptible,
+                                colors.defaultUninterruptable,
+                                colors.defaultChannel
+                            )
+                        else
+                            castBarTexture:SetVertexColor(unpack(colors.channel))
+                        end
                     else
                         castBar:SetStatusBarColor(1.0, 0.7, 0.0, 1)
                     end
@@ -4891,23 +4915,35 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                     castBarTexture:SetDesaturated(true)
                 end
                 if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
-                    castBarTexture:SetVertexColorFromBoolean(
-                        notInterruptible,
-                        colors.colorUninterruptable,
-                        colors.colorInterruptNotReady
-                    )
+                    if notInterruptible ~= nil then
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.colorUninterruptable,
+                            colors.colorInterruptNotReady
+                        )
+                    else
+                        castBarTexture:SetVertexColor(unpack(colors.interruptNotReady))
+                    end
                 elseif castBar.casting then
-                    castBarTexture:SetVertexColorFromBoolean(
-                        notInterruptible,
-                        colors.colorUninterruptable,
-                        colors.colorStandard
-                    )
+                    if notInterruptible ~= nil then
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.colorUninterruptable,
+                            colors.colorStandard
+                        )
+                    else
+                        castBarTexture:SetVertexColor(unpack(colors.standard))
+                    end
                 elseif castBar.channeling then
-                    castBarTexture:SetVertexColorFromBoolean(
-                        notInterruptible,
-                        colors.colorUninterruptable,
-                        colors.colorChannel
-                    )
+                    if notInterruptible ~= nil then
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.colorUninterruptable,
+                            colors.colorChannel
+                        )
+                    else
+                        castBarTexture:SetVertexColor(unpack(colors.channel))
+                    end
                 else
                     castBar:SetStatusBarColor(unpack(colors.standard))
                 end
@@ -4950,45 +4986,69 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
             end
             if colors.enabled then
                 if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
-                    castBarTexture:SetVertexColorFromBoolean(
-                        notInterruptible,
-                        colors.colorUninterruptable,
-                        colors.colorInterruptNotReady
-                    )
+                    if notInterruptible ~= nil then
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.colorUninterruptable,
+                            colors.colorInterruptNotReady
+                        )
+                    else
+                        castBarTexture:SetVertexColor(unpack(colors.interruptNotReady))
+                    end
                 elseif castBar.casting then
-                    castBarTexture:SetVertexColorFromBoolean(
-                        notInterruptible,
-                        colors.colorUninterruptable,
-                        colors.colorStandard
-                    )
+                    if notInterruptible ~= nil then
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.colorUninterruptable,
+                            colors.colorStandard
+                        )
+                    else
+                        castBarTexture:SetVertexColor(unpack(colors.standard))
+                    end
                 elseif castBar.channeling then
-                    castBarTexture:SetVertexColorFromBoolean(
-                        notInterruptible,
-                        colors.colorUninterruptable,
-                        colors.colorChannel
-                    )
+                    if notInterruptible ~= nil then
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.colorUninterruptable,
+                            colors.colorChannel
+                        )
+                    else
+                        castBarTexture:SetVertexColor(unpack(colors.channel))
+                    end
                 else
                     castBar:SetStatusBarColor(unpack(colors.standard))
                 end
             else
                 if sArenaMixin.interruptStatusColorOn and not sArenaMixin.interruptReady then
-                    castBarTexture:SetVertexColorFromBoolean(
-                        notInterruptible,
-                        colors.defaultUninterruptable,
-                        colors.colorInterruptNotReady
-                    )
+                    if notInterruptible ~= nil then
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.defaultUninterruptable,
+                            colors.colorInterruptNotReady
+                        )
+                    else
+                        castBarTexture:SetVertexColor(unpack(colors.interruptNotReady))
+                    end
                 elseif castBar.casting then
-                    castBarTexture:SetVertexColorFromBoolean(
-                        notInterruptible,
-                        colors.defaultUninterruptable,
-                        colors.defaultStandard
-                    )
+                    if notInterruptible ~= nil then
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.defaultUninterruptable,
+                            colors.defaultStandard
+                        )
+                    else
+                        castBarTexture:SetVertexColor(unpack(colors.standard))
+                    end
                 elseif castBar.channeling then
-                    castBarTexture:SetVertexColorFromBoolean(
-                        notInterruptible,
-                        colors.defaultUninterruptable,
-                        colors.defaultChannel
-                    )
+                    if notInterruptible ~= nil then
+                        castBarTexture:SetVertexColorFromBoolean(
+                            notInterruptible,
+                            colors.defaultUninterruptable,
+                            colors.defaultChannel
+                        )
+                    else
+                        castBarTexture:SetVertexColor(unpack(colors.channel))
+                    end
                 else
                     castBar:SetStatusBarColor(1.0, 0.7, 0.0, 1)
                 end
