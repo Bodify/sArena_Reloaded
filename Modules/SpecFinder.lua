@@ -24,6 +24,7 @@ function sArenaFrameMixin:CheckForSpecSpell(spellID)
     if db then
         self.SpecNameText:SetShown(db.profile.layoutSettings[db.profile.currentLayout].showSpecManaText)
     end
+    self:UpdateSpecNameColor()
 
     self:UpdateSpecIcon()
     self:UpdateClassIcon(true)

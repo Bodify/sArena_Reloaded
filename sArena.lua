@@ -2317,6 +2317,7 @@ function sArenaMixin:SetLayout(_, layout)
         frame:UpdateTrinketRacialSwipeSettings()
         frame:UpdateFrameColors()
         frame:UpdateNameColor()
+        frame:UpdateSpecNameColor()
     end
 
     self:ModernOrClassicCastbar()
@@ -2764,6 +2765,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
             elseif (db.profile.showNames) then
                 self.Name:SetText(UnitName(unit))
             end
+            self:UpdateNameColor()
         elseif (event == "ARENA_OPPONENT_UPDATE") then
             self:UpdatePlayer(arg1)
         elseif (event == "ARENA_COOLDOWNS_UPDATE") then
@@ -3201,9 +3203,7 @@ function sArenaMixin:AddMasqueSupport()
 end
 
 function sArenaFrameMixin:UpdateNameColor()
-    if not self.Name:IsShown() then return end
-
-    local class = (self.unit and select(2, UnitClass(self.unit))) or self.tempClass
+    local class = self.class or self.tempClass
     if not class then return end
 
     local db = self.parent.db.profile
@@ -3232,7 +3232,7 @@ end
 function sArenaFrameMixin:UpdateSpecNameColor()
     if not self.SpecNameText then return end
 
-    local class = (self.unit and select(2, UnitClass(self.unit))) or self.tempClass
+    local class = self.class or self.tempClass
     if not class then return end
 
     local db = self.parent.db.profile
@@ -3298,12 +3298,12 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
 
     if (db.profile.showNames) then
         self.Name:SetText(UnitName(unit))
-        self:UpdateNameColor()
         self.Name:SetShown(true)
+        self:UpdateNameColor()
     elseif (db.profile.showArenaNumber) then
         self.Name:SetText(self.unit)
-        self:UpdateNameColor()
         self.Name:SetShown(true)
+        self:UpdateNameColor()
     end
     self.SpecNameText:SetText(self.specName or "")
     self:UpdateSpecNameColor()
@@ -3545,6 +3545,7 @@ function sArenaFrameMixin:ResetLayout()
     self.currentClassIconTexture = nil
     self.currentClassIconStartTime = 0
     self.oldNameColor = nil
+    self.oldSpecNameColor = nil
 
     ResetTexture(nil, self.ClassIcon.Texture)
     ResetStatusBar(self.HealthBar)
@@ -5163,6 +5164,7 @@ function sArenaMixin:ModernOrClassicCastbar()
                     newBar.Text:SetPoint("BOTTOM", newBar, 0, -14)
                     newBar.TextBorder:SetAlpha(1)
                 end
+                newBar.Background:SetAtlas("UI-CastingBar-Background")
                 newBar:SetHeight(9)
                 newBar.Icon:SetSize(20,20)
             else
@@ -5172,6 +5174,7 @@ function sArenaMixin:ModernOrClassicCastbar()
                 newBar.TextBorder:SetAlpha(0)
                 newBar.Border:SetAlpha(0)
                 newBar.Icon:SetSize(16,16)
+                newBar.Background:SetColorTexture(0,0,0,0.5)
                 if newBar.MaskTexture then
                     newBar.MaskTexture:Hide()
                 end
