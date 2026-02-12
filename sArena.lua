@@ -31,7 +31,7 @@ local stealthAlpha = 0.4
 local shadowsightStartTime = 95
 local shadowsightResetTime = 122
 local shadowSightID = 34709
-sArenaMixin.beenInArena = false
+--sArenaMixin.beenInArena = false
 sArenaMixin.shadowsightTimers = {0, 0}
 sArenaMixin.shadowsightAvailable = 2
 
@@ -1127,58 +1127,58 @@ local function GetFactionTrinketIconByRace(race)
     end
 end
 
-function sArenaMixin:ShowMidnightDRWarning()
-    if sArenaSkipDrWarning then return end
-    if self.midnightWarningFrame then
-        self.midnightWarningFrame:Show()
-        return
-    end
+-- function sArenaMixin:ShowMidnightDRWarning()
+--     if sArenaSkipDrWarning then return end
+--     if self.midnightWarningFrame then
+--         self.midnightWarningFrame:Show()
+--         return
+--     end
 
-    local frame = CreateFrame("Frame", "sArenaMidnightWarningFrame", UIParent, "BackdropTemplate")
-    frame:SetSize(400, 200)
-    frame:SetPoint("CENTER", UIParent, "CENTER", 0, 70)
-    frame:SetFrameStrata("DIALOG")
-    frame:SetBackdrop({
-        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-        tile = true,
-        tileSize = 32,
-        edgeSize = 32,
-        insets = { left = 11, right = 12, top = 12, bottom = 11 }
-    })
+--     local frame = CreateFrame("Frame", "sArenaMidnightWarningFrame", UIParent, "BackdropTemplate")
+--     frame:SetSize(400, 200)
+--     frame:SetPoint("CENTER", UIParent, "CENTER", 0, 70)
+--     frame:SetFrameStrata("DIALOG")
+--     frame:SetBackdrop({
+--         bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+--         edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+--         tile = true,
+--         tileSize = 32,
+--         edgeSize = 32,
+--         insets = { left = 11, right = 12, top = 12, bottom = 11 }
+--     })
 
-    frame:SetBackdropColor(0, 0, 0, 1)
-    frame:EnableMouse(true)
+--     frame:SetBackdropColor(0, 0, 0, 1)
+--     frame:EnableMouse(true)
 
-    local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    title:SetPoint("TOP", frame, "TOP", 0, -20)
-    title:SetText(L["Message_MidnightWarningTitle"])
+--     local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+--     title:SetPoint("TOP", frame, "TOP", 0, -20)
+--     title:SetText(L["Message_MidnightWarningTitle"])
 
-    local text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    text:SetPoint("TOP", title, "BOTTOM", 0, -15)
-    text:SetWidth(400)
-    text:SetJustifyH("CENTER")
-    text:SetText(L["Message_MidnightWarningText"])
+--     local text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+--     text:SetPoint("TOP", title, "BOTTOM", 0, -15)
+--     text:SetWidth(400)
+--     text:SetJustifyH("CENTER")
+--     text:SetText(L["Message_MidnightWarningText"])
 
-    local reloadButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-    reloadButton:SetSize(150, 30)
-    reloadButton:SetPoint("BOTTOM", frame, "BOTTOM", 0, 20)
-    reloadButton:SetText(L["Button_ReloadUI"])
-    reloadButton:SetScript("OnClick", function()
-        EnsureArenaFramesEnabled()
-        ReloadUI()
-    end)
+--     local reloadButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+--     reloadButton:SetSize(150, 30)
+--     reloadButton:SetPoint("BOTTOM", frame, "BOTTOM", 0, 20)
+--     reloadButton:SetText(L["Button_ReloadUI"])
+--     reloadButton:SetScript("OnClick", function()
+--         EnsureArenaFramesEnabled()
+--         ReloadUI()
+--     end)
 
-    local closeButton = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-    closeButton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -5, -5)
-    closeButton:SetScript("OnClick", function()
-        frame:Hide()
-    end)
-    closeButton:SetSize(10,10)
+--     local closeButton = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+--     closeButton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -5, -5)
+--     closeButton:SetScript("OnClick", function()
+--         frame:Hide()
+--     end)
+--     closeButton:SetSize(10,10)
 
-    self.midnightWarningFrame = frame
-    frame:Show()
-end
+--     self.midnightWarningFrame = frame
+--     frame:Show()
+-- end
 
 -- Parent Frame
 function sArenaMixin:OnLoad()
@@ -1360,11 +1360,11 @@ function sArenaMixin:OnEvent(event, ...)
 
     elseif (event == "PLAYER_LOGIN") then
         local _, instanceType = IsInInstance()
-        if instanceType ~= "arena" then
-            C_Timer.After(3, function()
-                sArenaMixin.beenInArena = true
-            end)
-        end
+        -- if instanceType ~= "arena" then
+        --     C_Timer.After(3, function()
+        --         sArenaMixin.beenInArena = true
+        --     end)
+        -- end
         if isMidnight then
             C_CVar.SetCVar("spellDiminishPVPEnemiesEnabled", "1")
         end
@@ -1421,11 +1421,11 @@ function sArenaMixin:OnEvent(event, ...)
             else
                 self:InitializeDRFrames()
 
-                if not sArenaMixin.beenInArena then
-                    sArenaMixin.beenInArena = true
-                else
-                    self:ShowMidnightDRWarning()
-                end
+                -- if not sArenaMixin.beenInArena then
+                --     sArenaMixin.beenInArena = true
+                -- else
+                --     self:ShowMidnightDRWarning()
+                -- end
             end
             self:RegisterWidgetEvents()
             self:RegisterInterruptEvents()

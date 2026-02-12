@@ -1,3 +1,6 @@
+2.3.5b
+- Prepatch/Midnight: Disable forced reload now that the DR frames have been fixed by Blizzard.
+
 2.3.5
 - Add new name & spec name coloring options. Class Color SpecName and Custom Color for both.
 - Add Aswog profile (www.twitch.tv/aswog). Ty for sharing.
