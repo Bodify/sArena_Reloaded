@@ -1,3 +1,6 @@
+2.3.5c
+- Fix some castbar color issues like custom colors.
+
 2.3.5b
 - Prepatch/Midnight: Disable forced reload now that the DR frames have been fixed by Blizzard.
 
