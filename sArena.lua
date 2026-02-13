@@ -3433,7 +3433,7 @@ function sArenaFrameMixin:GetClass()
                     self.class = class
                     self:UpdateSpecIcon()
                     self:UpdateFrameColors()
-                    sArenaMixin:UpdateTextures()
+                    self.parent:UpdateTextures()
                 end
             end
         end
@@ -5239,6 +5239,7 @@ function sArenaMixin:ModernOrClassicCastbar()
                     newBar.MaskTexture:Hide()
                 end
             end
+            newBar.Spark:SetSize(3, 20)
 
             newBar:SetParent(frame)
 
