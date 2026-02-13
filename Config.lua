@@ -3474,14 +3474,11 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
 
                                 if db.blackDRBorder then
                                     fakeDRFrame.Border:SetVertexColor(0, 0, 0, 1)
-                                    fakeDRFrame.BorderImmune:SetVertexColor(0, 0, 0, 1)
                                 else
                                     if drIndex == 1 then
                                         fakeDRFrame.Border:SetVertexColor(1, 0, 0, 1)
-                                        fakeDRFrame.BorderImmune:SetVertexColor(1, 0, 0, 1)
                                     else
                                         fakeDRFrame.Border:SetVertexColor(0, 1, 0, 1)
-                                        fakeDRFrame.BorderImmune:SetVertexColor(0, 1, 0, 1)
                                     end
                                 end
                             end
