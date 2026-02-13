@@ -1,3 +1,6 @@
+2.3.5d
+- Fix a nil error within disable dr border logic for test frames.
+
 2.3.5c
 - Fix some castbar color issues like custom colors.
 
