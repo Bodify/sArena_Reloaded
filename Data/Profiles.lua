@@ -108,7 +108,7 @@ function sArenaMixin:BuildStreamerProfileArgs()
         local icon = CLASS_ICONS[profile.class] or "groupfinder-icon-role-leader"
 
         local nameText
-        if profile.class == "SC" then
+        if profile.class == "SKILLCAPPED" then
             nameText = string.format("|T%s:14:14:0:0|t %s%s|r", icon, color, profile.name)
         else
             nameText = string.format("|A:%s:16:16|a %s%s|r", icon, color, profile.name)
