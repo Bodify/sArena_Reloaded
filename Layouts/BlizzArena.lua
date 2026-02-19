@@ -61,11 +61,15 @@ layout.defaultSettings = {
             posX = 0,
             posY = 0,
             scale = 0.9,
+            useBorder = false,
+            useBorderWithIcon = false,
         },
         focusIndicator = {
             posX = 0,
             posY = 0,
             scale = 0.85,
+            useBorder = false,
+            useBorderWithIcon = false,
         },
         partyTargetIndicators = {
             posX = 0,

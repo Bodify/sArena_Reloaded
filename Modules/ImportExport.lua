@@ -1,7 +1,68 @@
+-- Copyright (c) 2026 Bodify. All rights reserved.
+-- This file is part of the sArena Reloaded addon.
+-- No portion of this file may be copied, modified, redistributed, or used
+-- in other projects without explicit prior written permission from the author.
+
 local LibDeflate = LibStub("LibDeflate")
 local LibSerialize = LibStub("LibSerialize")
 local L = sArenaMixin.L
 local confirmDialog
+
+--[[
+    ImportOtherForkSettings: Migrates settings from other sArena versions to sArena Reloaded
+    
+    This function handles the import process when users have multiple sArena versions installed
+    and want to migrate their existing settings to sArena Reloaded. It searches for saved
+    variables from other sArena versions, copies the data, and handles the addon switching.
+]]
+function sArenaMixin:ImportOtherForkSettings()
+    -- Try to find the saved variables database from other sArena versions
+    local oldDB = sArena3DB or sArena2DB or sArenaDB or sArena_MoPDB
+
+    -- Validate that we found a valid database with the required structure
+    -- Both profileKeys and profiles are essential for AceDB addon profiles
+    if not oldDB or not oldDB.profileKeys or not oldDB.profiles then
+        -- Display error message to user if no valid sArena database found
+        sArenaMixin.conversionStatusText = "|cffFF0000No other sArena found. Are you sure it's enabled?|r"
+        -- Refresh the config UI to show the error message
+        LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+        return
+    end
+
+    -- Get reference to sArena Reloaded's database
+    local newDB = sArena_ReloadedDB
+
+    -- Initialize the database structure if it doesn't exist yet
+    -- This ensures we have the proper AceDB structure before migration
+    if not newDB.profileKeys then newDB.profileKeys = {} end
+    if not newDB.profiles then newDB.profiles = {} end
+
+    -- Migrate all character profile assignments from old database
+    for character, profileName in pairs(oldDB.profileKeys) do
+        -- Append "(Imported)" to distinguish imported profiles from new ones
+        -- This prevents conflicts and makes it clear which profiles came from the other version
+        local newProfileName = profileName .. "(Imported)"
+        newDB.profileKeys[character] = newProfileName
+
+        -- Copy the actual profile data if it exists and hasn't been imported already
+        if oldDB.profiles[profileName] and not newDB.profiles[newProfileName] then
+            newDB.profiles[newProfileName] = CopyTable(oldDB.profiles[profileName])
+        end
+    end
+
+    -- Ensure comp
+    self:CompatibilityEnsurer()
+
+    -- Ensure sArena Reloaded is enabled (should already be, but being safe)
+    C_AddOns.EnableAddOn("sArena_Reloaded")
+
+    -- Set flag to reopen the options panel after UI reload
+    -- This provides better UX by returning the user to the config screen
+    sArena_ReloadedDB.reOpenOptions = true
+
+    -- Reload the UI to finalize the addon changes and load the imported settings
+    ReloadUI()
+end
 
 local function ShowImportConfirmDialog(message, onAccept, data)
     if confirmDialog and confirmDialog:IsShown() then
@@ -145,8 +206,8 @@ function sArenaMixin:ImportProfile(encodedString, customProfileName, externalSou
     return true
 end
 
-function sArenaMixin:ImportStreamerProfile(streamerName, profileString, displayName, classColor)
-    local profileName = streamerName .. " StreamProfile"
+function sArenaMixin:ImportStreamerProfile(streamerName, profileString, displayName, classColor, profileClass)
+    local profileName = (profileClass == "SKILLCAPPED") and streamerName or (streamerName .. " StreamProfile")
     local profileExists = sArena_ReloadedDB.profiles[profileName] ~= nil
 
     -- Get current profile name

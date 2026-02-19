@@ -18,17 +18,24 @@
     <Script file="Data\DRs\DrList_Wrath.lua"/>
     <Script file="Data\Profiles.lua"/>
     <Script file="Data\Auras\AuraList_Wrath.lua"/>
+    <Script file="Modules\Functions.lua"/>
     <Script file="Modules\Interrupt.lua"/>
+    <Script file="Modules\CompatibilityCheck.lua"/>
     <Script file="sArena.lua"/>
+    <Script file="Modules\TestMode.lua"/>
+    <Script file="Modules\Widgets.lua"/>
+    <Script file="Modules\Fonts.lua"/>
+    <Script file="Modules\Textures.lua"/>
     <Script file="Modules\SpecFinder.lua"/>
     <Script file="Modules\Racials.lua"/>
     <Script file="Modules\Dispels.lua"/>
     <Script file="Modules\DiminishingReturns.lua"/>
+    <Script file="Modules\ImportExport.lua"/>
     <Script file="Config.lua"/>
     <Script file="Modules\Auras.lua"/>
     <Script file="Modules\Trinkets.lua"/>
     <Script file="Modules\ModernCastbar.lua"/>
-    <Script file="Modules\ImportExport.lua"/>
+    <Script file="Modules\Masque.lua"/>
     <Script file="Layouts\BlizzArena.lua"/>
     <Script file="Layouts\BlizzRetail.lua"/>
     <Script file="Layouts\BlizzCompact.lua"/>
@@ -308,6 +315,17 @@
                         </KeyValues>
                     </Frame>
                 </Frames>
+            </Frame>
+
+            <Frame parentKey="TargetFocusBorder" hidden="true">
+                <Layers>
+                    <Layer level="OVERLAY" textureSubLevel="5">
+                        <Texture parentKey="top"/>
+                        <Texture parentKey="right"/>
+                        <Texture parentKey="bottom"/>
+                        <Texture parentKey="left"/>
+                    </Layer>
+                </Layers>
             </Frame>
 
             <Frame parentKey="Trinket" inherits="sArenaIconFrameTemplate"/>

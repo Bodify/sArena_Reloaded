@@ -640,8 +640,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             get = function(info) return info.handler.db.profile.layoutSettings[layoutName].castBar[info[#info]] end,
             set = function(info, val)
                 self:UpdateCastBarSettings(info.handler.db.profile.layoutSettings[layoutName].castBar, info, val)
-                if sArenaMixin.RefreshMasque then
-                    sArenaMixin:RefreshMasque()
+                if info.handler.RefreshMasque then
+                    info.handler:RefreshMasque()
                 end
             end,
             args = {
@@ -966,9 +966,9 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                     },
                 },
-                castbarPosition = {
+                castbarSettings = {
                     order = 1,
-                    name = L["Castbar_Position"],
+                    name = L["Castbar_Settings"],
                     type = "group",
                     inline = true,
                     args = {
@@ -994,11 +994,37 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             step = 0.1,
                             bigStep = 1,
                         },
+                        spacer = {
+                            order = 3,
+                            type = "description",
+                            name = "",
+                            width = "full",
+                        },
+                        scale = {
+                            order = 4,
+                            name = L["Scale"],
+                            type = "range",
+                            min = 0.1,
+                            max = 5.0,
+                            softMin = 0.5,
+                            softMax = 3.0,
+                            step = 0.01,
+                            bigStep = 0.1,
+                            isPercent = true,
+                        },
+                        width = {
+                            order = 5,
+                            name = L["Width"],
+                            type = "range",
+                            min = 10,
+                            max = 400,
+                            step = 1,
+                        },
                     },
                 },
-                iconPosition = {
-                    order = 3,
-                    name = L["Castbar_IconPosition"],
+                iconSettings = {
+                    order = 2,
+                    name = L["Castbar_IconSettings"],
                     type = "group",
                     inline = true,
                     args = {
@@ -1024,45 +1050,9 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             step = 0.1,
                             bigStep = 1,
                         },
-                    },
-                },
-                castbarSize = {
-                    order = 2,
-                    name = L["Castbar_CastbarSize"],
-                    type = "group",
-                    inline = true,
-                    args = {
-                        scale = {
-                            order = 1,
-                            name = L["Scale"],
-                            type = "range",
-                            min = 0.1,
-                            max = 5.0,
-                            softMin = 0.5,
-                            softMax = 3.0,
-                            step = 0.01,
-                            bigStep = 0.1,
-                            isPercent = true,
-                        },
-                        width = {
-                            order = 2,
-                            name = L["Width"],
-                            type = "range",
-                            min = 10,
-                            max = 400,
-                            step = 1,
-                        },
-                    },
-                },
-                iconSize = {
-                    order = 4,
-                    name = L["Castbar_IconSize"],
-                    type = "group",
-                    inline = true,
-                    args = {
                         iconScale = {
-                            order = 1,
-                            name = L["Castbar_IconScale"],
+                            order = 3,
+                            name = L["Scale"],
                             type = "range",
                             min = 0.1,
                             max = 5.0,
@@ -1083,8 +1073,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             get = function(info) return info.handler.db.profile.layoutSettings[layoutName].dr[info[#info]] end,
             set = function(info, val)
                 self:UpdateDRSettings(info.handler.db.profile.layoutSettings[layoutName].dr, info, val)
-                if sArenaMixin.RefreshMasque then
-                    sArenaMixin:RefreshMasque()
+                if info.handler.RefreshMasque then
+                    info.handler:RefreshMasque()
                 end
             end,
             args = {
@@ -1525,7 +1515,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         width = 0.95,
                         disabled = function(info)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
-                            return not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled)
+                            if not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled) then
+                                return true
+                            end
+                            if widgets.targetIndicator.useBorder and not widgets.targetIndicator.useBorderWithIcon then
+                                return true
+                            end
+                            return false
                         end,
                     },
                     posX = {
@@ -1539,7 +1535,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         width = 0.95,
                         disabled = function(info)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
-                            return not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled)
+                            if not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled) then
+                                return true
+                            end
+                            if widgets.targetIndicator.useBorder and not widgets.targetIndicator.useBorderWithIcon then
+                                return true
+                            end
+                            return false
                         end,
                     },
                     posY = {
@@ -1553,7 +1555,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         width = 0.95,
                         disabled = function(info)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
-                            return not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled)
+                            if not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled) then
+                                return true
+                            end
+                            if widgets.targetIndicator.useBorder and not widgets.targetIndicator.useBorderWithIcon then
+                                return true
+                            end
+                            return false
                         end,
                     },
                     resetTargetIndicator = {
@@ -1575,6 +1583,214 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             }
                             self:UpdateWidgetSettings(layout.widgets, info, nil)
                             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                        end,
+                    },
+                    useTargetFocusBorder = {
+                        order = 6,
+                        name = L["Widget_UseBorder"],
+                        desc = L["Widget_UseBorder_Target_Desc"],
+                        type = "toggle",
+                        width = 0.6,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.targetIndicator and widgets.targetIndicator.useBorder
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.targetIndicator = widgets.targetIndicator or {}
+                            widgets.targetIndicator.useBorder = val
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                            info.handler:Test()
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled)
+                        end,
+                    },
+                    targetWrapClass = {
+                        order = 6.1,
+                        name = L["Widget_WrapClass"],
+                        desc = L["Widget_WrapClass_Desc"],
+                        type = "toggle",
+                        width = 0.6,
+                        hidden = function()
+                            return layoutName ~= "Pixelated" and layoutName ~= "BlizzRaid" and layoutName ~= "Gladiuish" and layoutName ~= "Xaryu"
+                        end,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.targetIndicator and widgets.targetIndicator.wrapClass
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.targetIndicator = widgets.targetIndicator or {}
+                            widgets.targetIndicator.wrapClass = val
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                            info.handler:Test()
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled and widgets.targetIndicator.useBorder)
+                        end,
+                    },
+                    targetWrapTrinket = {
+                        order = 6.2,
+                        name = L["Widget_WrapTrinket"],
+                        desc = L["Widget_WrapTrinket_Desc"],
+                        type = "toggle",
+                        width = 0.6,
+                        hidden = function()
+                            return layoutName ~= "Pixelated" and layoutName ~= "BlizzRaid" and layoutName ~= "Gladiuish" and layoutName ~= "Xaryu"
+                        end,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.targetIndicator and widgets.targetIndicator.wrapTrinket
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.targetIndicator = widgets.targetIndicator or {}
+                            widgets.targetIndicator.wrapTrinket = val
+                            if val then widgets.targetIndicator.wrapRacial = false end
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                            info.handler:Test()
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled and widgets.targetIndicator.useBorder)
+                        end,
+                    },
+                    targetWrapRacial = {
+                        order = 6.3,
+                        name = L["Widget_WrapRacial"],
+                        desc = L["Widget_WrapRacial_Desc"],
+                        type = "toggle",
+                        width = 0.6,
+                        hidden = function()
+                            return layoutName ~= "Pixelated" and layoutName ~= "BlizzRaid" and layoutName ~= "Gladiuish" and layoutName ~= "Xaryu"
+                        end,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.targetIndicator and widgets.targetIndicator.wrapRacial
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.targetIndicator = widgets.targetIndicator or {}
+                            widgets.targetIndicator.wrapRacial = val
+                            if val then widgets.targetIndicator.wrapTrinket = false end
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                            info.handler:Test()
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled and widgets.targetIndicator.useBorder)
+                        end,
+                    },
+                    useTargetFocusBorderWithIcons = {
+                        order = 7,
+                        name = L["Widget_UseBorderWithIcon"],
+                        desc = L["Widget_UseBorderWithIcon_Desc"],
+                        type = "toggle",
+                        width = "full",
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.targetIndicator and widgets.targetIndicator.useBorderWithIcon
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.targetIndicator = widgets.targetIndicator or {}
+                            widgets.targetIndicator.useBorderWithIcon = val
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                            info.handler:Test()
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled and widgets.targetIndicator.useBorder)
+                        end,
+                    },
+                    targetBorderColor = {
+                        order = 8,
+                        name = L["Widget_BorderColor"],
+                        type = "color",
+                        hasAlpha = true,
+                        width = 0.95,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            local c = widgets and widgets.targetIndicator and widgets.targetIndicator.borderColor or {1, 0.7, 0, 1}
+                            return c[1], c[2], c[3], c[4]
+                        end,
+                        set = function(info, r, g, b, a)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.targetIndicator = widgets.targetIndicator or {}
+                            widgets.targetIndicator.borderColor = {r, g, b, a}
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, nil)
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled and widgets.targetIndicator.useBorder)
+                        end,
+                    },
+                    targetBorderSize = {
+                        order = 8.1,
+                        name = L["Widget_BorderSize"],
+                        type = "range",
+                        softMin = 0.5,
+                        softMax = 5,
+                        min = 0.1,
+                        max = 10,
+                        step = 0.1,
+                        bigStep = 0.5,
+                        width = 0.95,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.targetIndicator and widgets.targetIndicator.customBorderSize or 1
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.targetIndicator = widgets.targetIndicator or {}
+                            widgets.targetIndicator.customBorderSize = val
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled and widgets.targetIndicator.useBorder)
+                        end,
+                    },
+                    targetBorderOffset = {
+                        order = 8.2,
+                        name = L["Widget_BorderOffset"],
+                        type = "range",
+                        min = -5,
+                        max = 5,
+                        step = 0.5,
+                        width = 0.95,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.targetIndicator and widgets.targetIndicator.customBorderOffset or 0
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.targetIndicator = widgets.targetIndicator or {}
+                            widgets.targetIndicator.customBorderOffset = val
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.targetIndicator and widgets.targetIndicator.enabled and widgets.targetIndicator.useBorder)
                         end,
                     },
                 },
@@ -1613,7 +1829,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         width = 0.95,
                         disabled = function(info)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
-                            return not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled)
+                            if not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled) then
+                                return true
+                            end
+                            if widgets.focusIndicator.useBorder and not widgets.focusIndicator.useBorderWithIcon then
+                                return true
+                            end
+                            return false
                         end,
                     },
                     posX = {
@@ -1627,7 +1849,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         width = 0.95,
                         disabled = function(info)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
-                            return not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled)
+                            if not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled) then
+                                return true
+                            end
+                            if widgets.focusIndicator.useBorder and not widgets.focusIndicator.useBorderWithIcon then
+                                return true
+                            end
+                            return false
                         end,
                     },
                     posY = {
@@ -1641,7 +1869,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         width = 0.95,
                         disabled = function(info)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
-                            return not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled)
+                            if not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled) then
+                                return true
+                            end
+                            if widgets.focusIndicator.useBorder and not widgets.focusIndicator.useBorderWithIcon then
+                                return true
+                            end
+                            return false
                         end,
                     },
                     resetFocusIndicator = {
@@ -1663,6 +1897,214 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             }
                             self:UpdateWidgetSettings(layout.widgets, info, nil)
                             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                        end,
+                    },
+                    useFocusBorder = {
+                        order = 6,
+                        name = L["Widget_UseBorder"],
+                        desc = L["Widget_UseBorder_Focus_Desc"],
+                        type = "toggle",
+                        width = 0.6,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.focusIndicator and widgets.focusIndicator.useBorder
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.focusIndicator = widgets.focusIndicator or {}
+                            widgets.focusIndicator.useBorder = val
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                            info.handler:Test()
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled)
+                        end,
+                    },
+                    focusWrapClass = {
+                        order = 6.1,
+                        name = L["Widget_WrapClass"],
+                        desc = L["Widget_WrapClass_Desc"],
+                        type = "toggle",
+                        width = 0.6,
+                        hidden = function()
+                            return layoutName ~= "Pixelated" and layoutName ~= "BlizzRaid" and layoutName ~= "Gladiuish" and layoutName ~= "Xaryu"
+                        end,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.focusIndicator and widgets.focusIndicator.wrapClass
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.focusIndicator = widgets.focusIndicator or {}
+                            widgets.focusIndicator.wrapClass = val
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                            info.handler:Test()
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled and widgets.focusIndicator.useBorder)
+                        end,
+                    },
+                    focusWrapTrinket = {
+                        order = 6.2,
+                        name = L["Widget_WrapTrinket"],
+                        desc = L["Widget_WrapTrinket_Desc"],
+                        type = "toggle",
+                        width = 0.6,
+                        hidden = function()
+                            return layoutName ~= "Pixelated" and layoutName ~= "BlizzRaid" and layoutName ~= "Gladiuish" and layoutName ~= "Xaryu"
+                        end,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.focusIndicator and widgets.focusIndicator.wrapTrinket
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.focusIndicator = widgets.focusIndicator or {}
+                            widgets.focusIndicator.wrapTrinket = val
+                            if val then widgets.focusIndicator.wrapRacial = false end
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                            info.handler:Test()
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled and widgets.focusIndicator.useBorder)
+                        end,
+                    },
+                    focusWrapRacial = {
+                        order = 6.3,
+                        name = L["Widget_WrapRacial"],
+                        desc = L["Widget_WrapRacial_Desc"],
+                        type = "toggle",
+                        width = 0.6,
+                        hidden = function()
+                            return layoutName ~= "Pixelated" and layoutName ~= "BlizzRaid" and layoutName ~= "Gladiuish" and layoutName ~= "Xaryu"
+                        end,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.focusIndicator and widgets.focusIndicator.wrapRacial
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.focusIndicator = widgets.focusIndicator or {}
+                            widgets.focusIndicator.wrapRacial = val
+                            if val then widgets.focusIndicator.wrapTrinket = false end
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                            info.handler:Test()
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled and widgets.focusIndicator.useBorder)
+                        end,
+                    },
+                    useFocusBorderWithIcon = {
+                        order = 7,
+                        name = L["Widget_UseBorderWithIcon"],
+                        desc = L["Widget_UseBorderWithIcon_Desc"],
+                        type = "toggle",
+                        width = "full",
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.focusIndicator and widgets.focusIndicator.useBorderWithIcon
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.focusIndicator = widgets.focusIndicator or {}
+                            widgets.focusIndicator.useBorderWithIcon = val
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                            info.handler:Test()
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled and widgets.focusIndicator.useBorder)
+                        end,
+                    },
+                    focusBorderColor = {
+                        order = 8,
+                        name = L["Widget_BorderColor"],
+                        type = "color",
+                        hasAlpha = true,
+                        width = 0.95,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            local c = widgets and widgets.focusIndicator and widgets.focusIndicator.borderColor or {0, 0, 1, 1}
+                            return c[1], c[2], c[3], c[4]
+                        end,
+                        set = function(info, r, g, b, a)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.focusIndicator = widgets.focusIndicator or {}
+                            widgets.focusIndicator.borderColor = {r, g, b, a}
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, nil)
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled and widgets.focusIndicator.useBorder)
+                        end,
+                    },
+                    focusBorderSize = {
+                        order = 8.1,
+                        name = L["Widget_BorderSize"],
+                        type = "range",
+                        softMin = 0.5,
+                        softMax = 5,
+                        min = 0.1,
+                        max = 10,
+                        step = 0.1,
+                        bigStep = 0.5,
+                        width = 0.95,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.focusIndicator and widgets.focusIndicator.customBorderSize or 1
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.focusIndicator = widgets.focusIndicator or {}
+                            widgets.focusIndicator.customBorderSize = val
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled and widgets.focusIndicator.useBorder)
+                        end,
+                    },
+                    focusBorderOffset = {
+                        order = 8.2,
+                        name = L["Widget_BorderOffset"],
+                        type = "range",
+                        min = -5,
+                        max = 5,
+                        step = 0.5,
+                        width = 0.95,
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return widgets and widgets.focusIndicator and widgets.focusIndicator.customBorderOffset or 0
+                        end,
+                        set = function(info, val)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            widgets = widgets or {}
+                            widgets.focusIndicator = widgets.focusIndicator or {}
+                            widgets.focusIndicator.customBorderOffset = val
+                            info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                            self:UpdateWidgetSettings(widgets, info, val)
+                        end,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            return not (widgets and widgets.focusIndicator and widgets.focusIndicator.enabled and widgets.focusIndicator.useBorder)
                         end,
                     },
                 },
@@ -1848,7 +2290,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.nameAnchor = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     nameSize = {
@@ -1871,7 +2313,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.nameSize = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     nameOffsetX = {
@@ -1891,7 +2333,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.nameOffsetX = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     nameOffsetY = {
@@ -1911,7 +2353,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.nameOffsetY = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     resetNameText = {
@@ -1928,7 +2370,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             layout.textSettings.nameSize = defaults.nameSize
                             layout.textSettings.nameOffsetX = defaults.nameOffsetX
                             layout.textSettings.nameOffsetY = defaults.nameOffsetY
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, nil)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, nil)
                             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
                         end,
                     },
@@ -1960,7 +2402,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.healthAnchor = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     healthSize = {
@@ -1981,7 +2423,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.healthSize = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     healthOffsetX = {
@@ -2001,7 +2443,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.healthOffsetX = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     healthOffsetY = {
@@ -2021,7 +2463,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.healthOffsetY = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     resetHealthText = {
@@ -2038,7 +2480,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             layout.textSettings.healthSize = defaults.healthSize
                             layout.textSettings.healthOffsetX = defaults.healthOffsetX
                             layout.textSettings.healthOffsetY = defaults.healthOffsetY
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, nil)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, nil)
                             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
                         end,
                     },
@@ -2070,7 +2512,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.powerAnchor = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     powerSize = {
@@ -2091,7 +2533,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.powerSize = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     powerOffsetX = {
@@ -2111,7 +2553,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.powerOffsetX = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     powerOffsetY = {
@@ -2131,7 +2573,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.powerOffsetY = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     resetPowerText = {
@@ -2148,7 +2590,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             layout.textSettings.powerSize = defaults.powerSize
                             layout.textSettings.powerOffsetX = defaults.powerOffsetX
                             layout.textSettings.powerOffsetY = defaults.powerOffsetY
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, nil)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, nil)
                             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
                         end,
                     },
@@ -2180,7 +2622,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.specNameAnchor = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     specNameSize = {
@@ -2201,7 +2643,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.specNameSize = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     specNameOffsetX = {
@@ -2221,7 +2663,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.specNameOffsetX = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     specNameOffsetY = {
@@ -2241,7 +2683,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.specNameOffsetY = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     resetSpecNameText = {
@@ -2258,7 +2700,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             layout.textSettings.specNameSize = defaults.specNameSize
                             layout.textSettings.specNameOffsetX = defaults.specNameOffsetX
                             layout.textSettings.specNameOffsetY = defaults.specNameOffsetY
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, nil)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, nil)
                             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
                         end,
                     },
@@ -2290,7 +2732,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.castbarAnchor = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     castbarSize = {
@@ -2311,7 +2753,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.castbarSize = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     castbarOffsetX = {
@@ -2331,7 +2773,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.castbarOffsetX = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     castbarOffsetY = {
@@ -2351,7 +2793,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.castbarOffsetY = val
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     resetCastbarText = {
@@ -2368,7 +2810,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             layout.textSettings.castbarSize = defaults.castbarSize
                             layout.textSettings.castbarOffsetX = defaults.castbarOffsetX
                             layout.textSettings.castbarOffsetY = defaults.castbarOffsetY
-                            sArenaMixin:UpdateTextPositions(layout.textSettings, info, nil)
+                            info.handler:UpdateTextPositions(layout.textSettings, info, nil)
                             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
                         end,
                     },
@@ -2406,7 +2848,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.drTextAnchor = val
-                            sArenaMixin:UpdateDRTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateDRTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     drTextSize = {
@@ -2427,7 +2869,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.drTextSize = val
-                            sArenaMixin:UpdateDRTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateDRTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     drTextOffsetX = {
@@ -2447,7 +2889,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.drTextOffsetX = val
-                            sArenaMixin:UpdateDRTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateDRTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     drTextOffsetY = {
@@ -2467,7 +2909,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.drTextOffsetY = val
-                            sArenaMixin:UpdateDRTextPositions(layout.textSettings, info, val)
+                            info.handler:UpdateDRTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     resetDRText = {
@@ -2484,7 +2926,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             layout.textSettings.drTextSize = defaults.drTextSize or 1.0
                             layout.textSettings.drTextOffsetX = defaults.drTextOffsetX or 4
                             layout.textSettings.drTextOffsetY = defaults.drTextOffsetY or -4
-                            sArenaMixin:UpdateDRTextPositions(layout.textSettings, info, nil)
+                            info.handler:UpdateDRTextPositions(layout.textSettings, info, nil)
                             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
                         end,
                     },
@@ -3881,7 +4323,7 @@ function sArenaMixin:UpdateDRTextPositions(db, info, val)
     for i = 1, sArenaMixin.maxArenaOpponents do
         local frame = info and info.handler["arena" .. i] or self["arena" .. i]
         if not frame then return end
-        
+
         -- Update real DR frames for Midnight
         if sArenaMixin.isMidnight and frame.drFrames then
             for drIndex, drFrame in ipairs(frame.drFrames) do
@@ -3899,7 +4341,7 @@ function sArenaMixin:UpdateDRTextPositions(db, info, val)
                 end
             end
         end
-        
+
         -- Update Retail DR frames (non-Midnight)
         if not sArenaMixin.isMidnight then
             for _, category in ipairs(sArenaMixin.drCategories) do
@@ -3914,14 +4356,14 @@ function sArenaMixin:UpdateDRTextPositions(db, info, val)
                 end
             end
         end
-        
+
         -- Update fake DR frames (test mode)
         if frame.fakeDRFrames then
             for drIndex, fakeDRFrame in ipairs(frame.fakeDRFrames) do
                 if fakeDRFrame and fakeDRFrame.DRText then
                     fakeDRFrame.DRText:ClearAllPoints()
-                    fakeDRFrame.DRText:SetPoint(db.drTextAnchor or "BOTTOMRIGHT", 
-                        (db.drTextOffsetX or 4), 
+                    fakeDRFrame.DRText:SetPoint(db.drTextAnchor or "BOTTOMRIGHT",
+                        (db.drTextOffsetX or 4),
                         (db.drTextOffsetY or -4))
                     fakeDRFrame.DRText:SetScale(db.drTextSize or 1.0)
                 end
@@ -3947,6 +4389,8 @@ function sArenaMixin:UpdateWidgetSettings(db, info, val)
         frame.WidgetOverlay.focusIndicator:SetScale(db.focusIndicator.scale or 1)
         frame.WidgetOverlay.partyTarget1:SetScale(db.partyTargetIndicators.scale or 1)
         frame.WidgetOverlay.partyTarget2:SetScale(db.partyTargetIndicators.scale or 1)
+
+        frame:UpdateTargetFocusBorderVisibility()
 
         -- Only try to update orientation if called from config (with info parameter)
         if info and info.handler then
@@ -3982,14 +4426,12 @@ function sArenaFrameMixin:UpdateClassIconSwipeSettings()
     local disableSwipe = self.parent.db.profile.disableClassIconSwipe
     local disableSwipeEdge = self.parent.db.profile.disableSwipeEdge
 
-    if self.ClassIcon.Cooldown then
-        if disableSwipe then
-            self.ClassIcon.Cooldown:SetDrawSwipe(false)
-            self.ClassIcon.Cooldown:SetDrawEdge(false)
-        else
-            self.ClassIcon.Cooldown:SetDrawSwipe(true)
-            self.ClassIcon.Cooldown:SetDrawEdge(not disableSwipeEdge)
-        end
+    if disableSwipe then
+        self.ClassIcon.Cooldown:SetDrawSwipe(false)
+        self.ClassIcon.Cooldown:SetDrawEdge(false)
+    else
+        self.ClassIcon.Cooldown:SetDrawSwipe(true)
+        self.ClassIcon.Cooldown:SetDrawEdge(not disableSwipeEdge)
     end
 end
 
@@ -3997,24 +4439,20 @@ function sArenaFrameMixin:UpdateTrinketRacialSwipeSettings()
     local disableSwipe = self.parent.db.profile.disableTrinketRacialSwipe
     local disableSwipeEdge = self.parent.db.profile.disableSwipeEdge
 
-    if self.Trinket and self.Trinket.Cooldown then
-        if disableSwipe then
-            self.Trinket.Cooldown:SetDrawSwipe(false)
-            self.Trinket.Cooldown:SetDrawEdge(false)
-        else
-            self.Trinket.Cooldown:SetDrawSwipe(true)
-            self.Trinket.Cooldown:SetDrawEdge(not disableSwipeEdge)
-        end
+    if disableSwipe then
+        self.Trinket.Cooldown:SetDrawSwipe(false)
+        self.Trinket.Cooldown:SetDrawEdge(false)
+    else
+        self.Trinket.Cooldown:SetDrawSwipe(true)
+        self.Trinket.Cooldown:SetDrawEdge(not disableSwipeEdge)
     end
 
-    if self.Racial and self.Racial.Cooldown then
-        if disableSwipe then
-            self.Racial.Cooldown:SetDrawSwipe(false)
-            self.Racial.Cooldown:SetDrawEdge(false)
-        else
-            self.Racial.Cooldown:SetDrawSwipe(true)
-            self.Racial.Cooldown:SetDrawEdge(not disableSwipeEdge)
-        end
+    if disableSwipe then
+        self.Racial.Cooldown:SetDrawSwipe(false)
+        self.Racial.Cooldown:SetDrawEdge(false)
+    else
+        self.Racial.Cooldown:SetDrawSwipe(true)
+        self.Racial.Cooldown:SetDrawEdge(not disableSwipeEdge)
     end
 end
 
@@ -4167,28 +4605,6 @@ local function setDRIcons()
 
     return inputs
 end
-
-
-function sArenaMixin:CompatibilityIssueExists()
-    -- List of known sArena addon variants that will conflict
-    local otherSArenaVersions = {
-        "sArena", -- Original
-        "sArena Updated",
-        "sArena_MoP",
-        "sArena_Pinaclonada",
-        "sArena_Updated2_by_sammers",
-    }
-
-    -- Check each known version to see if it's loaded
-    for _, addonName in ipairs(otherSArenaVersions) do
-        if C_AddOns.IsAddOnLoaded(addonName) then
-            return true, addonName  -- Return true and the name of the first conflicting addon found
-        end
-    end
-
-    return false, nil  -- No conflicts found
-end
-
 
 if sArenaMixin:CompatibilityIssueExists() then
     sArenaMixin.optionsTable = {
@@ -5069,6 +5485,19 @@ else
                         name = L["Category_DiminishingReturns"],
                         type = "group",
                         args = {
+                            midnightDisclaimer = {
+                                order = 0,
+                                type = "description",
+                                name = isMidnight and L["DR_MidnightDisclaimer"] or "",
+                                fontSize = "medium",
+                                hidden = function() return not isMidnight end,
+                            },
+                            midnightDisclaimerSpacer = {
+                                order = 0.1,
+                                type = "description",
+                                name = " ",
+                                hidden = function() return not isMidnight end,
+                            },
                             drOptions = {
                                 order = 1,
                                 type = "group",
@@ -5078,7 +5507,7 @@ else
                                     drResetTime = {
                                         order = 1,
                                         name = L["Option_DRResetTime"],
-                                        disabled = function() return isMidnight end,
+                                        hidden = function() return isMidnight end,
                                         desc = isRetail and
                                         "Blizzard no longer uses a dynamic timer for DR resets, it is 18 seconds\n\nBy default sArena has a 0.5 leeway added so a total of 18.5 seconds." or
                                         "Blizzard uses a dynamic timer for DR resets, ranging between 15 and 20 seconds.\n\nSetting this to 20 seconds is the safest option, but you can lower it slightly (e.g., 18.5) for more aggressive tracking.",
@@ -5100,6 +5529,7 @@ else
                                         type = "description",
                                         name = " ",
                                         width = "full",
+                                        hidden = function() return isMidnight end,
                                     },
                                     showDecimalsDR = {
                                         order = 2,
@@ -5668,70 +6098,7 @@ else
                         type = "group",
                         name = "",
                         inline = true,
-                        args = (function()
-                            local args = {}
-
-                            -- Class colors and icons
-                            local CLASS_COLORS = {
-                                ROGUE = "|cfffff569",
-                                WARRIOR = "|cffc79c6e",
-                                MAGE = "|cff40c7eb",
-                                DRUID = "|cffff7d0a",
-                                HUNTER = "|cffabd473",
-                                PRIEST = "|cffffffff",
-                                WARLOCK = "|cff8787ed",
-                                SHAMAN = "|cff0070de",
-                                PALADIN = "|cfff58cba",
-                                DEATHKNIGHT = "|cffc41f3b",
-                                MONK = "|cff00ff96",
-                                DEMONHUNTER = "|cffa330c9",
-                                EVOKER = "|cff33937f",
-                            }
-
-                            local CLASS_ICONS = {
-                                ROGUE = "groupfinder-icon-class-rogue",
-                                WARRIOR = "groupfinder-icon-class-warrior",
-                                MAGE = "groupfinder-icon-class-mage",
-                                DRUID = "groupfinder-icon-class-druid",
-                                HUNTER = "groupfinder-icon-class-hunter",
-                                PRIEST = "groupfinder-icon-class-priest",
-                                WARLOCK = "groupfinder-icon-class-warlock",
-                                SHAMAN = "groupfinder-icon-class-shaman",
-                                PALADIN = "groupfinder-icon-class-paladin",
-                                DEATHKNIGHT = "groupfinder-icon-class-deathknight",
-                                MONK = "groupfinder-icon-class-monk",
-                                DEMONHUNTER = "groupfinder-icon-class-demonhunter",
-                                EVOKER = "groupfinder-icon-class-evoker",
-                            }
-
-                            -- Create a sorted copy of profiles (alphabetically by name)
-                            local sortedProfiles = {}
-                            for _, profile in ipairs(sArenaMixin.streamProfiles) do
-                                table.insert(sortedProfiles, profile)
-                            end
-                            table.sort(sortedProfiles, function(a, b)
-                                return a.name < b.name
-                            end)
-
-                            -- Dynamically generate buttons from sorted streamProfiles table
-                            for order, profile in ipairs(sortedProfiles) do
-                                local key = profile.name:gsub(" ", ""):lower()
-                                local color = CLASS_COLORS[profile.class] or "|cffffffff"
-                                local icon = CLASS_ICONS[profile.class] or "groupfinder-icon-role-leader"
-
-                                args[key] = {
-                                    order = order,
-                                    name = string.format("|A:%s:16:16|a %s%s|r", icon, color, profile.name),
-                                    desc = string.format(L["Option_ImportProfile_Desc"], profile.name, color, profile.stream),
-                                    type = "execute",
-                                    func = function(info)
-                                        info.handler:ImportStreamerProfile(profile.name:gsub(" ", ""), profile.profileString, profile.name, color)
-                                    end,
-                                    width = "normal",
-                                }
-                            end
-                            return args
-                        end)(),
+                        args = sArenaMixin:BuildStreamerProfileArgs(),
                     },
                 },
             },

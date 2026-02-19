@@ -1,3 +1,8 @@
+-- Copyright (c) 2026 Bodify. All rights reserved.
+-- This file is part of the sArena Reloaded addon.
+-- No portion of this file may be copied, modified, redistributed, or used
+-- in other projects without explicit prior written permission from the author.
+
 function sArenaMixin:GetSpecNameFromSpell(spellID)
     local spec = self.specCasts[spellID] or self.specBuffs[spellID]
     return spec
@@ -29,7 +34,7 @@ function sArenaFrameMixin:CheckForSpecSpell(spellID)
     self:UpdateSpecIcon()
     self:UpdateClassIcon(true)
     self:UpdateFrameColors()
-    sArenaMixin:UpdateTextures()
+    self.parent:UpdateTextures()
 
     return true
 end

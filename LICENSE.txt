@@ -1,3 +1,21 @@
+All Rights Reserved
+
+Copyright (c) 2026 Bodify
+
+This project is primarily licensed under the MIT License (see below), with the exception of specific files that are designated as All Rights Reserved.
+
+All Rights Reserved Files
+Certain files within this repository are not covered by the MIT License and are instead protected under full copyright. These files contain a header stating:
+
+“All rights reserved. This file is part of the sArena Reloaded addon.”
+
+Any file containing this notice is All Rights Reserved.
+These files may not be copied, modified, redistributed, sublicensed, or used in other projects without explicit prior written permission from the author.
+
+All other files not containing the All Rights Reserved notice fall under the MIT License below.
+
+-----------------------------------------------------------------------
+
 MIT License
 
 Copyright (c) 2019 stako

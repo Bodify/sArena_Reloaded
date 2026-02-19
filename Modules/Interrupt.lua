@@ -1,3 +1,8 @@
+-- Copyright (c) 2026 Bodify. All rights reserved.
+-- This file is part of the sArena Reloaded addon.
+-- No portion of this file may be copied, modified, redistributed, or used
+-- in other projects without explicit prior written permission from the author.
+
 local function GetInterruptSpell()
     for spellID, _ in pairs(sArenaMixin.interruptList) do
         if IsSpellKnownOrOverridesKnown(spellID) or (UnitExists("pet") and IsSpellKnownOrOverridesKnown(spellID, true)) then

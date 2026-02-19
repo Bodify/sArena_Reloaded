@@ -1,3 +1,10 @@
+-- Copyright (c) 2026 Bodify. All rights reserved.
+-- This file is part of the sArena Reloaded addon.
+-- No portion of this file may be copied, modified, redistributed, or used
+-- in other projects without explicit prior written permission from the author.
+
+local L = sArenaMixin.L
+
 sArenaMixin.streamProfiles = {
     {
         name = "Aeghis",
@@ -30,9 +37,95 @@ sArenaMixin.streamProfiles = {
         profileString = "!sArena:DEvtSTXXv4itkrsr)JSLKLySDSSRTRDQnHOKO(PnUPHIw)e)hljHJCrbYmC3HCxOL7Sy2LswUNkrQJ6pNeqZPCOvqPafWNeAVLtcTNsp8QAVeaFsxkkqVe1GeGcxG(Mz3vKu2P)DWYl35TZ8EFVV337nDn52ocEvtl29O1zI8SQ0gwE50PE01F19SORXB4vI55zAxZ9jBMZY8Xp(TemB66dCrDXkBwHl0zIsMpMviYyPZMZH7(WmY)U0tJMZfF9nAwLB7jniLW1HQH7ZX2VMGVQNrEtbtZZKBNOIaxGAnxrxnQflc0Bki2zFfi(t725CcMh7rEneSfy4AIzTOUUL8OAlFFBR1iWXlejt6SnDDyAlQXTNeoEei2Fa)231PFpHP9YmVznfAwSCkp1aoAKk6MO5wZjnn8KUESnQkqayo0z3OGG7X9wZHbX3AGMbhV7KodvJzZeul849A4MJkk7V0EUkizKaWZzad2xTrLqVYH56mKg11RcvCy7GHGyxkUiW370jJkw1uVgZZDU99Oc8HfT1n1OECXKsGy00ZaX6cI31(A86vOVWQt6V6Ev5AnC7yXOJME6S(R6mOdv4Tw5o3F3GTykFJGKxZ5KAYuHe0NlidpOqgtyOu1j1YmMtaECxoc82bHNlrTd3jbgyByIFCjvkVigyEg)6kA6YndgOzDtHGly6g7iX)qg4P30gtsVLTMbxK7o3AUYfxIkwRX6djjJqpkoOA)FE3qIzKaxYJbhnbCS5cD)EpNA937OWjcipzG(8znxhH4VFxibbo1Hn37eq)WaWvpnCn41HbNeonMMggsbVQmD9zqY5HZ4NQ8T)tGlwf(AyO(X4psjb4mPhllCPiWL)9WzNdoN)jQGYxRZChC(2wBK2E(kWaBRGCtneIDnGl)EjGlCUkgmZAgEpe(6K9C4RYe4IlOEv)i9n1oQs2Y8gcB2AR3Fh40XqCkkKitN4uaFdpZF(by04HyuwiE2qeY3Wus7KGdwR8ciZVlEiUeSLVZxv0p9)HOp51GlKkevVUKb1JVRnMcv)Ts4bHa4QxbUwXIlo)cL3wHg(Cfy0nky(iMf1JPV(RPSvrj6ot6rNyMWS2ej8dymznA2xKvCXvuh(srMgp04plMVLJpEtjnUak5Lq5k)fjBqbidCMn0eChzjIlztxvHUSm4k72WLvGj0y2E0AmYMuRvPR5wYGVkXN71PF9NtUPMb1UMsDICiq25K6cvSL7aP4UHyFUpWFOn6pbxEGKsu6LKeI8Vpb40NG5yr1yZgw1tG09dx3yFNop8iiNeUX7IeTNajEtOh87VHtFEgMAl3MBsuCUtaX)B9G8oN(CXyVeQHFxQnvcryICovTwgy0DKYPEgHzY9KA937aza413yElQUzdtxJ1pdESFXUvq)C58fdv8LCVLqg)uijFt5bLVO)rGh8G6IzrsrnUynPZF)QvDr51Edkr2xx4VjZBXxfxZyVkczLvR9(nmG4l1DMjYKEI9X2k0kwSdwCFmOTBlMnGe38aLOPv5Kck3koMMgBc8vHSVmVe23P64dXuYah3xt6aCc(24)Et85SxbMKatrKeXdvrgYHJo24Ocq8tgWHZcJNurE)u0NIo9uibpOEQdznmshDCum4)D6d8njOEvViFrYAKmKhcttGBsKb)4zMk9eBReQkY8OMwQHlq6Z3srFopKmPmjEl04ZgRnzQZdXSq8zRxwz7pdp1p(iTjvfymc1Zif)ufOrtPWhNtPoBQqFe)ZhLqHHrszhDShzSq1(Z0Xo(xdHdF1O2L1KnxAblTV(HK2U4haXE6ReAYL)mmj5CsuKWV15S(tkGTohpcCPacs8Nfpu45HDbx4BeMWUPudCNWAe1Kz(D3LvsQ4CwEDCqmV1pncYFGQ6azz3swoiH74FypqoIeYXQ32yRy0(gy0(Bo6Hb7GExiLAsjLAPOtmv6ShIXg8XBHTrD6Vq5rkrTDh5EuSf)QJKJBPdxDYTdNhkWJNjlC3wEUppErKh)2VywqwCpoe)VlrszUyUaGuM9WcsDY)Tjf1o(DjTOSxbUVKMIOlISx8xTRRzDhlwq(iSyDk4YFISQ62sYC0XMbJ(ljJBSO6esCjZe4J3Pqe5)jj8rt5Z19hXYFq62ND56XcND5eTMDbhYvLQW1)JQmqKqM(hIV6JAH3Tzy04(08lD2DQywBbLkQYVpCB6T61VBr7F8V8)NQ8KNdUW1c7s)m8vp)vAVl9h5tsnGR2Ru5vo6RPASD3cbt2J0(G(m(J7RA0SRHPoRGSBUs32zqLiotZSo1YTv)iNtPZCXEScuqpVAe)zZtC6V1llhCFG8K90ffzOsFztCKFZhr2vRHazlE3rDFh47SJg3IlcS3yxDQyzzP4dOwnyYu7ysn2Pi7wLlQt9UxJ6vyy55UDeseNboCik7WzGUzW2L)apJSx7Hu(IKnK)wwa7A40NU)7lBGJpBGvlhdBgRUWuqRltM76PAMhFNNXAcsZ7j7rDlRQiISa(yDEdCodt7YuC(BBYy3xOrepGBQlnPY88kwM2KnVl6A0A286msZcuB0hrB377jFYIkmll4wwebEi4DGmjnZzX5(BW7WrASnPyGfL0WznXHAAE7gwLnfuCL5v7QZPUJ0VQknxpCFkMFv86cKkb(2MkxhVuPnJSXDP1mOcP3UBEeXwuWT9TU4cnQJ7R4bnSCW7Jr25w4nwmybRUDB5wS(C60zDgY0EfMW7aQYSCef5RAt8hOEwzYgZx95FXWwOA1pFeYWDDJ3MeV)Fa(WdRH)zN)bz4U)HRse6kYP7k7SOTgvEZwmvZg(i9)(BGKp5NB7H)6llEBBU2Ydh5xmyf89ur9Hps0Vev5Sy2ASH75F(f5kY5sl3kxjVg2dFKipFNdgkb9HvGFebwNaVVb8JjWtiWpLa)eJ9B54(SKMYBSxgVZ6U(DTk4FP()1d:sArena!",
     },
     {
+        name = "Pinkteddyp",
+        class = "PALADIN",
+        stream = "pinkteddyp",
+        profileString = "!sArena:DIvtSTXXvyttkBkZOsPi5FyIvetCIqDJTIiLiLuZVMIIsYXsIHK1ronbzhU7qUl0YDxm7sjtJEIiivhAVqGMt5qRGtbkqoj02t5Kq7LMa0xu7XCsxkkAUe1IKlPa9nZ(djDuAC7bjUZo)9MV3377nVnu29TyM100PRtAqRU0DnviSCkehYUx(iDslZMoLPooAg1TFVolRtu0AQzRU7J)ukSV8WQ6e5TYxkNjtHYuBxZ0WPS29OjYzzAFNb3Zw1CN8LQqVRJ0rvzA1vDcglZ2IiJl6qwNxHTiXHw3K1Ip3nQvZM6yFUJRZm3XrnVgJk7OzAm4Xkm35USU5o4Ou5BYMV5zSg2rvtERIA3LQ7T47vv8lF5kgo9uzowrZMuvNgS7hJtXO3zKZgh7cvzOnr0luYwMOJtD6PYaNDCi6NegINFiRXzuh8S0KrxHI9ZwuNyBx2bHGnm0BjbxOy4utLUTTfvEvztJSWfcdrV2PG4VziyOWmzITtoc7xdr)jHocpvM6M4j32PkHP6o3zTgwvtH69YYwe2wswj2IsTYtRrAQ7SMjASgvCncBjRrAAtDFN3CSvH4J0rd39Y8Jq428hlI4uSs7OP4O(N7uJHU5cOJQtrMPJPtll6b8tLVtUwBdCaCOl8bQ4X0r9ggYQMSsLwD5vQSNcJV7IU3Jpq3oZDRLkuzFlZDOm3xatEehgwpyeWv3Z2H400Mp9jpeT7IuMm1WHuNkThrFhsl7YiDrQQSc36GNQThwBxJvT(ICW6MHcfI7uYAnUS7X9hzOz4qzSMwoAO)1dyoY(gmQbjPhO1PADVokv2uxtX6I1PgugrVSWGqxIx3WmwJXpYp479xVYomnlQT1f929V58HypdeTyKzMFQ5GKVZ5SgMrTWqeQGPW5esmCnm2I6uGto4CRqq8pTDdngZKrvKyOxQos)VnFdXtKI6r1mLBAVQHIMmXXK5sQWjf6yzZgvjoNqpwNhzooTQqy4sf0VDpt1P)UegZlP625EYQeJ6ckI0(YCdxtohNzvfJISO6f4C1PNAEFRFSVN1iY(NVcEkaJxvLYJ3FRJeKcC(RiApU1WCrHYi3ynIbHdCiJT4aZMDMPYCqoDT7DVkMnzg0w7okQWSnmIiagIoee)RJaJLcoBci2qWqdcN3fctarVmAf)c4IEbGZaxY9KMbINbJ7GLcgyc(4Es4PG43Fmy6AqQagfKgDEZczGS4VZbZdlG)g9pefE((2LxhEXcqUUaj8kz9rd32VCp9DJEEo2vHcjGeBdxwcLeWxDRZ4jxapMk8eHHK)o45qd7fKGRKf((WKh4h(4kInnsO(bWK7lqOsuhIM(UJHa07cJ98Wi4Umbelg3mpNee)YNTh8zciQokbD)bDbOiPMA6m(i0pdnKp609GrEdU4aPwGJ6cOksIVnOY6rfMdHPK01Kq3mmh6H7lCjzAxW8l8XsVn5VlWYc(WWlj1hKMAQu9aPUd5eH1eOE6hEkok6nQKFbhKhhXHplk8e8dCQmWebkH3jeu4z9X6vr4Es4vlgb9Gz4aCPnjSwn39I9X9WT6RhagBH(5EUofVGG35rc4FP8r3aLFb623WDIlW2RCb0vF1hgM4xaXw2h)CxIp2Nn9ryJeUE20z8zt)XVnI6cFhevoWKxffVgekmoS8D4O0kJI8NeDC5EenLDNWL5TQiUyci(hEgohmwCyuPa0bH05CZEwms6zMAwoRkDQPXh4avybiXhuw0VUg6RoTqgy(mOh0hXga5QZUG)b(VgdUY7TppNJ7veUZv33xhMhIWj2Pp0nJL3aU8P2ZTTBmeMFfEMQlU06vwQKa35buDxVnVc8SWTHN0A4cmT7L81Asuy4TGswPceluhzMPfxGZwcU2KW1LGPKqQ3H2AnS09tylfWcZaj)hCNt8nJm)Syl0Lmbsh2iee9Zp1XwDV4Hir6dbbaDbrr8iDkS)NRt6PNoDYCM6kWIsChuYidznIcRy)R7aWlUTiSkgeFurKwyrZb5nFLE859XfcgMOjsfE(tWBoNqJi7SOZIZs(57ZV53gnD01mONgJQ6eKqWJ2Lf1pXWHxBpbjsOp8ac8PqAekWF9tuGhN6hoqqewG(1NGV)T7xINp0RD2)xe5F6(e55tpIFWtVbmVs3tsxzjxDJUrrUb5DL8pVFqkxXFq(M4fF(BCvGudKFYMHtjD13DtCl037tecpxEIqX7kcXHdULJ9)P9eAHOZ7JV6d6k)0ZaJe1fGE6lFqvT6RiIre83hc46(NZLr0769Roj1MtKD1R294qHR6JpFgxJ9upqkXpiaKoN7vdw0Sbw1GZUxarM3tS5yq15eAoO(t83)mWGs88GJ9Ybk0ZlY38cOB93(ipygqp37MrsNfplyS6SZnvME1R7o57Jc2wJwSsYYed7KRtWRRTJBeiMUUm3bUqMEZJ8TIKRHi56FZeIBIo5zG4)toR5)Z0I9h4(dLqWtOpGz7qjIe)E4n80N4zeXRN(X(PjXi6f4AuU17mrCyJIH5IwiWKI)lMKeVeqhH6cwOwG8)llU4X1HHL84KX)8ZeWl7x7E2t62hE5hJp2J)FrXVGVsn8m4Fpl(mN5IjdVtVcXVRqS9ZolhiN3Laj2SzMri9oiK8VbV1ape07FmAx)ROcEhk5I4gcGiu65sc3V747IH7lE2)P6ViKmFBi5yX4q7B3DchlunfL6WV5NTQ1iE1p4wVjxpv9qEfIf5xQwC5zRZlkYMkR1GOB3TodRhvHAJLNGPWO5f3BFX8swJ29LvCRdbF7HYnzOGSZTef7ddCGOYuV(vTgv0mFPfnr6U5ogU3z)AzrG)WAMSgeN1B2OkLx651LSUq3ZqbELMELgPEuVMz(sswdR42OIkwINkU0dXueNq7Tpyvdzc)ZdG1xrV0Ph9N2bpbMmn0gXwFvPx1WuERlf(xE(CLDAACPth5pH570PgY0lDM)9xMRKPjFC3VkolcRb2)xHfIjQS37dnOrT39XANhFNJAlMu715LMSKEne1wbFSHztSUunJke0YnKsVbtwQufMPUUu1LnRIj5KANt30uHpL9wJIfmv3WSbvQDrIHcHpNJEd(t6eMM78y4MHfDQjXUTPMyEvFDtuLN7OUfF3RXBPemQYYyvqyLXTF1M6v0yedPsll2IoRrQRsyctk)oegUqEM5EItrvtS4jPdZtyBTkZ0WDiTxHlyzOXKkTsZg4IXUDtDlSeyPdwcRuuL6po043I)9eur6J3J5dymsD4(qbZe5mUFmdHJ2UqBS2E(jx5MHfPadf(4MDlnNxi7nfVV7)cBnsq)RB6uIsuADZWHcfMXl)0GQFZqHdf26IAgBtzob8AFsO0H(23Tj6nffiLwezems197YeTLSUO3Na6g4rXEdJUddpPU9SX2CoSgvxXw6GGVjfsv2gCKGwsW2sWosW9KGMsWDL4fYsqtPmh1RO1GY4WNdPsll6HUvav097Q9Fc:sArena!"
+    },
+    {
         name = "Pmake",
         class = "MAGE",
         stream = "pmakewow",
         profileString = "!sArena:DIvtSTXXvyRqkBjrQyjrsBPkRyAxhN4gBkrkskXMIKAkAkPe)dbjHJCHb6oC3HCxOL7Uy2LsMU9sjkAvBt7bbuFkhAfCcqb6jH2BfOacTbiTxMQMlfWN0LIcKlrnibOifOV3S7ssPydd0dsC4mV5nV5799EV5XbYURfZSUMo92KMuRZvQTUE7MK1PXVw83M8Whsw)vxTPLjZHQCL8kehYwtFGoPTzlNkuhhnJg2pA7sApGQtaj26LQjRu00Wz7smthtN2w0AmISgrVyzBzIoT0Gjtmx6CDQdYur7H0zYBzAFVbW)Vw6HTMHrDOpWPfJUcfKMTKoX2UIdrE97yO3wIpCPGW(Z0X2IkVQSPrw(Wb4HU6j4HV)ah2GzUPJAbngv2rZ0iatMy7KNW2WAQ1PuRc06Kw6o3YuHYmQ6Ek2s8qRfyXeP4HFYPC1(8Z3rd0CjWGgEBCuf0UduEtnfh1)jZ2cUognwE76maUWRk)u8WrNEBzMPfAs2s7y7qCAzJhXL3VLnTeLjtnCinOs7q03K02UIQ5Ms1u0GRHEr4yDbf(iZWdnap8hhAhzvIrdH2L64bi2zToBdQbLr0Ri0pCZ8UfhyFDg1Ge37gAfvL(SfQIdtZIABDweDQryhxo(5TgxHj8O5nzawHUPb5H(SHyWonwN68vT4)opA0qDAQXyMmQIedWQguh7Ih6qyWGvnu0KjoMmx3fSHbou2SznYtBLdQBk3Y(PSGvmlcZPD1JQs7(eymg1sNitfSg0xiDGL5MugC5wHQ1q1jYUY4sAYWm2QhAD0lzaRXL93zrF(znvXo)UxuH9JYBdZ8M7uR3o4HUM1yoQAYR3hGjXhzkEStZd)jNKF6HTgZg82vac7TigeeKL2dDP(rpf3Xaisx3qw1KL)M3Oy1Df2S7eLlV6YRuDp0F6O6ofp3bi7)2D3eFH9YRR9Whw1SfZG2ERiGPUbpvPaPsKHhAAE4VmOWGgfmgEYRXhQiIyWmHohGA)s(OyyvGKqmWl6ILz4HZWpDa(0DfCkuUZGe9)0e8zYYFj(55X5xGFr4ZqFe)shrJVd)Yf5Vsp3c)vZIhWCjw077xPV1(g9no2v4Zof)KWX8Ys8mxMNLNJVi83y15JdXPFYjeikiEKa8O)(Dfx6YuhIM(wrr3dp5RZtbk788yHaR5GAm0ZvOSVxj85ofcbE3FWY1bn(4HDbarEfFe4Db75p8c9HbEcd0(CiQkGIGtjGcRjegcHPe31yaUfpo41ps4w8uUG1N6dwEA8F5dwUEG(bSKjs2hG1)6hd0g7r8q)2t4ls0pfqlRXH8oUz6wYnmhY0nbGC49mj4GFYq(z5U3a8zFnFupnc875ZVqkEPGGJld6hCbC3WpbG3JKbwYvpfpzopIVhiJ2tgbTaw)VjG5a(i87bt9((a8rem4q(mT9QP1yfbZhSFPNbV7i79x)0OEbEE0Uz4ZEfFs2tGP(YUyjs0EFxSrLNzKYRryTBT1zf39rolpuPGPMlrAE4V)GEHxEasYz9aG5sSaFKVowJbvhYFYMd2qpOWvKq4h54Hxl485smFpyrSD3uSoN2fwkn48PsbYEC0OuWfqvG26LoYrJJCp6uzaDF1i8OF8qOV(AQpRa1CpheB2z4ZDdEMZarOl4dCRfinO9WRnyY5WiDbaMwaG)zESR7MHkUlJ8dD5obejNcd8MRi4nIGtiaXJ67Joz5HaKPnckJjcDcF)reXoarF2licdHya)7SGcgAwE4pQRhWDQBoao3lRUJWseXMcs8NVFnOKX6(zju5JebbZKZdhCSr3bZDxOmM1wfZLhtHTe8oNgMS2yWXDQx3gQZnINF)qfMRwww3Ctynv0JMfDeZRYFd1dHc(KA60UN1HqLdJ(kCOYtEb)0trqiDoes)n8rvDtqLEE)WhWjaQo5Ijw0kIxv5L0yY6uFfHO1hGQyHejpuvtH6LgaRTPIQi6FeDBGsYTOlrFIqwJHc6vpuvJQRi5oL3ERa1FxxsqdJnDpc455xSCftDnfe3YGKnGCD57IimCzvKCtF5Mg5O8SS9XT8ceeF)v665Qk5nfYRNnMpNRxLPZDcrQhGENk18GcU0rqpi0SuWSjtK1L)TKzt41BoBDgWV)iX2Hxo(gsIaxGx9ENK)wsyTJKVzxYZIIm1Fl4u(DHpEHcVqL1cMkleZdqz6fsKP)G3EB(Xq0RvKsvJxHyyh)2e4HsBgpVPUcpt2D9FiMx22Cz4l1lRRlo)Mao)T)QvqwdyDad5FJraySCr)exDXTNBPeHU6k(Rjbi9D5NtcRjaUXX(G9T1AAP7tb8aGKlWJ(xr(Z1Lqeovo4EhbVXz4tCAersMggMVua8dOMceKU9Y6efTwA2QBn9XRDC)t6x7y0E1oeWNBUVcH6c9j7wJ29r)cI(gUzGccmaWpmURKZd2sircO)HGYMPOG6Gq63e(71HXtEz(us8Vg4Zx(45tN(42q0xKhk9q(1j9CbZ4vA7)JQoash9hocMegYiJjuVhI6iwL(mwJ79qw3MGeXSwNr820Lm1nzfXwp8EUUQvmrokQSwtIUDVN(AnHc1gEApdYxvq0PXsfuHjHyymnCHUlQEGcRmfYJvvdAOr7bs7l3IbrVo3u0LhFL993ZDj6TOU1tMmlGB7x3K1K4C7wnRrXhymLeOQcTH3ZQj6oZwD3(uDjmFvM9veDC4jaKGrX1YRQcT4OcreJcpJx0XOxIwnQ9wt1PamNJABMuNBJpQ7g61Hl4kWWMMTGwR0mQsaWWqk1DyYsS7AQPGIuBzZA6Ags7Clk0rvddZMuPoLigWfcK9GVdosNW0QYm11LyWHanyPj1jVUPPRcEht45ogsL9KOIm8iBOpUoVDl9QAmcSYYcTAnXnr7QokUIVEkxytcduINTTJW0HUhmOsBFlsdvcdT29laW7QmtdxPlVsRMGEz3TLUf0SN0E3a66rL6TAhFFH6(yM5syRcIEk2gzb4J2SvToRMXguMtxUWsMaUAUjWjI0Jtu1RSrb1DfeibfXwLPi4B2BS3QgYeSzxWBrN8fI8J3gebDhgoW3(IYVTHP86tg4xflFfNwgt(cb)lqgmDQHmDYt(F)88Lnnr5ECnyxewty9Vy3EmyHJ3Lu21lx)ZIln5ax7TKgkY3dgCVgW)27)in5G)GnLoOFoEHYQ71TomSXn4BjX)5s8FQe)NjX)fs8FIe)DLev9UdGdKAGzxZwTd(JxuTTfDF3NMxY9x94)9d:sArena!",
     },
+    {
+        name = "|cFFFFFFFFSkill|r|cff7ba4fcCapped|r",
+        class = "SKILLCAPPED",
+        profileString = "!sArena:TIvtSTXXvyttjBkROsjlzzRyPy1kh34ghvjkrkPM46Akkkj)JenjJJCBaYoC3HCxOL7UD2LsHU)leKQdTxiq8PCOvWPafiNeAZPCsO9stp8QApMt6qlkAUe1IKlja9nZS7ss74avGEWwCNFFZ37799M3ej1Uom7YgM0vivP7wyDdtZ5joouT0AepY2x8atsD7AEfOEEgwvCFqJfnjAg1mC13E4VMg7t2VKjrD9m5tBZ0Om9TkBB5vW4(0VAAhB37fH56quXj2ZoU62BMjFr6R7PFyfM9ME6zmyuvpdBRUCoJgBEIhTInRoFYRwUSl1Z9u7usSQ8MYfnX4jpuJj3NfnT3ehKoFtw7JoPtVE6gQRNZ41PM(gYbLygv09cnSd1mCjLmPnBaNIvRZiTlUnlwIH2lXmBExvIjnkCYrGyrG4ENYzeg1dT(Am6suSl28Mex3cE4PFvlZ6kWG56yYXNm5wUou1LvTTsbdgfIDLJbXF1iq3rzQexV0e2FhInCKdWtUTPnEOD9kry8jJNVP2YaNxo8i1Dd(VkWnb(QoXCb9CViodToL6KHwMuZ0722OLBvuAwUko9vZLkBZFLD1Dg0WYJYy1C8qJ1RM788nEvlDiE)o9QBOr9hAbhcBD9dBPf(Pqp)MgAE6VLCOsOQGUb1utPrzgYzYIo8g5y2E2E1DOq8CDo9etn(Snuz2o8fWvFhxX(YTYlTpAG5OmvQLhPcvzhI5MK6UfqUHc01IB5dWULzLQiSZBejsKCrNy8uoJOknQx2k88yG(t)Z(bUxNrTiJ6JlnkvXVJ8fSnn0CoBfQfLrmLqa6g87gg3zaD6J3EW6vWJz4qDDoR)U)4ZhILRZjNCQXN5ah7nPmSRLOCM3iLu14ydCPsi1ZHAML7KNy8zdOud8vy4IBTo1llNP436N70lJ6GXuub)IJGkWyxSNTQAWy2mQMYUQ8omutZ9U7OQtSQiCcO3xnykz9JchPKUWyUhd9IvWqQ7YpviSPPFqzB1AUlBPzOs8Szpa(o6CdyWO7SjJ4KxefOVl)3fLwPUGDjzaVIHNUGDaXJ0iSv9g8HlSBLdvTRwI4fU(IZOClIh5qpcdTMw3Cf5MdP1H51Hm8fgwqhYQ4CgKx6vVy7ZWTT1ZPxU6sbmW72elc31OShNkfOA9EBzHmvPmcgJUJMW9f(9UboxEdDmX4tp3oCoHNE4i2t(91Tu1Tz5ZV8IlvCpEC(kTTS8nroK03AHSfpWFzLQzRfzxbbroa4oneFfo5dcwo)(lUxAtJ7F)I21yw06B3pQ1Ub0JqfeI1de)Z6agys4KdbD1d0DxWzKCOH4Ilq83coRqszYXNcoNuhkjepjQcbZeoWH4J7zHlbXF4aWZxgUsySg8ciT(BctatI)nbmfmnNM)hIbZ22U8kW1YclDxPlG3Xcch3IPci6YoU(JnILLMKOXUUmC1HGH2aEgKbCfSPBDcPLNaEADy4OWy)EifAKFlf4MPGcWDG88fFg4UWD2var5PEedZTharO3eg4fHEWL(cqxDZTZ(uG4dFYwaOlaXmrf5h2LeH4ARjdGOFbU7V)XBbK8hmgFphh2fyvhd9KWkNtlmhctBuPjHbOqcKA2MsYOjKO5hhaM(BY)uaML9de4OLeeAftrAYJHPToQhbxh63aXE3JXHr)rn2hZr5lGyYhgdgwMUcoFuyKiWvF(au(giqFjeKX4GztYr58Rry1RT9zBJbI7XN1jmWCTZaLEgFLS34PczHtgaXHzdfqCBd3lUaGV5GOtU4rHp(XycJaquUeFqap69Xpgs6EtKmGh9hfi8BYbQ51BsjtZfz4ayaVDUam(jp0wbAoS9I6WyVrxWvhb(23JJHj7hPyd1qspjgABFbj5CzrSZfG4V7j400UId9ReIDiGptsXrjxhjMA8P5eVetIQrcymQac5dkvci2Trx4Xf5ANnj6ydWZor680Zfah)TUHB(GD5IssfO7DzyfbJpX(s5m)Mh(yWQCV00qUsZVWkfxiVWfWdWAo51gdwdiWZ60BwMX9h9o1iAm8cIJwSi0ve4RRap3LGlRaFdfK2TVRrvhtA4LBcyGjHX(xC)t816y2PXVqVY5rgbs)I9rh7qNM3fJRkg9iWbqCMN9nXKy)PAKyIjsmAABtn4Lu4EHX6OhN(0y5AFD7eU2gIOSUXlabljt90v7PE6xM6rqjIEeOdYKrbrUiBy2Vah6mcLKutJ(lor5xUl)QYRwZZ0WIECmSRry2BFIykuMfJxUZocEKqf5rYdmjYKW8aVWxyEaCQVBNHHGHQC)zS9xR9mb8HELt()sUGl2wUa(07O9KbYaP2tiK6XfVKImnvVKkcnZmCMGiAEIbHtYpy(3kLR0d1QsLKtALzeK3vqKrOnfl8m6RyfVPIfhA4NcS))slrAis92ytVttTQwgyhXKG1fhEVsgvwsemjy6hbO7HNsYoAD9(1p5mPrpAzrhbU6LdWQpKloFShjl67ecyNsEZI5TRILM5T9Gik9aHHGHI9jKJqPP4V9jGtPWZIoW1cL2NvKT6Lq39V7PE08N(kNR1rIu45cJWNEMXt2QqFZj)quP3P)CfhTaXYD0vi49A3ug3Iz4xH7mNlzRjGEIO63dr1x9XtNUgVuki()MZG()qs12dUNtbbslUcdMYefzg69anFfoE(0zGX(GGKSyu)CCvoUzJ5zJdJKlkx2dbPj5)fZ0IxNOHqFcl(nmlX1exH5fGEv85QX)OteYxBxIF6VO7X4NKn(aN)ljXq2anEih(V1WFZz0yg12KYFtHC9hEsoOoRKmj2SPMsiE3fm2)aQ05rG2JY5X(pXeCqu0gXnearOK7E(YU8)rwbULHfi)2(z(VkeDFnySb6Md8gnNGtF(fCjlRxuwJZGcXyrjOz5v56xUNUZzeVJbv1OkX0TzjAo95Uzqvtb1lTVgwqnVA87smRr5ytId5ZwOKVsTQL4VxsWy0D61)fkkSjEpXfWQ10DEggTQ9g0x2I(9RzWFug)Lo0AoT)CwDdkwmiVQCx99cFlfdQ7g7TSLkH)gmyHRuL05TT9uYFtlB11vsxWRMLsPm4sWQQ0a)lFkyHKyEstQLkvX5Sgw4k7fEoN3gdtT30clVleF4fT4QVp)5bYXlPr8epOLrDXsLX7iqZik)D(mko93Sr)tc26(Q1yiI4DlXdnbDUN4Lrcl6SFXNzYhS1ILhEUui)C)Y2SQepju6QJK2dA17KjVIZ5Lha)vt6FcwjeYLp2tt4A7NERmyBE61zkBTcVY5fmlR4C6LWFw1UMfETERIee6TusSktvjFrMTPPsPfTlHPXv2kTPTTgFk7CBkwzEfl7QuLTYrSq3moNd(U8FzsygY5XWnJArnuy312qmVsVInM7c5tN(w8DVm)lTWrvqflhScUI3SMzrdgXsj)IITOXTjv0Xkn5MuMnjmCH8nZDeNIs2yvKk7NbjBlZSTKdzRL4sVwgmL8lvRkUyS7wZ0HYik7TawYTo1FCiZuIOf1zONgbVEC6v4vUDDxpkR(ImsD9gCOxWfqJpGvNj0FJUz57Fj4mUz3Y1tGkA3iQiPFKOhwR5l7W503q0EZ)lQtFH9VITxEkrR(nIgjsug)nqSOM3isu8dnreS7gWp4ChV)Fo8tX))tHF05I(Rod8Jp3X74pb)SZDIp)tGFi2(dHFc2YNEiJYdFO8hujRHPP(Unj34H5S(XyxhphURAfglG0hj5Qj3ugf06iC1jyhf4(GIgvLb8EKI1DO7lRlmN81x)V):sArena!",
+        website = "www.skill-capped.com/wow",
+    }
 }
+
+function sArenaMixin:BuildStreamerProfileArgs()
+    local args = {}
+
+    local CLASS_COLORS = {
+        ROGUE = "|cfffff569",
+        WARRIOR = "|cffc79c6e",
+        MAGE = "|cff40c7eb",
+        DRUID = "|cffff7d0a",
+        HUNTER = "|cffabd473",
+        PRIEST = "|cffffffff",
+        WARLOCK = "|cff8787ed",
+        SHAMAN = "|cff0070de",
+        PALADIN = "|cfff58cba",
+        DEATHKNIGHT = "|cffc41f3b",
+        MONK = "|cff00ff96",
+        DEMONHUNTER = "|cffa330c9",
+        EVOKER = "|cff33937f",
+    }
+
+    local CLASS_ICONS = {
+        ROGUE = "groupfinder-icon-class-rogue",
+        WARRIOR = "groupfinder-icon-class-warrior",
+        MAGE = "groupfinder-icon-class-mage",
+        DRUID = "groupfinder-icon-class-druid",
+        HUNTER = "groupfinder-icon-class-hunter",
+        PRIEST = "groupfinder-icon-class-priest",
+        WARLOCK = "groupfinder-icon-class-warlock",
+        SHAMAN = "groupfinder-icon-class-shaman",
+        PALADIN = "groupfinder-icon-class-paladin",
+        DEATHKNIGHT = "groupfinder-icon-class-deathknight",
+        MONK = "groupfinder-icon-class-monk",
+        DEMONHUNTER = "groupfinder-icon-class-demonhunter",
+        EVOKER = "groupfinder-icon-class-evoker",
+        SKILLCAPPED = "Interface/AddOns/sArena_Reloaded/textures/scIcon.blp",
+    }
+
+    -- Create a sorted copy of profiles (alphabetically by name)
+    local sortedProfiles = {}
+    for _, profile in ipairs(self.streamProfiles) do
+        table.insert(sortedProfiles, profile)
+    end
+    table.sort(sortedProfiles, function(a, b)
+        return a.name < b.name
+    end)
+
+    -- Dynamically generate buttons from sorted streamProfiles table
+    for order, profile in ipairs(sortedProfiles) do
+        local key = profile.name:gsub(" ", ""):lower()
+        local color = CLASS_COLORS[profile.class] or ""
+        local icon = CLASS_ICONS[profile.class] or "groupfinder-icon-role-leader"
+
+        local nameText
+        if profile.class == "SC" then
+            nameText = string.format("|T%s:14:14:0:0|t %s%s|r", icon, color, profile.name)
+        else
+            nameText = string.format("|A:%s:16:16|a %s%s|r", icon, color, profile.name)
+        end
+
+        args[key] = {
+            order = order,
+            name = nameText,
+            desc = profile.website
+                and string.format(L["Option_ImportProfile_Desc_Website"], profile.name, color, profile.website)
+                or string.format(L["Option_ImportProfile_Desc"], profile.name, color, profile.stream or ""),
+            type = "execute",
+            func = function(info)
+                info.handler:ImportStreamerProfile(profile.name:gsub(" ", ""), profile.profileString, profile.name, color, profile.class)
+            end,
+            width = "normal",
+        }
+    end
+    return args
+end

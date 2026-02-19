@@ -1,3 +1,129 @@
+-- Copyright (c) 2026 Bodify. All rights reserved.
+-- This file is part of the sArena Reloaded addon.
+-- No portion of this file may be copied, modified, redistributed, or used
+-- in other projects without explicit prior written permission from the author.
+
+local isMidnight = sArenaMixin.isMidnight
+
+function sArenaMixin:ModernOrClassicCastbar()
+    local db = self.db
+    local layoutSettings = db.profile.layoutSettings[db.profile.currentLayout]
+    local useModern = layoutSettings.castBar.useModernCastbars
+    local simpleCastbar = layoutSettings.castBar.simpleCastbar
+    local castbarSettings = layoutSettings.castBar
+
+    if isMidnight then
+        for i = 1, sArenaMixin.maxArenaOpponents do
+            local frame = _G["sArenaEnemyFrame" .. i]
+            local newBar = frame.CastBar
+
+            if useModern then
+                local castTexture = newBar:GetStatusBarTexture()
+                if not newBar.MaskTexture then
+                    newBar.MaskTexture = newBar:CreateMaskTexture()
+                end
+                newBar.MaskTexture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\RetailCastMask.tga",
+                    "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+                newBar.MaskTexture:SetPoint("TOPLEFT", newBar, "TOPLEFT", -1, 0)
+                newBar.MaskTexture:SetPoint("BOTTOMRIGHT", newBar, "BOTTOMRIGHT", 1, 0)
+                newBar.MaskTexture:Show()
+                castTexture:AddMaskTexture(newBar.MaskTexture)
+
+                newBar.__modernHooked = true
+
+                if self:DarkMode() then
+                    local darkModeColor = self:DarkModeColor()
+                    newBar.TextBorder:SetDesaturated(true)
+                    newBar.TextBorder:SetVertexColor(darkModeColor, darkModeColor, darkModeColor)
+                    newBar.Border:SetDesaturated(true)
+                    newBar.Border:SetVertexColor(darkModeColor, darkModeColor, darkModeColor)
+                end
+
+                -- newBar.Border:SetPoint("TOPLEFT", newBar, "TOPLEFT", -1.4, 1.6)
+                -- newBar.Border:SetPoint("BOTTOMRIGHT", newBar, "BOTTOMRIGHT", 1.4, -1.6)
+
+                -- Handle simple castbar styling
+                newBar.Border:SetAlpha(1)
+                if simpleCastbar then
+                    newBar.Text:ClearAllPoints()
+                    newBar.Text:SetPoint("CENTER", newBar, "CENTER", 0, 0)
+                    newBar.TextBorder:SetAlpha(0)
+                else
+                    newBar.Text:ClearAllPoints()
+                    newBar.Text:SetPoint("BOTTOM", newBar, 0, -14)
+                    newBar.TextBorder:SetAlpha(1)
+                end
+                newBar.Background:SetAtlas("UI-CastingBar-Background")
+                newBar:SetHeight(9)
+                newBar.Icon:SetSize(20,20)
+            else
+                newBar.Text:ClearAllPoints()
+                newBar.Text:SetPoint("CENTER", newBar, "CENTER", 0, 0)
+                newBar:SetHeight(16)
+                newBar.TextBorder:SetAlpha(0)
+                newBar.Border:SetAlpha(0)
+                newBar.Icon:SetSize(16,16)
+                newBar.Background:SetColorTexture(0,0,0,0.5)
+                if newBar.MaskTexture then
+                    newBar.MaskTexture:Hide()
+                end
+            end
+            newBar.Spark:SetSize(3, 20)
+
+            newBar:SetParent(frame)
+
+            if i == sArenaMixin.maxArenaOpponents then
+                self:UpdateCastBarSettings(castbarSettings)
+                self:UpdateFonts()
+            end
+            local fontName, s = frame.CastBar.Text:GetFont()
+            frame.CastBar.Text:SetFont(fontName, s, "THINOUTLINE")
+            self:SetupDrag(frame.CastBar, frame.CastBar, "castBar", "UpdateCastBarSettings")
+            frame.CastBar:SetFrameLevel(7)
+        end
+
+        -- Update text positioning after castbar changes
+        local currentLayout = self.layouts[db.profile.currentLayout]
+        if currentLayout and currentLayout.UpdateOrientation then
+            for i = 1, sArenaMixin.maxArenaOpponents do
+                local frame = _G["sArenaEnemyFrame" .. i]
+                if frame then
+                    currentLayout:UpdateOrientation(frame)
+                end
+            end
+        end
+    else
+        for i = 1, sArenaMixin.maxArenaOpponents do
+            local frame = _G["sArenaEnemyFrame" .. i]
+            if (frame and useModern) or frame.CastBar.__modernHooked then
+                local unit = "arena"..i
+                self:ApplyCastbarStyle(frame, unit, useModern, simpleCastbar)
+                if i == sArenaMixin.maxArenaOpponents then
+                    self:UpdateCastBarSettings(castbarSettings)
+                    self:UpdateFonts()
+                end
+                local fontName, s = frame.CastBar.Text:GetFont()
+                frame.CastBar.Text:SetFont(fontName, s, "THINOUTLINE")
+                self:SetupDrag(frame.CastBar, frame.CastBar, "castBar", "UpdateCastBarSettings")
+                frame.CastBar:SetFrameLevel(7)
+            end
+        end
+
+        -- Update text positioning after castbar changes
+        local currentLayout = self.layouts[db.profile.currentLayout]
+        if currentLayout and currentLayout.UpdateOrientation then
+            for i = 1, sArenaMixin.maxArenaOpponents do
+                local frame = _G["sArenaEnemyFrame" .. i]
+                if frame then
+                    currentLayout:UpdateOrientation(frame)
+                end
+            end
+        end
+    end
+end
+
+if isMidnight then return end
+
 local CastStopEvents = {
     UNIT_SPELLCAST_STOP                = true,
     UNIT_SPELLCAST_FAILED              = true,

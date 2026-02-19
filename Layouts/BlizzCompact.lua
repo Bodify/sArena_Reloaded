@@ -1,3 +1,8 @@
+-- Copyright (c) 2026 Bodify. All rights reserved.
+-- This file is part of the sArena Reloaded addon.
+-- No portion of this file may be copied, modified, redistributed, or used
+-- in other projects without explicit prior written permission from the author.
+
 local layoutName = "BlizzCompact"
 local layout = {}
 layout.name = "|cff00b4ffBlizz|r Compact |A:NewCharacter-Alliance:38:65|a"
@@ -69,11 +74,15 @@ layout.defaultSettings = {
             posX = 0,
             posY = 0,
             scale = 1.2,
+            useBorder = false,
+            useBorderWithIcon = false,
         },
         focusIndicator = {
             posX = 0,
             posY = 0,
             scale = 1.2,
+            useBorder = false,
+            useBorderWithIcon = false,
         },
         partyTargetIndicators = {
             enabled = true,
