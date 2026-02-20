@@ -61,7 +61,7 @@ function sArenaFrameMixin:UpdateTrinket()
     local spellID, startTime, duration = GetArenaCCInfo(self.unit)
 
     if (spellID) then
-        if (spellID ~= self.Trinket.spellID) then
+        if (not isMidnight and (spellID ~= self.Trinket.spellID)) or (isMidnight and (self.Trinket.spellID == nil)) then
             local _, spellTextureNoOverride = GetSpellTexture(spellID)
 
             -- Check if we had racial on trinket slot before
