@@ -1,3 +1,9 @@
+2.3.7
+- Pixelated layout now uses Target Border by default instead of Target Icon and has had its border size and offset tweaked slighly.
+- Fix "Wrap Trinket" setting for Target/Focus Border not working correctly on Pixelated layout
+- Fix CastBar Drag for Midnight
+- Misc cleanup in addon.
+
 2.3.6b
 - Fix new secret error on new WoW patch.
 

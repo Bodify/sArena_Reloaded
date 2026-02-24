@@ -47,6 +47,42 @@ function sArenaMixin:UnregisterWidgetEvents()
     end
 end
 
+function sArenaMixin:UpdateWidgetSettings(db, info, val)
+
+    self:UnregisterWidgetEvents()
+    self:RegisterWidgetEvents()
+
+    for i = 1, sArenaMixin.maxArenaOpponents do
+        local frame = self["arena" .. i]
+
+
+        if db.combatIndicator then frame.WidgetOverlay.combatIndicator:SetScale(db.combatIndicator.scale or 1) end
+        if db.targetIndicator then frame.WidgetOverlay.targetIndicator:SetScale(db.targetIndicator.scale or 1) end
+        if db.focusIndicator then frame.WidgetOverlay.focusIndicator:SetScale(db.focusIndicator.scale or 1) end
+        if db.partyTargetIndicators then
+            frame.WidgetOverlay.partyTarget1:SetScale(db.partyTargetIndicators.scale or 1)
+            frame.WidgetOverlay.partyTarget2:SetScale(db.partyTargetIndicators.scale or 1)
+        end
+
+        frame:UpdateTargetFocusBorderVisibility()
+
+        -- Only try to update orientation if called from config (with info parameter)
+        if info and info.handler then
+            local layout = info.handler.layouts[info.handler.db.profile.currentLayout]
+            if frame and layout and layout.UpdateOrientation then
+                layout:UpdateOrientation(frame)
+            end
+        else
+            -- Called from layout Initialize, get current layout directly
+            local currentLayout = self.db.profile.currentLayout
+            local layout = self.layouts[currentLayout]
+            if frame and layout and layout.UpdateOrientation then
+                layout:UpdateOrientation(frame)
+            end
+        end
+    end
+end
+
 function sArenaFrameMixin:UpdateCombatStatus(unit)
     local db = self.parent.db
     local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
@@ -151,9 +187,9 @@ end
 function sArenaFrameMixin:UpdateTargetFocusBorderAnchors(indicatorSettings)
     local border = self.TargetFocusBorder
 
-    local borderSize = (indicatorSettings and indicatorSettings.customBorderSize) or border.borderSize or 1
+    local borderSize = (indicatorSettings and indicatorSettings.borderSize) or border.borderSize or 1
     local baseOffset = border.baseOffset or 0
-    local extraOffset = (indicatorSettings and indicatorSettings.customBorderOffset) or 0
+    local extraOffset = (indicatorSettings and indicatorSettings.borderOffset) or 0
     local offset = baseOffset + extraOffset
     local pad = offset + borderSize
 
@@ -195,57 +231,42 @@ function sArenaFrameMixin:UpdateTargetFocusBorderAnchors(indicatorSettings)
         allFrames[#allFrames + 1] = self.Racial
     end
 
-    local frameBounds = {}
     local minLeft, maxTop, maxRight, minBottom
+    local minLeftFrame, maxTopFrame, maxRightFrame, minBottomFrame
+
     for _, frame in ipairs(allFrames) do
         local left = frame and frame.GetLeft and frame:GetLeft()
         local right = frame and frame.GetRight and frame:GetRight()
         local top = frame and frame.GetTop and frame:GetTop()
         local bottom = frame and frame.GetBottom and frame:GetBottom()
+        local scale = frame and frame.GetEffectiveScale and frame:GetEffectiveScale() or 1
 
         if left and right and top and bottom then
-            frameBounds[#frameBounds + 1] = {
-                frame = frame,
-                left = left,
-                right = right,
-                top = top,
-                bottom = bottom,
-            }
+            left = left * scale
+            right = right * scale
+            top = top * scale
+            bottom = bottom * scale
 
-            if not minLeft or left < minLeft then minLeft = left end
-            if not maxTop or top > maxTop then maxTop = top end
-            if not maxRight or right > maxRight then maxRight = right end
-            if not minBottom or bottom < minBottom then minBottom = bottom end
+            if not minLeft or left < minLeft then
+                minLeft = left
+                minLeftFrame = frame
+            end
+            if not maxTop or top > maxTop then
+                maxTop = top
+                maxTopFrame = frame
+            end
+            if not maxRight or right > maxRight then
+                maxRight = right
+                maxRightFrame = frame
+            end
+            if not minBottom or bottom < minBottom then
+                minBottom = bottom
+                minBottomFrame = frame
+            end
         end
     end
 
-    if #frameBounds == 0
-        or not minLeft or not maxTop or not maxRight or not minBottom then
-        border:ClearAllPoints()
-        border:SetPoint("TOPLEFT", topAnchor, "TOPLEFT", -pad, topPad)
-        border:SetPoint("BOTTOMRIGHT", bottomAnchor, "BOTTOMRIGHT", pad, bottomPad)
-        return
-    end
-
-    local topLeftFrameData
-    local bottomRightFrameData
-    local bestTLScore, bestBRScore
-
-    for _, b in ipairs(frameBounds) do
-        local tlScore = (b.left - minLeft) + (maxTop - b.top)
-        if not bestTLScore or tlScore < bestTLScore then
-            bestTLScore = tlScore
-            topLeftFrameData = b
-        end
-
-        local brScore = (maxRight - b.right) + (b.bottom - minBottom)
-        if not bestBRScore or brScore < bestBRScore then
-            bestBRScore = brScore
-            bottomRightFrameData = b
-        end
-    end
-
-    if not topLeftFrameData or not bottomRightFrameData then
+    if not minLeftFrame or not maxTopFrame or not maxRightFrame or not minBottomFrame then
         border:ClearAllPoints()
         border:SetPoint("TOPLEFT", topAnchor, "TOPLEFT", -pad, topPad)
         border:SetPoint("BOTTOMRIGHT", bottomAnchor, "BOTTOMRIGHT", pad, bottomPad)
@@ -253,8 +274,37 @@ function sArenaFrameMixin:UpdateTargetFocusBorderAnchors(indicatorSettings)
     end
 
     border:ClearAllPoints()
-    border:SetPoint("TOPLEFT", topLeftFrameData.frame, "TOPLEFT", -pad, topPad)
-    border:SetPoint("BOTTOMRIGHT", bottomRightFrameData.frame, "BOTTOMRIGHT", pad, bottomPad)
+    border:SetPoint("LEFT", minLeftFrame, "LEFT", -pad, 0)
+    border:SetPoint("RIGHT", maxRightFrame, "RIGHT", pad, 0)
+    border:SetPoint("TOP", maxTopFrame, "TOP", 0, topPad)
+    border:SetPoint("BOTTOM", minBottomFrame, "BOTTOM", 0, bottomPad)
+end
+
+function sArenaMixin:GetArenaFrameForDrag(frameToMove, isWidget)
+    if isWidget then
+        local overlay = frameToMove:GetParent()
+        return overlay and overlay:GetParent()
+    else
+        return frameToMove:GetParent()
+    end
+end
+
+function sArenaMixin:HideTargetFocusBorderForDrag(frameToMove, isWidget)
+    local arenaFrame = self:GetArenaFrameForDrag(frameToMove, isWidget)
+    if arenaFrame.TargetFocusBorder:IsShown() then
+        arenaFrame.TargetFocusBorder:ClearAllPoints()
+        arenaFrame.TargetFocusBorder:Hide()
+        frameToMove._borderWasHidden = true
+    end
+end
+
+function sArenaMixin:RestoreTargetFocusBorderAfterDrag(frameToMove, isWidget)
+    if frameToMove._borderWasHidden then
+        frameToMove._borderWasHidden = nil
+        local arenaFrame = self:GetArenaFrameForDrag(frameToMove, isWidget)
+        arenaFrame.TargetFocusBorder:Show()
+        arenaFrame:UpdateTargetFocusBorderVisibility()
+    end
 end
 
 function sArenaFrameMixin:SetTargetFocusBorderColor(r, g, b, a)

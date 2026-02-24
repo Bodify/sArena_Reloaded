@@ -1580,6 +1580,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                 scale = defaults.targetIndicator.scale,
                                 posX = defaults.targetIndicator.posX,
                                 posY = defaults.targetIndicator.posY,
+                                borderSize = defaults.targetIndicator.borderSize,
+                                borderOffset = defaults.targetIndicator.borderOffset,
                             }
                             self:UpdateWidgetSettings(layout.widgets, info, nil)
                             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
@@ -1753,13 +1755,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         width = 0.95,
                         get = function(info)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
-                            return widgets and widgets.targetIndicator and widgets.targetIndicator.customBorderSize or 1
+                            return widgets and widgets.targetIndicator and widgets.targetIndicator.borderSize or 1
                         end,
                         set = function(info, val)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
                             widgets = widgets or {}
                             widgets.targetIndicator = widgets.targetIndicator or {}
-                            widgets.targetIndicator.customBorderSize = val
+                            widgets.targetIndicator.borderSize = val
                             info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
                             self:UpdateWidgetSettings(widgets, info, val)
                         end,
@@ -1778,13 +1780,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         width = 0.95,
                         get = function(info)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
-                            return widgets and widgets.targetIndicator and widgets.targetIndicator.customBorderOffset or 0
+                            return widgets and widgets.targetIndicator and widgets.targetIndicator.borderOffset or 0
                         end,
                         set = function(info, val)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
                             widgets = widgets or {}
                             widgets.targetIndicator = widgets.targetIndicator or {}
-                            widgets.targetIndicator.customBorderOffset = val
+                            widgets.targetIndicator.borderOffset = val
                             info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
                             self:UpdateWidgetSettings(widgets, info, val)
                         end,
@@ -1894,6 +1896,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                 scale = defaults.focusIndicator.scale,
                                 posX = defaults.focusIndicator.posX,
                                 posY = defaults.focusIndicator.posY,
+                                borderSize = defaults.focusIndicator.borderSize,
+                                borderOffset = defaults.focusIndicator.borderOffset,
                             }
                             self:UpdateWidgetSettings(layout.widgets, info, nil)
                             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
@@ -2067,13 +2071,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         width = 0.95,
                         get = function(info)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
-                            return widgets and widgets.focusIndicator and widgets.focusIndicator.customBorderSize or 1
+                            return widgets and widgets.focusIndicator and widgets.focusIndicator.borderSize or 1
                         end,
                         set = function(info, val)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
                             widgets = widgets or {}
                             widgets.focusIndicator = widgets.focusIndicator or {}
-                            widgets.focusIndicator.customBorderSize = val
+                            widgets.focusIndicator.borderSize = val
                             info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
                             self:UpdateWidgetSettings(widgets, info, val)
                         end,
@@ -2092,13 +2096,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         width = 0.95,
                         get = function(info)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
-                            return widgets and widgets.focusIndicator and widgets.focusIndicator.customBorderOffset or 0
+                            return widgets and widgets.focusIndicator and widgets.focusIndicator.borderOffset or 0
                         end,
                         set = function(info, val)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
                             widgets = widgets or {}
                             widgets.focusIndicator = widgets.focusIndicator or {}
-                            widgets.focusIndicator.customBorderOffset = val
+                            widgets.focusIndicator.borderOffset = val
                             info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
                             self:UpdateWidgetSettings(widgets, info, val)
                         end,
@@ -3240,170 +3244,6 @@ local function CreatePixelTextureBorder(parent, target, key, size, offset)
     holder:Show()
 end
 
--- Initialize DR frames for Midnight
-function sArenaMixin:InitializeDRFrames()
-    if not sArenaMixin.isMidnight then return end
-
-    if EditModeManagerFrame and EditModeManagerFrame.AccountSettings then
-        ShowUIPanel(EditModeManagerFrame)
-    end
-
-    local layoutdb = self.db.profile.layoutSettings[self.db.profile.currentLayout]
-    local growthDirection = layoutdb.dr.growthDirection
-
-    for i = 1, sArenaMixin.maxArenaOpponents do
-        local blizzArenaFrame = _G["CompactArenaFrameMember" .. i]
-        local arenaFrame = self["arena" .. i]
-
-        if not blizzArenaFrame or not arenaFrame then return end
-
-        -- Initialize DR frames from Blizzard's SpellDiminishStatusTray
-        local drTray = blizzArenaFrame.SpellDiminishStatusTray
-        if not drTray then return end
-
-        drTray:SetParent(arenaFrame)
-        arenaFrame.drTray = drTray
-        drTray:SetFrameStrata("MEDIUM")
-        drTray:SetFrameLevel(10)
-        drTray:EnableMouse(false)
-        drTray:SetMouseClickEnabled(false)
-        --local arenaExtraOffset = 0
-        -- if inArena then
-        --     -- If reloaded in arena the DR frames are secrets and can't be adjusted.
-        --     -- Instead we mimic the users settings the best we can using only the parent frame.
-        --     drTray:SetScale(1.2)
-        --     arenaExtraOffset = 20
-        --     sArenaMixin.launchedDuringArena = true
-        -- end
-        drTray:ClearAllPoints()
-        local offset = ((sArenaMixin.drBaseSize or 28) / 2)-- + arenaExtraOffset
-
-        local anchorPoint
-        if (growthDirection == 4) then
-            anchorPoint = "RIGHT"
-        elseif (growthDirection == 3) then
-            anchorPoint = "LEFT"
-        elseif (growthDirection == 1) then
-            anchorPoint = "RIGHT"
-        elseif (growthDirection == 2) then
-            anchorPoint = "RIGHT"
-        end
-        drTray:SetPoint(anchorPoint, arenaFrame, "CENTER", layoutdb.dr.posX + offset, layoutdb.dr.posY)
-
-        -- Get the 4 DR frames from the tray
-        local drFrames = {drTray:GetChildren()}
-        arenaFrame.drFrames = drFrames
-
-        -- Initialize each DR frame with custom borders
-        for drIndex, drFrame in ipairs(drFrames) do
-            if drFrame and drFrame.Icon then
-                drFrame:SetFrameStrata("MEDIUM")
-                drFrame:SetFrameLevel(11)
-                drFrame:SetAlpha(1)
-                drFrame:Show()
-                drFrame.Icon:Show()
-                drFrame:EnableMouse(false)
-                drFrame:SetMouseClickEnabled(false)
-
-                -- Create border for active DR (will be styled by UpdateDRSettings)
-                if not drFrame.Border then
-                    drFrame.Border = drFrame:CreateTexture(nil, "OVERLAY", nil, 6)
-                    drFrame.Border:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-                    drFrame.Border:SetAllPoints(drFrame)
-                    drFrame.Border:SetVertexColor(0,1,0)
-
-                    drFrame.ImmunityIndicator:SetFrameStrata("MEDIUM")
-                    drFrame.ImmunityIndicator:SetFrameLevel(27)
-
-                    drFrame.BorderImmune = drFrame:CreateTexture(nil, "OVERLAY", nil, 7)
-                    drFrame.BorderImmune:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-                    drFrame.BorderImmune:SetAllPoints(drFrame)
-                    drFrame.BorderImmune:SetIgnoreParentAlpha(true)
-                    drFrame.BorderImmune:SetVertexColor(1,0,0,1)
-                    hooksecurefunc(drFrame.Border, "SetTexture", function(self, texture)
-                        drFrame.BorderImmune:SetTexture(texture)
-                    end)
-                end
-
-                if not drFrame.DRTextFrame then
-                    drFrame.DRTextFrame = CreateFrame("Frame", nil, drFrame)
-                    drFrame.DRTextFrame:SetAllPoints(drFrame)
-                    drFrame.DRTextFrame:SetFrameStrata("MEDIUM")
-                    drFrame.DRTextFrame:SetFrameLevel(26)
-
-                    local textSettings = layoutdb.textSettings or {}
-                    local drTextAnchor = textSettings.drTextAnchor or "BOTTOMRIGHT"
-                    local drTextSize = textSettings.drTextSize or 1.0
-                    local drTextOffsetX = textSettings.drTextOffsetX or 4
-                    local drTextOffsetY = textSettings.drTextOffsetY or -4
-
-                    drFrame.DRText = drFrame.DRTextFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-                    drFrame.DRText:SetPoint(drTextAnchor, drTextOffsetX, drTextOffsetY)
-                    drFrame.DRText:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 14, "OUTLINE")
-                    drFrame.DRText:SetScale(drTextSize)
-                    drFrame.DRText:SetTextColor(0, 1, 0)
-                    drFrame.DRText:SetText("½")
-
-                    local green = CreateColor(0, 1, 0, 1)
-                    local red = CreateColor(1, 0, 0, 1)
-
-                    if not drFrame.Cooldown.Text then
-                        drFrame.Cooldown.Text = drFrame.Cooldown:GetCountdownFontString()
-                        drFrame.Cooldown.Text.fontFile = drFrame.Cooldown.Text:GetFont()
-                    end
-
-                    hooksecurefunc(drFrame.ImmunityIndicator, "SetShown", function(immunityIndicator, SetShown)
-                        drFrame.Border:SetAlphaFromBoolean(SetShown, 0, 1)
-                        drFrame.DRText:SetAlphaFromBoolean(SetShown, 0, 1)
-
-                        if self.db and self.db.profile.colorDRCooldownText then
-                            drFrame.Cooldown.sArenaText:SetVertexColorFromBoolean(SetShown, red, green)
-                        end
-                    end)
-
-                    drFrame.DRText2 = drFrame.DRTextFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-                    drFrame.DRText2:SetPoint(drTextAnchor, drTextOffsetX, drTextOffsetY)
-                    drFrame.DRText2:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 14, "OUTLINE")
-                    drFrame.DRText2:SetScale(drTextSize)
-                    drFrame.DRText2:SetTextColor(1, 0, 0)
-                    drFrame.DRText2:SetText("%")
-                    drFrame.DRText2:SetParent(drFrame.ImmunityIndicator)
-                    drFrame.DRText2:SetIgnoreParentAlpha(true)
-                    drFrame.DRText2:SetAlpha(1)
-
-                end
-
-                if not drFrame.Boverlay then
-                    drFrame.Boverlay = CreateFrame("Frame", nil, drFrame)
-                    drFrame.Boverlay:SetFrameStrata("MEDIUM")
-                    drFrame.Boverlay:SetFrameLevel(26)
-                end
-                drFrame.Boverlay:Show()
-                drFrame.Border:SetParent(drFrame.Boverlay)
-                drFrame.BorderImmune:SetParent(drFrame.ImmunityIndicator)
-                drFrame.ImmunityIndicator:SetAlpha(0)
-
-                -- Border color will be set by UpdateDRSettings
-                drFrame.Border:Show()
-                if not drFrame.Cooldown then
-                    drFrame.Cooldown = drFrame.Icon
-                end
-            end
-        end
-    end
-
-    -- Apply DR settings after all frames are initialized
-    if self.layoutdb and self.layoutdb.dr then
-        self:UpdateDRSettings(self.layoutdb.dr)
-    end
-
-
-    if EditModeManagerFrame and EditModeManagerFrame.AccountSettings then
-        HideUIPanel(EditModeManagerFrame)
-    end
-
-end
-
 function sArenaMixin:UpdateDRSettings(db, info, val)
     -- Early return if db is nil or frames aren't ready
     if not db then return end
@@ -4367,43 +4207,6 @@ function sArenaMixin:UpdateDRTextPositions(db, info, val)
                         (db.drTextOffsetY or -4))
                     fakeDRFrame.DRText:SetScale(db.drTextSize or 1.0)
                 end
-            end
-        end
-    end
-end
-
-function sArenaMixin:UpdateWidgetSettings(db, info, val)
-    if info and val ~= nil then
-        db[info[#info]] = val
-    end
-
-    self:UnregisterWidgetEvents()
-    self:RegisterWidgetEvents()
-
-    for i = 1, sArenaMixin.maxArenaOpponents do
-        local frame = self["arena" .. i]
-
-
-        frame.WidgetOverlay.combatIndicator:SetScale(db.combatIndicator.scale or 1)
-        frame.WidgetOverlay.targetIndicator:SetScale(db.targetIndicator.scale or 1)
-        frame.WidgetOverlay.focusIndicator:SetScale(db.focusIndicator.scale or 1)
-        frame.WidgetOverlay.partyTarget1:SetScale(db.partyTargetIndicators.scale or 1)
-        frame.WidgetOverlay.partyTarget2:SetScale(db.partyTargetIndicators.scale or 1)
-
-        frame:UpdateTargetFocusBorderVisibility()
-
-        -- Only try to update orientation if called from config (with info parameter)
-        if info and info.handler then
-            local layout = info.handler.layouts[info.handler.db.profile.currentLayout]
-            if frame and layout and layout.UpdateOrientation then
-                layout:UpdateOrientation(frame)
-            end
-        else
-            -- Called from layout Initialize, get current layout directly
-            local currentLayout = self.db.profile.currentLayout
-            local layout = self.layouts[currentLayout]
-            if frame and layout and layout.UpdateOrientation then
-                layout:UpdateOrientation(frame)
             end
         end
     end

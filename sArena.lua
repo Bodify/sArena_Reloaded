@@ -504,38 +504,6 @@ function sArenaMixin:OnEvent(event, ...)
             -- Old Arena Spec Detection
             if noEarlyFrames then
 
-                -- TEMP DATACOLLECT
-                if sArena_ReloadedDB.collectData then
-                    local spellName = C_Spell.GetSpellName(spellID)
-                    local _, sourceClass
-                    if sourceGUID and select(1, strsplit("-", sourceGUID)) == "Player" then
-                        _, sourceClass = GetPlayerInfoByGUID(sourceGUID)
-                    else
-                        local npcID = nil
-                        if sourceGUID and type(sourceGUID) == "string" then
-                            npcID = tonumber(sourceGUID:match("%-([0-9]+)%-%x+$"))
-                        end
-                        sourceClass = npcID and ("NPC:" .. npcID) or "NPC"
-                    end
-
-                    if combatEvent == "SPELL_CAST_SUCCESS" then
-                        if not sArena_ReloadedDB.collectedSpells then
-                            sArena_ReloadedDB.collectedSpells = {}
-                        end
-                        if not sArena_ReloadedDB.collectedSpells[spellID] then
-                            sArena_ReloadedDB.collectedSpells[spellID] = {spellName, sourceClass, "CAST"}
-                        end
-                    elseif combatEvent == "SPELL_AURA_APPLIED" then
-                        if not sArena_ReloadedDB.collectedAuras then
-                            sArena_ReloadedDB.collectedAuras = {}
-                        end
-                        if not sArena_ReloadedDB.collectedAuras[spellID] then
-                            sArena_ReloadedDB.collectedAuras[spellID] = {spellName, sourceClass, auraType}
-                        end
-                    end
-                end
-                -- TEMP DATACOLLECT
-
                 if (sArenaMixin.specCasts[spellID] or sArenaMixin.specBuffs[spellID]) then
                     for i = 1, sArenaMixin.maxArenaOpponents do
                         if (sourceGUID == UnitGUID("arena" .. i)) then
@@ -792,103 +760,6 @@ local function ChatCommand(input)
     end
 end
 
-function sArenaMixin:DatabaseCleanup(db)
-    if not db then return end
-    -- Migrate old swapHumanTrinket setting to new swapRacialTrinket
-    if db.profile.swapHumanTrinket ~= nil and db.profile.swapRacialTrinket == nil then
-        db.profile.swapRacialTrinket = db.profile.swapHumanTrinket
-        db.profile.swapHumanTrinket = nil
-    end
-
-    -- Migrate old global DR settings
-    if db.profile.drSwipeOff ~= nil then
-        -- Migrate drSwipeOff to disableDRSwipe
-        if db.profile.disableDRSwipe == nil then
-            db.profile.disableDRSwipe = db.profile.drSwipeOff
-        end
-        db.profile.drSwipeOff = nil
-    end
-
-    if db.profile.drTextOn ~= nil then
-        local drTextOn = db.profile.drTextOn
-
-        -- Apply drTextOn to all layouts as showDRText
-        if db.profile.layoutSettings then
-            for layoutName, layoutSettings in pairs(db.profile.layoutSettings) do
-                if layoutSettings.dr then
-                    -- Only set if the old setting was true (enabled)
-                    if drTextOn == true and layoutSettings.dr.showDRText == nil then
-                        layoutSettings.dr.showDRText = true
-                    end
-                end
-            end
-        end
-
-        -- Remove old global setting
-        db.profile.drTextOn = nil
-    end
-
-    -- Migrate old global disableDRBorder setting
-    if db.profile.disableDRBorder ~= nil then
-        local disableDRBorder = db.profile.disableDRBorder
-
-        -- Apply disableDRBorder to all layouts as disableDRBorder
-        if db.profile.layoutSettings then
-            for layoutName, layoutSettings in pairs(db.profile.layoutSettings) do
-                if layoutSettings.dr then
-                    -- Only set if the old setting was true (enabled) and new setting doesn't exist
-                    if disableDRBorder == true and layoutSettings.dr.disableDRBorder == nil then
-                        layoutSettings.dr.disableDRBorder = true
-                    end
-                end
-            end
-        end
-
-        -- Remove old global setting
-        db.profile.disableDRBorder = nil
-    end
-
-    -- Migrate Pixelated layout to use thickPixelBorder setting
-    if db.profile.layoutSettings and db.profile.layoutSettings.Pixelated then
-        local pixelatedDR = db.profile.layoutSettings.Pixelated.dr
-        if pixelatedDR and pixelatedDR.thickPixelBorder == nil then
-            -- Enable thickPixelBorder for existing Pixelated layout users
-            pixelatedDR.thickPixelBorder = true
-        end
-    end
-
-    -- Fix incorrect Stun DR icon on TBC (was 132298, should be 132092)
-    if isTBC and not db.tbcStunIconFix then
-        local oldIcon = 132298 -- Kidney Shot icon (incorrect)
-        local newIcon = 132092 -- Correct Stun icon
-
-        -- Fix global DR categories
-        if db.profile.drCategories and db.profile.drCategories["Stun"] == oldIcon then
-            db.profile.drCategories["Stun"] = newIcon
-        end
-
-        -- Fix per-spec DR categories
-        if db.profile.drCategoriesSpec then
-            for specID, categories in pairs(db.profile.drCategoriesSpec) do
-                if categories["Stun"] == oldIcon then
-                    categories["Stun"] = newIcon
-                end
-            end
-        end
-
-        -- Fix per-class DR categories
-        if db.profile.drCategoriesClass then
-            for class, categories in pairs(db.profile.drCategoriesClass) do
-                if categories["Stun"] == oldIcon then
-                    categories["Stun"] = newIcon
-                end
-            end
-        end
-
-        db.tbcStunIconFix = true
-    end
-end
-
 function sArenaMixin:UpdatePlayerSpec()
     local currentSpec = isRetail and GetSpecialization() or C_SpecializationInfo.GetSpecialization()
     if currentSpec and currentSpec > 0 then
@@ -932,7 +803,6 @@ function sArenaMixin:Initialize()
     LibStub("AceConfig-3.0"):RegisterOptionsTable("sArena", self.optionsTable)
     LibStub("AceConfigDialog-3.0"):SetDefaultSize("sArena", compatIssue and 520 or 860, compatIssue and 300 or 690)
     LibStub("AceConsole-3.0"):RegisterChatCommand("sarena", ChatCommand)
-    LibStub("AceConsole-3.0"):RegisterChatCommand("sarenasend", TEMPShareCollectedData)
     if not compatIssue then
         self:DatabaseCleanup(db)
         if not isMidnight then
@@ -1590,7 +1460,9 @@ function sArenaMixin:SetLayout(_, layout)
 end
 
 function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateMethod, isWidget)
+    local db = self.db
     if frameToClick.dragSetup then return end
+
     frameToClick:HookScript("OnMouseDown", function()
         if (InCombatLockdown()) then return end
 
@@ -1598,6 +1470,7 @@ function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateM
             if isWidget then
                 frameToMove.dragStartX, frameToMove.dragStartY = frameToMove:GetCenter()
             end
+            self:HideTargetFocusBorderForDrag(frameToMove, isWidget)
             frameToMove:StartMoving()
             frameToMove.isMoving = true
         end
@@ -1614,7 +1487,10 @@ function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateM
 
             if isWidget then
                 settings = db.profile.layoutSettings[db.profile.currentLayout].widgets
-                if not settings then return end
+                if not settings then
+                    self:RestoreTargetFocusBorderAfterDrag(frameToMove, isWidget)
+                    return
+                end
                 if not settings[settingsTable] then
                     settings[settingsTable] = {}
                 end
@@ -1658,6 +1534,7 @@ function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateM
                 self[updateMethod](self, settings)
             end
 
+            self:RestoreTargetFocusBorderAfterDrag(frameToMove, isWidget)
             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
         end
     end)
@@ -1669,6 +1546,9 @@ function sArenaMixin:SetMouseState(state)
         local frame = self["arena" .. i]
         if frame.CastBar then
             frame.CastBar:EnableMouse(state)
+        end
+        if frame.midnightCastBarMoveFrame then
+            frame.midnightCastBarMoveFrame:EnableMouse(state)
         end
 
         if isMidnight and frame.drTray then
@@ -2182,7 +2062,6 @@ end
 function sArenaFrameMixin:Initialize()
     self:SetMysteryPlayer()
     self.parent:SetupDrag(self, self.parent, nil, "UpdateFrameSettings")
-    self.parent:SetupDrag(self.CastBar, self.CastBar, "castBar", "UpdateCastBarSettings")
 
     -- Setup DR dragging based on system
     if isMidnight then
@@ -2192,8 +2071,10 @@ function sArenaFrameMixin:Initialize()
             blizzArenaFrame.SpellDiminishStatusTray:SetMovable(true)
             self.parent:SetupDrag(blizzArenaFrame.SpellDiminishStatusTray, blizzArenaFrame.SpellDiminishStatusTray, "dr", "UpdateDRSettings")
         end
+        self:SetupMidnightCastBarDrag()
     else
         self.parent:SetupDrag(self[sArenaMixin.drCategories[1]], self[sArenaMixin.drCategories[1]], "dr", "UpdateDRSettings")
+        self.parent:SetupDrag(self.CastBar, self.CastBar, "castBar", "UpdateCastBarSettings")
     end
 
     self.parent:SetupDrag(self.SpecIcon, self.SpecIcon, "specIcon", "UpdateSpecIconSettings")

@@ -122,6 +122,69 @@ function sArenaMixin:ModernOrClassicCastbar()
     end
 end
 
+function sArenaFrameMixin:SetupMidnightCastBarDrag()
+    local midnightCastBarMoveFrame = CreateFrame("Frame", nil, self)
+    midnightCastBarMoveFrame:SetMovable(true)
+    midnightCastBarMoveFrame:EnableMouse(true)
+    midnightCastBarMoveFrame:SetAllPoints(self.CastBar)
+    midnightCastBarMoveFrame:SetFrameLevel(self.CastBar:GetFrameLevel() + 5)
+    self.midnightCastBarMoveFrame = midnightCastBarMoveFrame
+
+    self.parent:SetupDrag(midnightCastBarMoveFrame, midnightCastBarMoveFrame, "castBar", "UpdateCastBarSettings")
+
+    local frame = self
+    local dragOffsetX, dragOffsetY = 0, 0
+
+    local function castBarDragOnUpdate(moveFrame, dt)
+        local moveFrameX, moveFrameY = moveFrame:GetCenter()
+        local parentX, parentY = frame:GetCenter()
+        local castBarScale = frame.CastBar:GetScale()
+
+        local offsetX = floor(((moveFrameX - parentX) / castBarScale) * 10 + 0.5) / 10 + dragOffsetX
+        local offsetY = floor(((moveFrameY - parentY) / castBarScale) * 10 + 0.5) / 10 + dragOffsetY
+
+        frame.CastBar:ClearAllPoints()
+        frame.CastBar:SetPoint("CENTER", frame, "CENTER", offsetX, offsetY)
+    end
+
+    midnightCastBarMoveFrame:HookScript("OnMouseDown", function()
+        local cbX, cbY = frame.CastBar:GetCenter()
+        local parentX, parentY = frame:GetCenter()
+        local castBarScale = frame.CastBar:GetScale()
+        local moveX, moveY = midnightCastBarMoveFrame:GetCenter()
+
+        local curOffsetX = (cbX * castBarScale - parentX) / castBarScale
+        local curOffsetY = (cbY * castBarScale - parentY) / castBarScale
+
+        local moveFrameOffsetX = (moveX - parentX) / castBarScale
+        local moveFrameOffsetY = (moveY - parentY) / castBarScale
+
+        dragOffsetX = floor((curOffsetX - moveFrameOffsetX) * 10 + 0.5) / 10
+        dragOffsetY = floor((curOffsetY - moveFrameOffsetY) * 10 + 0.5) / 10
+
+        midnightCastBarMoveFrame:SetScript("OnUpdate", castBarDragOnUpdate)
+    end)
+
+    midnightCastBarMoveFrame:HookScript("OnMouseUp", function()
+        midnightCastBarMoveFrame:SetScript("OnUpdate", nil)
+        local moveFrameX, moveFrameY = midnightCastBarMoveFrame:GetCenter()
+        local parentX, parentY = frame:GetCenter()
+        local castBarScale = frame.CastBar:GetScale()
+
+        local offsetX = floor(((moveFrameX - parentX) / castBarScale) * 10 + 0.5) / 10 + dragOffsetX
+        local offsetY = floor(((moveFrameY - parentY) / castBarScale) * 10 + 0.5) / 10 + dragOffsetY
+
+        local settings = frame.parent.db.profile.layoutSettings[frame.parent.db.profile.currentLayout].castBar
+        settings.posX = offsetX
+        settings.posY = offsetY
+        frame.parent:UpdateCastBarSettings(settings)
+
+        dragOffsetX, dragOffsetY = 0, 0
+        midnightCastBarMoveFrame:ClearAllPoints()
+        midnightCastBarMoveFrame:SetAllPoints(frame.CastBar)
+    end)
+end
+
 if isMidnight then return end
 
 local CastStopEvents = {
