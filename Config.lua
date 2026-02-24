@@ -3642,6 +3642,26 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
                     if fakeDRFrame then
                         fakeDRFrame:SetSize(size, size)
 
+                        fakeDRFrame:ClearAllPoints()
+                        if drIndex == 1 then
+                            if growthDirection == 3 then
+                                fakeDRFrame:SetPoint("LEFT", frame.drTray, "LEFT", 2, 0)
+                            else
+                                fakeDRFrame:SetPoint("RIGHT", frame.drTray, "RIGHT", 0, 0)
+                            end
+                        else
+                            local prev = frame.fakeDRFrames[drIndex - 1]
+                            if growthDirection == 3 then
+                                fakeDRFrame:SetPoint("LEFT", prev, "RIGHT", spacing, 0)
+                            elseif growthDirection == 1 then
+                                fakeDRFrame:SetPoint("TOP", prev, "BOTTOM", 0, -spacing)
+                            elseif growthDirection == 2 then
+                                fakeDRFrame:SetPoint("BOTTOM", prev, "TOP", 0, spacing)
+                            else
+                                fakeDRFrame:SetPoint("RIGHT", prev, "LEFT", -spacing, 0)
+                            end
+                        end
+
                         local text = fakeDRFrame.Cooldown.Text
                         local fontToUse = text.fontFile
                         if layoutCF then

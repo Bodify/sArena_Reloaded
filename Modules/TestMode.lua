@@ -659,8 +659,15 @@ function sArenaMixin:Test()
             arenaFrame.drTray = drTray
             drTray:ClearAllPoints()
             local layoutdb = db.profile.layoutSettings[db.profile.currentLayout]
+            local growthDirection = layoutdb.dr.growthDirection or 4
             local offset = ((self.drBaseSize or 28) / 2) + (self.launchedDuringArena and 16 or 0)
-            drTray:SetPoint("RIGHT", arenaFrame, "CENTER", layoutdb.dr.posX + offset, layoutdb.dr.posY)
+            local anchorPoint
+            if growthDirection == 3 then
+                anchorPoint = "LEFT"
+            else
+                anchorPoint = "RIGHT"
+            end
+            drTray:SetPoint(anchorPoint, arenaFrame, "CENTER", layoutdb.dr.posX + offset, layoutdb.dr.posY)
             local drsEnabled = #self.drCategories
             if drsEnabled > 0 then
                 if not frame.fakeDRFrames then
@@ -677,10 +684,10 @@ function sArenaMixin:Test()
                     local drTextOffsetY = textSettings.drTextOffsetY or -4
 
                     local drCategoryTextures = {
-                        [1] = 135899,     -- Incap (Whirl 2)
+                        [1] = 136071,     -- Incap (Poly)
                         [2] = 135860,     -- Stun (Whirl)
                         [3] = 136100,     -- Root (Entangling Roots)
-                        [4] = 136011,     -- Fear (Pink dispersion swirl)
+                        [4] = 136184,     -- Fear (Fear)
                     }
 
                     for drIndex = 1, 4 do
@@ -755,10 +762,25 @@ function sArenaMixin:Test()
                             end
                         end
 
+                        local spacing = drSettings.spacing or 3
+                        fakeDRFrame:ClearAllPoints()
                         if drIndex == 1 then
-                            fakeDRFrame:SetPoint("RIGHT", drTray, "RIGHT", 0, 0)
+                            if growthDirection == 3 then
+                                fakeDRFrame:SetPoint("LEFT", drTray, "LEFT", 2, 0)
+                            else
+                                fakeDRFrame:SetPoint("RIGHT", drTray, "RIGHT", 0, 0)
+                            end
                         else
-                            fakeDRFrame:SetPoint("RIGHT", frame.fakeDRFrames[drIndex - 1], "LEFT", -2, 0)
+                            local prev = frame.fakeDRFrames[drIndex - 1]
+                            if growthDirection == 3 then
+                                fakeDRFrame:SetPoint("LEFT", prev, "RIGHT", spacing, 0)
+                            elseif growthDirection == 1 then
+                                fakeDRFrame:SetPoint("TOP", prev, "BOTTOM", 0, -spacing)
+                            elseif growthDirection == 2 then
+                                fakeDRFrame:SetPoint("BOTTOM", prev, "TOP", 0, spacing)
+                            else
+                                fakeDRFrame:SetPoint("RIGHT", prev, "LEFT", -spacing, 0)
+                            end
                         end
 
                         fakeDRFrame:Show()
@@ -771,15 +793,37 @@ function sArenaMixin:Test()
                 end
 
                 if frame.fakeDRFrames then
+                    local spacing = layoutdb.dr.spacing or 3
                     for n = 1, 4 do
                         local fakeDRFrame = frame.fakeDRFrames[n]
                         if fakeDRFrame then
+                            fakeDRFrame:ClearAllPoints()
+                            if n == 1 then
+                                if growthDirection == 3 then
+                                    fakeDRFrame:SetPoint("LEFT", drTray, "LEFT", 2, 0)
+                                else
+                                    fakeDRFrame:SetPoint("RIGHT", drTray, "RIGHT", 0, 0)
+                                end
+                            else
+                                local prev = frame.fakeDRFrames[n - 1]
+                                if growthDirection == 3 then
+                                    fakeDRFrame:SetPoint("LEFT", prev, "RIGHT", spacing, 0)
+                                elseif growthDirection == 1 then
+                                    fakeDRFrame:SetPoint("TOP", prev, "BOTTOM", 0, -spacing)
+                                elseif growthDirection == 2 then
+                                    fakeDRFrame:SetPoint("BOTTOM", prev, "TOP", 0, spacing)
+                                else
+                                    fakeDRFrame:SetPoint("RIGHT", prev, "LEFT", -spacing, 0)
+                                end
+                            end
                             fakeDRFrame:Show()
                             if fakeDRFrame.Cooldown then
                                 fakeDRFrame.Cooldown:SetCooldown(currTime, math.random(12, 35))
                             end
                         end
                     end
+                    local drSettings = layoutdb.dr or {}
+                    self:UpdateDRSettings(drSettings)
                 end
             end
         else

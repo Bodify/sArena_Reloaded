@@ -5,6 +5,7 @@
 
 local isRetail = sArenaMixin.isRetail
 local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
+local isTBC = sArenaMixin.isTBC
 
 function sArenaMixin:UpdateBlizzArenaFrameVisibility(instanceType)
     if isRetail and not noEarlyFrames then
@@ -346,7 +347,7 @@ function sArenaMixin:DatabaseCleanup(db)
     end
 
     -- Fix incorrect Stun DR icon on TBC (was 132298, should be 132092)
-    if isTBC and not db.tbcStunIconFix then
+    if isTBC and not db.profile.tbcStunIconFix then
         local oldIcon = 132298 -- Kidney Shot icon (incorrect)
         local newIcon = 132092 -- Correct Stun icon
 
@@ -373,12 +374,12 @@ function sArenaMixin:DatabaseCleanup(db)
             end
         end
 
-        db.tbcStunIconFix = true
+        db.profile.tbcStunIconFix = true
     end
 
     -- Cleanup redundant widget settings at top-level of widgets table
     -- These were accidentally created
-    if db.profile.layoutSettings and not db.dbClean1 then
+    if db.profile.layoutSettings and not db.profile.dbClean1 then
         for _, layoutSettings in pairs(db.profile.layoutSettings) do
             if layoutSettings.widgets then
                 local widgets = layoutSettings.widgets
@@ -394,6 +395,30 @@ function sArenaMixin:DatabaseCleanup(db)
                 end
             end
         end
-        db.dbClean1 = true
+
+        local currentLayout = db.profile.currentLayout
+        local currentSettings = currentLayout and db.profile.layoutSettings[currentLayout]
+        if currentSettings and currentSettings.dr and currentSettings.dr.growthDirection == 3 then
+            local addonVersion = C_AddOns.GetAddOnMetadata("sArena_Reloaded", "Version") or ""
+            StaticPopupDialogs["SARENA_DR_RIGHT_FIX"] = {
+                text = "|T135884:16:16|t sArena |cffff8000Reloaded|r " .. addonVersion .. ":\n\n"
+                    .. "Test Mode was showing the position of DR frames incorrectly with grow direction set to right. This is now fixed.\n\n"
+                    .. "Please verify your arena frames DR are set up correctly in test mode.",
+                button1 = "Test sArena",
+                button2 = "Close",
+                OnAccept = function()
+                    self:Test()
+                    LibStub("AceConfigDialog-3.0"):Open("sArena")
+                end,
+                timeout = 0,
+                whileDead = true,
+                hideOnEscape = true,
+            }
+            C_Timer.After(6, function()
+                StaticPopup_Show("SARENA_DR_RIGHT_FIX")
+            end)
+        end
+
+        db.profile.dbClean1 = true
     end
 end
