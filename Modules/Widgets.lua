@@ -291,7 +291,7 @@ end
 
 function sArenaMixin:HideTargetFocusBorderForDrag(frameToMove, isWidget)
     local arenaFrame = self:GetArenaFrameForDrag(frameToMove, isWidget)
-    if arenaFrame.TargetFocusBorder:IsShown() then
+    if arenaFrame.TargetFocusBorder and arenaFrame.TargetFocusBorder:IsShown() then
         arenaFrame.TargetFocusBorder:ClearAllPoints()
         arenaFrame.TargetFocusBorder:Hide()
         frameToMove._borderWasHidden = true
@@ -302,6 +302,7 @@ function sArenaMixin:RestoreTargetFocusBorderAfterDrag(frameToMove, isWidget)
     if frameToMove._borderWasHidden then
         frameToMove._borderWasHidden = nil
         local arenaFrame = self:GetArenaFrameForDrag(frameToMove, isWidget)
+        if not arenaFrame.TargetFocusBorder then return end
         arenaFrame.TargetFocusBorder:Show()
         arenaFrame:UpdateTargetFocusBorderVisibility()
     end
