@@ -1,3 +1,9 @@
+2.3.7b
+- Fix click drag on arena frames, lua error check preventing it from being moved.
+- Add Venruki profile (www.twitch.tv/venruki). Thank you for sharing.
+- Add Trimaz profile (www.twitch.tv/trimaz_wow). Thank you for sharing.
+- Tweak SpecIcon's layer so it shows above Target/Focus Border.
+
 2.3.7
 - Fix issues with DR Frames when growth direction was set to RIGHT. A popup notification will appear if you had this setup and ask for you to double check positions in test mode now.
 - Pixelated layout now uses Target Border by default instead of Target Icon and has had its border size and offset tweaked slighly.
