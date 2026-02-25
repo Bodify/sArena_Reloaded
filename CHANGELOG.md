@@ -1,3 +1,6 @@
+2.3.7c
+- Fix layering issue with PixelBorder + TargetFocusBorder caused by last patch.
+
 2.3.7b
 - Fix click drag on arena frames, lua error check preventing it from being moved.
 - Add Venruki profile (www.twitch.tv/venruki). Thank you for sharing.
