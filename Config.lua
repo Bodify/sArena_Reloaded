@@ -3069,7 +3069,8 @@ function sArenaMixin:UpdateCastBarPixelBorders()
         end
 
         if frame.CastBar.castBarIcon then
-            if isPixelBorderLayout and not useModernCastbars then
+            local hideCastbarIcon = layoutSettings and layoutSettings.castBar and layoutSettings.castBar.hideCastbarIcon
+            if isPixelBorderLayout and not useModernCastbars and not hideCastbarIcon then
                 frame.CastBar.castBarIcon:Show()
             else
                 frame.CastBar.castBarIcon:Hide()
