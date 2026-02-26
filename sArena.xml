@@ -29,7 +29,7 @@
     <Script file="Modules\DiminishingReturns.lua"/>
     <Script file="Modules\ImportExport.lua"/>
     <Script file="Config.lua"/>
-    <Script file="Modules\Auras.lua"/>
+    <Script file="Modules\Auras_Midnight.lua"/>
     <Script file="Modules\Trinkets.lua"/>
     <Script file="Modules\ModernCastbar.lua"/>
     <Script file="Modules\Masque.lua"/>

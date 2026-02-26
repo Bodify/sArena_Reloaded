@@ -5029,6 +5029,12 @@ else
                                         get = function(info) return info.handler.db.profile.disableAurasOnClassIcon end,
                                         set = function(info, val)
                                             info.handler.db.profile.disableAurasOnClassIcon = val
+                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                if frame then
+                                                    frame:SetUnitAuraRegistration()
+                                                end
+                                            end
                                             info.handler:Test()
                                         end,
                                     },
@@ -6016,4 +6022,3 @@ else
         },
     }
 end
-

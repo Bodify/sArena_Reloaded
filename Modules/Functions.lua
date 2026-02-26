@@ -7,6 +7,15 @@ local isRetail = sArenaMixin.isRetail
 local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
 local isTBC = sArenaMixin.isTBC
 
+function sArenaFrameMixin:SetUnitAuraRegistration()
+    local db = self.parent and self.parent.db
+    if db and db.profile.disableAurasOnClassIcon then
+        self:UnregisterEvent("UNIT_AURA")
+    else
+        self:RegisterUnitEvent("UNIT_AURA", self.unit)
+    end
+end
+
 function sArenaMixin:UpdateBlizzArenaFrameVisibility(instanceType)
     if isRetail and not noEarlyFrames then
         -- Hide Blizzard Arena Frames while in Arena

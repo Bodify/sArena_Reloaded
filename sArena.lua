@@ -5,7 +5,6 @@ local L = sArenaMixin.L
 
 -- Older clients dont show opponents in spawn
 local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
-local isModernArena = isRetail or isMidnight -- For old trinkets
 
 sArenaMixin.playerClass = select(2, UnitClass("player"))
 sArenaMixin.maxArenaOpponents = (isRetail and 3) or 5
@@ -1689,10 +1688,9 @@ function sArenaFrameMixin:OnLoad()
     if not isMidnight then
         self:CreateCastBar()
         self:CreateDRFrames()
-        self:RegisterUnitEvent("UNIT_AURA", unit)
         self:RegisterUnitEvent("UNIT_ABSORB_AMOUNT_CHANGED", unit)
         self:RegisterUnitEvent("UNIT_HEAL_ABSORB_AMOUNT_CHANGED", unit)
-        if isRetail or isTBC then
+        if isTBC then
             self.CastBar.empoweredFix = true
             self.CastBar:SetUnit(unit, false, true)
         else
@@ -1709,23 +1707,6 @@ function sArenaFrameMixin:OnLoad()
         self.totalAbsorbBarOverlay:Hide()
         self.myHealPredictionBar:Hide()
 
-        local debuffFrame = blizzArenaFrame.DebuffFrame
-        if debuffFrame then
-            hooksecurefunc(debuffFrame.Icon, "SetTexture", function(_, tex)
-                if tex == "INTERFACE\\ICONS\\INV_MISC_QUESTIONMARK.BLP" or (db and db.profile.disableAurasOnClassIcon) then
-                    self:UpdateClassIcon(true)
-                    self.ClassIcon.Cooldown:Clear()
-                    self.ClassIcon.ccActive = false
-                else
-                    self.ClassIcon.ccActive = true
-                    self.ClassIcon.Texture:SetTexture(tex)
-                end
-            end)
-            hooksecurefunc(debuffFrame.Cooldown, "SetCooldown", function(_, start, duration)
-                if (db and db.profile.disableAurasOnClassIcon) then return end
-                self.ClassIcon.Cooldown:SetCooldown(start, duration)
-            end)
-        end
         local trinketFrame = blizzArenaFrame.CcRemoverFrame
         if trinketFrame then
             trinketFrame:SetParent(self)
@@ -1773,6 +1754,7 @@ function sArenaFrameMixin:OnLoad()
     self:RegisterUnitEvent("UNIT_POWER_UPDATE", unit)
     self:RegisterUnitEvent("UNIT_MAXPOWER", unit)
     self:RegisterUnitEvent("UNIT_DISPLAYPOWER", unit)
+    self:SetUnitAuraRegistration()
     self:RegisterForClicks("AnyDown", "AnyUp")
     self:SetAttribute("*type1", "target")
     self:SetAttribute("*type2", "focus")
@@ -1951,7 +1933,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
                 end
             end
         elseif (event == "UNIT_AURA") then
-            self:FindAura()
+            self:FindAura(arg1)
         elseif (event == "UNIT_HEALTH") then
             if isMidnight then
                 local isDead = UnitIsDeadOrGhost(unit)
@@ -2211,7 +2193,8 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
     end
 
     self:GetClass()
-    if isMidnight then
+
+    if db and db.profile.disableAurasOnClassIcon then
         self:UpdateClassIcon()
     else
         self:FindAura()
@@ -2391,7 +2374,13 @@ end
 
 
 function sArenaFrameMixin:UpdateClassIcon(continue)
-	if (self.currentAuraSpellID and self.currentAuraDuration > 0 and self.currentClassIconStartTime ~= self.currentAuraStartTime) then
+	if isMidnight then
+		if self.currentAuraSpellID and self.currentAuraStartTime and self.currentAuraDuration then
+			self.ClassIcon.Cooldown:SetCooldown(self.currentAuraStartTime, self.currentAuraDuration)
+		elseif not self.currentAuraSpellID then
+			self.ClassIcon.Cooldown:Clear()
+		end
+	elseif (self.currentAuraSpellID and self.currentAuraDuration > 0 and self.currentClassIconStartTime ~= self.currentAuraStartTime) then
 		self.ClassIcon.Cooldown:SetCooldown(self.currentAuraStartTime, self.currentAuraDuration)
 		self.currentClassIconStartTime = self.currentAuraStartTime
 	elseif (self.currentAuraDuration == 0) then
@@ -2401,7 +2390,9 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
 
 	local texture = self.currentAuraSpellID and self.currentAuraTexture or self.class and "class" or 134400
 
-	if (self.currentClassIconTexture == texture) and not continue then return end
+	if not isMidnight then -- secret
+		if (self.currentClassIconTexture == texture) and not continue then return end
+	end
 
 	self.currentClassIconTexture = texture
 
@@ -3114,5 +3105,3 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
         end
     end
 end
-
-

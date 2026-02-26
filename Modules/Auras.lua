@@ -1,6 +1,4 @@
-if sArenaMixin.isMidnight then return end
-
-local isRetail = sArenaMixin.isRetail
+local isMoP = sArenaMixin.isMoP
 local isTBC = sArenaMixin.isTBC
 local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
 local GetSpellTexture = GetSpellTexture or C_Spell.GetSpellTexture
@@ -149,7 +147,7 @@ function sArenaFrameMixin:FindAura()
                 local applications = aura.applications or 0
 
                 -- Mists of Pandaria unique checks
-                if not isRetail then
+                if isMoP then
                     -- Icebound Fortitude, Check if it's glyphed to be immune to CC
                     if spellID == 51271 then
                         if AuraTooltipContains(unit, n, filter, "70%%") then
