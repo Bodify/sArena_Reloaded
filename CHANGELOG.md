@@ -1,3 +1,10 @@
+2.3.8
+- Add new setting: Castbar ID. Show arena ID number text on castbar to quickly identify whos castbar it is. Settings in Castbar section and can move text in "Text Settings" as well.
+- Add new settings: Disable Class/Trinket/Racial/DR cooldown text. (Global->Arena Frames)
+- Fixup auras for Midnight with help from Verz.
+- Fix layering issues with Pixel Border
+- Fix pixel border still showing around castbar icon spot when hiding castbar icon.
+
 2.3.7c
 - Fix layering issue with PixelBorder + TargetFocusBorder caused by last patch.
 
