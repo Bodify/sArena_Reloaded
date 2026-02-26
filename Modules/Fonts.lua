@@ -50,6 +50,9 @@ function sArenaMixin:UpdateFonts()
                     applyFont(f.CastBar and f.CastBar.Text, og.CastBarText)
                     local fontName, s, o = f.CastBar.Text:GetFont()
                     f.CastBar.Text:SetFont(fontName, s, "THINOUTLINE")
+                    if f.CastBar and f.CastBar.ArenaIDText then
+                        applyFont(f.CastBar.ArenaIDText, og.CastBarIDText)
+                    end
                 end
             end
             sArenaMixin.ogFonts = nil
@@ -112,6 +115,7 @@ function sArenaMixin:UpdateFonts()
                     SpecNameText = captureFont(frame.SpecNameText),
                     PowerText   = captureFont(frame.PowerText),
                     CastBarText = captureFont(frame.CastBar and frame.CastBar.Text),
+                    CastBarIDText = captureFont(frame.CastBar and frame.CastBar.ArenaIDText),
                 }
             end
             setFont(frame.Name, frameFontPath)
@@ -119,6 +123,9 @@ function sArenaMixin:UpdateFonts()
             setFont(frame.SpecNameText, frameFontPath)
             setFont(frame.PowerText,  frameFontPath)
             setFont(frame.CastBar.Text, frameFontPath, true)
+            if frame.CastBar and frame.CastBar.ArenaIDText then
+                setFont(frame.CastBar.ArenaIDText, frameFontPath, true)
+            end
         end
     end
 end
@@ -163,4 +170,7 @@ function sArenaFrameMixin:ApplyPrototypeFont()
     updateFont(self.HealthText)
     updateFont(self.PowerText)
     updateFont(self.CastBar and self.CastBar.Text)
+    if self.CastBar and self.CastBar.ArenaIDText then
+        updateFont(self.CastBar.ArenaIDText)
+    end
 end

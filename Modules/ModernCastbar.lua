@@ -185,6 +185,72 @@ function sArenaFrameMixin:SetupMidnightCastBarDrag()
     end)
 end
 
+function sArenaMixin:CreateCastbarIDText()
+    for i = 1, sArenaMixin.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        local castBar = frame.CastBar
+        if castBar and not castBar.ArenaIDText then
+            local idText = castBar:CreateFontString(nil, "OVERLAY")
+            -- Copy font properties from CastBar.Text
+            local fontFile, fontSize, fontFlags = castBar.Text:GetFont()
+            idText:SetFont(fontFile, fontSize, fontFlags)
+            local r, g, b, a = castBar.Text:GetTextColor()
+            idText:SetTextColor(r, g, b, a)
+            local sr, sg, sb, sa = castBar.Text:GetShadowColor()
+            idText:SetShadowColor(sr, sg, sb, sa)
+            local sx, sy = castBar.Text:GetShadowOffset()
+            idText:SetShadowOffset(sx, sy)
+            idText:SetJustifyH(castBar.Text:GetJustifyH())
+            idText:SetJustifyV(castBar.Text:GetJustifyV())
+            idText:Hide()
+            castBar.ArenaIDText = idText
+        end
+    end
+end
+
+function sArenaMixin:UpdateCastbarIDText()
+    local db = self.db
+    if not db then return end
+
+    local showID = db.profile.showCastbarID
+    local layoutSettings = db.profile.layoutSettings[db.profile.currentLayout]
+    local textSettings = layoutSettings and layoutSettings.textSettings
+
+    local idAnchor = textSettings and textSettings.castbarIDAnchor or "LEFT"
+    local idOffsetX = textSettings and textSettings.castbarIDOffsetX or 0
+    local idOffsetY = textSettings and textSettings.castbarIDOffsetY or 0
+    local idSize = textSettings and textSettings.castbarIDSize or 1.0
+
+    for i = 1, sArenaMixin.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        local castBar = frame.CastBar
+        if castBar and castBar.ArenaIDText then
+            local idText = castBar.ArenaIDText
+
+            if not showID then
+                idText:Hide()
+                idText:SetText("")
+            else
+                idText:ClearAllPoints()
+                idText:SetScale(idSize)
+
+                if idAnchor == "LEFT" then
+                    idText:SetPoint("RIGHT", castBar.Text, "LEFT", -2 + idOffsetX, idOffsetY)
+                    idText:SetText(i .. " -")
+                elseif idAnchor == "RIGHT" then
+                    idText:SetPoint("LEFT", castBar.Text, "RIGHT", 2 + idOffsetX, idOffsetY)
+                    idText:SetText("- " .. i)
+                else -- CENTER
+                    idText:SetPoint("CENTER", castBar.Text, "CENTER", idOffsetX, idOffsetY)
+                    idText:SetText(tostring(i))
+                end
+
+                idText:Show()
+            end
+        end
+    end
+end
+
 if isMidnight then return end
 
 local CastStopEvents = {

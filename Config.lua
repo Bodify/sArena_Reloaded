@@ -752,6 +752,21 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             end,
                         },
 
+                        showCastbarID = {
+                            order = 2.8,
+                            name = L["Castbar_ShowID"],
+                            desc = L["Castbar_ShowID_Desc"],
+                            type = "toggle",
+                            get = function(info)
+                                return info.handler.db.profile.showCastbarID
+                            end,
+                            set = function(info, val)
+                                info.handler.db.profile.showCastbarID = val
+                                info.handler:CreateCastbarIDText()
+                                info.handler:UpdateCastbarIDText()
+                            end,
+                        },
+
                         spacer = {
                             order = 2.9,
                             type  = "description",
@@ -2815,6 +2830,122 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             layout.textSettings.castbarOffsetX = defaults.castbarOffsetX
                             layout.textSettings.castbarOffsetY = defaults.castbarOffsetY
                             info.handler:UpdateTextPositions(layout.textSettings, info, nil)
+                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                        end,
+                    },
+                },
+            },
+            castbarIDText = {
+                order = 4.5,
+                name = L["Text_CastbarIDText"],
+                type = "group",
+                inline = true,
+                hidden = function(info)
+                    return not info.handler.db.profile.showCastbarID
+                end,
+                args = {
+                    castbarIDAnchor = {
+                        order = 1,
+                        name = L["Text_AnchorPoint"],
+                        type = "select",
+                        style = "dropdown",
+                        width = 0.5,
+                        values = {
+                            ["LEFT"] = L["Direction_Left"],
+                            ["CENTER"] = L["Direction_Center"],
+                            ["RIGHT"] = L["Direction_Right"],
+                        },
+                        get = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            return layout.textSettings.castbarIDAnchor or "LEFT"
+                        end,
+                        set = function(info, val)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.castbarIDAnchor = val
+                            info.handler:CreateCastbarIDText()
+                            info.handler:UpdateCastbarIDText()
+                        end,
+                    },
+                    castbarIDSize = {
+                        order = 2,
+                        name = L["Size"],
+                        type = "range",
+                        min = 0.05,
+                        max = 5,
+                        step = 0.01,
+                        width = 0.8,
+                        isPercent = true,
+                        get = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            return layout.textSettings.castbarIDSize or 1.0
+                        end,
+                        set = function(info, val)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.castbarIDSize = val
+                            info.handler:CreateCastbarIDText()
+                            info.handler:UpdateCastbarIDText()
+                        end,
+                    },
+                    castbarIDOffsetX = {
+                        order = 3,
+                        name = L["Horizontal"],
+                        type = "range",
+                        softMin = -200,
+                        softMax = 200,
+                        step = 0.5,
+                        width = 0.8,
+                        get = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            return layout.textSettings.castbarIDOffsetX or 0
+                        end,
+                        set = function(info, val)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.castbarIDOffsetX = val
+                            info.handler:CreateCastbarIDText()
+                            info.handler:UpdateCastbarIDText()
+                        end,
+                    },
+                    castbarIDOffsetY = {
+                        order = 4,
+                        name = L["Vertical"],
+                        type = "range",
+                        softMin = -200,
+                        softMax = 200,
+                        step = 0.5,
+                        width = 0.8,
+                        get = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            return layout.textSettings.castbarIDOffsetY or 0
+                        end,
+                        set = function(info, val)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.castbarIDOffsetY = val
+                            info.handler:CreateCastbarIDText()
+                            info.handler:UpdateCastbarIDText()
+                        end,
+                    },
+                    resetCastbarIDText = {
+                        order = 5,
+                        name = L["Reset"],
+                        width = 0.4,
+                        type = "execute",
+                        func = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.castbarIDAnchor = "LEFT"
+                            layout.textSettings.castbarIDSize = 1.0
+                            layout.textSettings.castbarIDOffsetX = 0
+                            layout.textSettings.castbarIDOffsetY = 0
+                            info.handler:CreateCastbarIDText()
+                            info.handler:UpdateCastbarIDText()
                             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
                         end,
                     },

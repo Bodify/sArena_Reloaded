@@ -1448,6 +1448,8 @@ function sArenaMixin:SetLayout(_, layout)
     self:ModernOrClassicCastbar()
     self:UpdateFonts()
     self:UpdateCastBarSettings(self.layoutdb.castBar)
+    self:CreateCastbarIDText()
+    self:UpdateCastbarIDText()
 
     self.optionsTable.args.layoutSettingsGroup.args = self.layouts[layout].optionsTable and self.layouts[layout].optionsTable or emptyLayoutOptionsTable
     LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
