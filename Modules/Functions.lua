@@ -94,6 +94,95 @@ function sArenaMixin:UpdateBlizzArenaFrameVisibility(instanceType)
     end
 end
 
+function sArenaMixin:UpdateCDTextVisibility()
+    local db = self.db
+    if not db then return end
+
+    local hideClassIcon = db.profile.disableCDTextClassIcon
+    local hideDR = db.profile.disableCDTextDR
+    local hideTrinket = db.profile.disableCDTextTrinket
+    local hideRacial = db.profile.disableCDTextRacial
+    local isMidnight = sArenaMixin.isMidnight
+
+    for i = 1, sArenaMixin.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        if not frame then break end
+
+        -- Class Icon
+        local classIconCD = frame.ClassIcon and frame.ClassIcon.Cooldown
+        if classIconCD then
+            classIconCD:SetHideCountdownNumbers(hideClassIcon)
+            if classIconCD.Text then
+                classIconCD.Text:SetAlpha(hideClassIcon and 0 or 1)
+            end
+            if classIconCD.sArenaText then
+                classIconCD.sArenaText:SetAlpha(hideClassIcon and 0 or 1)
+            end
+        end
+
+        -- Trinket
+        local trinketCD = frame.Trinket and frame.Trinket.Cooldown
+        if trinketCD then
+            trinketCD:SetHideCountdownNumbers(hideTrinket)
+            if trinketCD.Text then
+                trinketCD.Text:SetAlpha(hideTrinket and 0 or 1)
+            end
+        end
+
+        -- Racial
+        local racialCD = frame.Racial and frame.Racial.Cooldown
+        if racialCD then
+            racialCD:SetHideCountdownNumbers(hideRacial)
+            if racialCD.Text then
+                racialCD.Text:SetAlpha(hideRacial and 0 or 1)
+            end
+        end
+
+        -- DRs
+        if isMidnight then
+            if frame.drFrames then
+                for _, drFrame in ipairs(frame.drFrames) do
+                    if drFrame and drFrame.Cooldown then
+                        drFrame.Cooldown:SetHideCountdownNumbers(hideDR)
+                        if drFrame.Cooldown.Text then
+                            drFrame.Cooldown.Text:SetAlpha(hideDR and 0 or 1)
+                        end
+                        if drFrame.Cooldown.sArenaText then
+                            drFrame.Cooldown.sArenaText:SetAlpha(hideDR and 0 or 1)
+                        end
+                    end
+                end
+            end
+            if frame.fakeDRFrames then
+                for _, fakeDRFrame in ipairs(frame.fakeDRFrames) do
+                    if fakeDRFrame and fakeDRFrame.Cooldown then
+                        fakeDRFrame.Cooldown:SetHideCountdownNumbers(hideDR)
+                        if fakeDRFrame.Cooldown.Text then
+                            fakeDRFrame.Cooldown.Text:SetAlpha(hideDR and 0 or 1)
+                        end
+                        if fakeDRFrame.Cooldown.sArenaText then
+                            fakeDRFrame.Cooldown.sArenaText:SetAlpha(hideDR and 0 or 1)
+                        end
+                    end
+                end
+            end
+        elseif sArenaMixin.drCategories then
+            for _, category in ipairs(sArenaMixin.drCategories) do
+                local drFrame = frame[category]
+                if drFrame and drFrame.Cooldown then
+                    drFrame.Cooldown:SetHideCountdownNumbers(hideDR)
+                    if drFrame.Cooldown.Text then
+                        drFrame.Cooldown.Text:SetAlpha(hideDR and 0 or 1)
+                    end
+                    if drFrame.Cooldown.sArenaText then
+                        drFrame.Cooldown.sArenaText:SetAlpha(hideDR and 0 or 1)
+                    end
+                end
+            end
+        end
+    end
+end
+
 function sArenaMixin:EnsureArenaFramesEnabled()
     local accountSettings = EditModeManagerFrame and EditModeManagerFrame.AccountSettings
     if not accountSettings then return end

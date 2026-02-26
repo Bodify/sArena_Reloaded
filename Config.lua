@@ -5244,7 +5244,6 @@ else
                                             info.handler:SetupCustomCD()
                                         end
                                     },
-
                                 },
                             },
                             swipeAnimations = {
@@ -5369,6 +5368,54 @@ else
                                             for i = 1, sArenaMixin.maxArenaOpponents do
                                                 info.handler["arena" .. i]:UpdateTrinketRacialCooldownReverse()
                                             end
+                                        end,
+                                    },
+                                    disableCDTextClassIcon = {
+                                        order = 7,
+                                        name = L["Option_DisableCDTextClassIcon"],
+                                        desc = L["Option_DisableCDTextClassIcon_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        get = function(info) return info.handler.db.profile.disableCDTextClassIcon end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.disableCDTextClassIcon = val
+                                            info.handler:UpdateCDTextVisibility()
+                                        end,
+                                    },
+                                    disableCDTextDR = {
+                                        order = 8,
+                                        name = L["Option_DisableCDTextDR"],
+                                        desc = L["Option_DisableCDTextDR_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        get = function(info) return info.handler.db.profile.disableCDTextDR end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.disableCDTextDR = val
+                                            info.handler:UpdateCDTextVisibility()
+                                        end,
+                                    },
+                                    disableCDTextTrinket = {
+                                        order = 9,
+                                        name = L["Option_DisableCDTextTrinket"],
+                                        desc = L["Option_DisableCDTextTrinket_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        get = function(info) return info.handler.db.profile.disableCDTextTrinket end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.disableCDTextTrinket = val
+                                            info.handler:UpdateCDTextVisibility()
+                                        end,
+                                    },
+                                    disableCDTextRacial = {
+                                        order = 10,
+                                        name = L["Option_DisableCDTextRacial"],
+                                        desc = L["Option_DisableCDTextRacial_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        get = function(info) return info.handler.db.profile.disableCDTextRacial end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.disableCDTextRacial = val
+                                            info.handler:UpdateCDTextVisibility()
                                         end,
                                     },
                                 },
