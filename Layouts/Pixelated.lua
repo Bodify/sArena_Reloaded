@@ -144,17 +144,13 @@ local function CreatePixelTextureBorder(parent, target, key, size, offset)
 
     if not parent[key] then
         local holder = CreateFrame("Frame", nil, parent)
-        if key == "classIcon" then
-            holder:SetFrameLevel(parent:GetFrameLevel() + 8)
-        else
-            holder:SetFrameLevel(parent:GetFrameLevel() + 1)
-        end
+        holder:SetFrameLevel(parent:GetFrameLevel() + 5)
         holder:SetIgnoreParentScale(true)
         parent[key] = holder
 
         local edges = {}
         for i = 1, 4 do
-            local tex = holder:CreateTexture(nil, key == "classIcon" and "OVERLAY" or "BORDER", nil, 7)
+            local tex = holder:CreateTexture(nil, "BORDER", nil, 7)
             tex:SetColorTexture(0,0,0,1)
             tex:SetIgnoreParentScale(true)
             edges[i] = tex
@@ -326,7 +322,19 @@ local function setSetting(info, val)
         frame.PowerBar:SetHeight(layout.db.powerBarHeight)
         layout:UpdateOrientation(frame)
     end
-    
+end
+
+local function setPixelBorderSetting(info, val)
+    layout.db[info[#info]] = val
+
+    for i = 1, sArenaMixin.maxArenaOpponents do
+        local frame = info.handler["arena" .. i]
+        frame:AddPixelBorderToFrame()
+    end
+end
+
+local function setToggleSetting(info, val)
+    layout.db[info[#info]] = val
     sArenaMixin:RefreshConfig()
 end
 
@@ -339,7 +347,7 @@ local function setupOptionsTable(self)
         type = "toggle",
         width = "full",
         get = getSetting,
-        set = setSetting,
+        set = setToggleSetting,
     }
 
     layout.optionsTable.arenaFrames.args.sizing.args.width = {
@@ -380,7 +388,7 @@ local function setupOptionsTable(self)
         type = "toggle",
         width = "full",
         get = getSetting,
-        set = setSetting,
+        set = setToggleSetting,
     }
     layout.optionsTable.arenaFrames.args.other.args.pixelBorderSize = {
         order = 6,
@@ -390,7 +398,7 @@ local function setupOptionsTable(self)
         max = 3,
         step = 0.5,
         get = getSetting,
-        set = setSetting,
+        set = setPixelBorderSetting,
     }
     layout.optionsTable.arenaFrames.args.other.args.pixelBorderOffset = {
         order = 7,
@@ -400,7 +408,7 @@ local function setupOptionsTable(self)
         max = 3,
         step = 0.5,
         get = getSetting,
-        set = setSetting,
+        set = setPixelBorderSetting,
     }
     layout.optionsTable.arenaFrames.args.other.args.drPixelBorderSize = {
         order = 8,
@@ -410,7 +418,7 @@ local function setupOptionsTable(self)
         max = 3,
         step = 0.5,
         get = getSetting,
-        set = setSetting,
+        set = setPixelBorderSetting,
     }
 
     -- Add classIcon settings specific to Pixelated layout
