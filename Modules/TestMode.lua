@@ -687,7 +687,7 @@ function sArenaMixin:Test()
                         [1] = 136071,     -- Incap (Poly)
                         [2] = 135860,     -- Stun (Whirl)
                         [3] = 136100,     -- Root (Entangling Roots)
-                        [4] = 136184,     -- Fear (Fear)
+                        [4] = 136183,     -- Fear (Fear)
                     }
 
                     for drIndex = 1, 4 do
