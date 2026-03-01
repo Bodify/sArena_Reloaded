@@ -1,3 +1,8 @@
+2.3.8b
+- Add Snupy (www.twitch.tv/snupy) profile. Ty for sharing.
+- Add Mysticall (www.twitch.tv/mysticallx) profile. Ty for sharing.
+- Update profiles.
+
 2.3.8
 - Add new setting: Castbar ID. Show arena ID number text on castbar to quickly identify whos castbar it is. Settings in Castbar section and can move text in "Text Settings" as well.
 - Add new settings: Disable Class/Trinket/Racial/DR cooldown text. (Global->Arena Frames)
