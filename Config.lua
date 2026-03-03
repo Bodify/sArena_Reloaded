@@ -5113,6 +5113,18 @@ else
                                             end
                                         end,
                                     },
+                                    prioImportantOverDefensives = {
+                                        order = 5.5,
+                                        name = L["Option_PrioImportantOverDefensives"],
+                                        desc = L["Option_PrioImportantOverDefensives_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        hidden = not isMidnight,
+                                        get = function(info) return info.handler.db.profile.prioImportantOverDefensives end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.prioImportantOverDefensives = val
+                                        end,
+                                    },
                                     reverseBarsFill = {
                                         order = 6,
                                         name = L["Option_ReverseBarsFill"],

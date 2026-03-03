@@ -514,13 +514,8 @@ L["Cooldown_Seconds"] = "재사용 대기시간: %d초"
 L["SelectAll"] = "모두 선택"
 
 ---------------------------------------
--- Data Collection
+-- Info
 ---------------------------------------
-
-L["DataCollection_NotEnabled"] = "데이터 수집이 활성화되어 있지 않습니다. 먼저 db.collectData = true로 설정하세요."
-L["DataCollection_NoDataYet"] = "아직 수집된 주문 데이터가 없습니다."
-L["DataCollection_ExportTitle"] = "sArena 수집된 주문 데이터"
-L["DataCollection_ExportComplete"] = "총 %d개의 항목을 수집했습니다. 데이터가 내보내기 창에 표시됩니다."
 
 L["Print_CurrentVersion"] = "현재 버전: %s"
 L["Print_MultipleVersionsLoaded"] = "두 개의 다른 sArena 버전이 로드되었습니다. /sarena를 입력하여 계속할 방법을 선택하세요."

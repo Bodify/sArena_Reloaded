@@ -1641,6 +1641,7 @@ end
 
 function sArenaFrameMixin:OnLoad()
     local unit = "arena" .. self:GetID()
+    self.unit = unit
     self.parent = self:GetParent()
     if self.parent:CompatibilityIssueExists() then return end
 
@@ -1691,8 +1692,6 @@ function sArenaFrameMixin:OnLoad()
     if not isMidnight then
         self:CreateCastBar()
         self:CreateDRFrames()
-        self:RegisterUnitEvent("UNIT_ABSORB_AMOUNT_CHANGED", unit)
-        self:RegisterUnitEvent("UNIT_HEAL_ABSORB_AMOUNT_CHANGED", unit)
         if isTBC then
             self.CastBar.empoweredFix = true
             self.CastBar:SetUnit(unit, false, true)
@@ -1710,59 +1709,14 @@ function sArenaFrameMixin:OnLoad()
         self.totalAbsorbBarOverlay:Hide()
         self.myHealPredictionBar:Hide()
 
-        local trinketFrame = blizzArenaFrame.CcRemoverFrame
-        if trinketFrame then
-            trinketFrame:SetParent(self)
-            trinketFrame:SetAlpha(0)
-            hooksecurefunc(trinketFrame.Cooldown, "SetCooldown", function(_, start, duration)
-                self.Trinket.Cooldown:SetCooldown(start, duration)
-                self.Trinket.Texture:SetDesaturated(db and db.profile.desaturateTrinketCD and not db.profile.colorTrinket)
-                if db and db.profile.colorTrinket then
-                    self.Trinket.Texture:SetColorTexture(1, 0, 0)
-                end
-            end)
-
-            trinketFrame.Cooldown:HookScript("OnCooldownDone", function()
-                if db and db.profile.colorTrinket then
-                    self.Trinket.Texture:SetColorTexture(0, 1, 0)
-                end
-            end)
-        end
-
-        -- local ogOverabsorb = blizzArenaFrame.overAbsorbGlow
-        -- ogOverabsorb:ClearAllPoints()
-        -- ogOverabsorb:SetPoint("TOP", healthBar, "TOPRIGHT", 0, 0)
-        -- ogOverabsorb:SetPoint("BOTTOM", healthBar, "BOTTOMRIGHT", 0, 0)
-        -- ogOverabsorb:SetParent(healthBar)
-        -- ogOverabsorb:Hide()
-        -- hooksecurefunc(ogOverabsorb, "SetPoint", function(self)
-        --     if self.changing then return end
-        --     self.changing = true
-        --     self:ClearAllPoints()
-        --     self:SetPoint("TOP", healthBar, "TOPRIGHT", 0, 0)
-        --     self:SetPoint("BOTTOM", healthBar, "BOTTOMRIGHT", 0, 0)
-        --     self.changing = false
-        -- end)
+        self:HookMidnightTrinket()
     end
 
-    self:RegisterEvent("PLAYER_LOGIN")
-    self:RegisterEvent("PLAYER_ENTERING_WORLD")
-    self:RegisterEvent("UNIT_NAME_UPDATE")
-    self:RegisterEvent("ARENA_PREP_OPPONENT_SPECIALIZATIONS")
-    self:RegisterEvent("ARENA_COOLDOWNS_UPDATE")
-    self:RegisterEvent("ARENA_OPPONENT_UPDATE")
-    self:RegisterEvent("ARENA_CROWD_CONTROL_SPELL_UPDATE")
-    self:RegisterUnitEvent("UNIT_HEALTH", unit)
-    self:RegisterUnitEvent("UNIT_MAXHEALTH", unit)
-    self:RegisterUnitEvent("UNIT_POWER_UPDATE", unit)
-    self:RegisterUnitEvent("UNIT_MAXPOWER", unit)
-    self:RegisterUnitEvent("UNIT_DISPLAYPOWER", unit)
-    self:SetUnitAuraRegistration()
     self:RegisterForClicks("AnyDown", "AnyUp")
     self:SetAttribute("*type1", "target")
     self:SetAttribute("*type2", "focus")
     self:SetAttribute("unit", unit)
-    self.unit = unit
+    self:RegisterFrameEvents()
 
     local CastStopEvents  = {
         UNIT_SPELLCAST_STOP                = true,
@@ -1772,15 +1726,17 @@ function sArenaFrameMixin:OnLoad()
     }
 
     self.CastBar:HookScript("OnEvent", function(castBar, event, eventUnit)
-        if CastStopEvents[event] and eventUnit == unit then
-            if castBar.interruptedBy then
-                castBar:Show()
-            else
-                local cast = UnitCastingInfo(unit) or UnitChannelInfo(unit)
-                if not cast then
-                    castBar:Hide()
-                    if isRetail then
-                        return
+        if not isMidnight then
+            if CastStopEvents[event] and eventUnit == unit then
+                if castBar.interruptedBy then
+                    castBar:Show()
+                else
+                    local cast = UnitCastingInfo(unit) or UnitChannelInfo(unit)
+                    if not cast then
+                        castBar:Hide()
+                        if isRetail then
+                            return
+                        end
                     end
                 end
             end
@@ -3095,15 +3051,6 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                 else
                     castBar:SetStatusBarColor(1, 0.7, 0)
                 end
-            end
-        end
-        if not isMidnight and isRetail then
-            if castBar.barType == "uninterruptable" then
-                if castBar.ChargeTier1 then
-                    HideChargeTiers(castBar)
-                end
-            elseif castBar.barType == "empowered" then
-                HideChargeTiers(castBar)
             end
         end
     end

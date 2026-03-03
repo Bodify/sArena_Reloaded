@@ -416,6 +416,8 @@ L["Option_ColorSpecName_Desc"] = "Use a custom color for spec names instead of c
 L["Option_ReplaceHealerIcon"] = "Replace Healer Icon"
 L["Option_ShowNames"] = "Show Names"
 L["Option_ShowArenaNumber"] = "Show Arena Number"
+L["Option_PrioImportantOverDefensives"] = "Prio Important over Defensives"
+L["Option_PrioImportantOverDefensives_Desc"] = "By default sArena Reloaded prioritizes Defensives over \"Important Buffs\". Enable this option to instead prioritize Important Buffs over Defensives.\n\nOne example is Shadow Dance over Pain Suppression. But Blizzard decides whats an \"Important Buff\" so may not always be favourable."
 L["Option_ReverseBarsFill"] = "Reverse Bars Fill"
 L["Option_HideClassIconShowAurasOnly"] = "Hide Class Icon (Show Auras Only)"
 L["Option_DisableAurasOnClassIcon"] = "Disable Auras on Class Icon"
@@ -521,13 +523,8 @@ L["Cooldown_Seconds"] = "Cooldown: %d seconds"
 L["SelectAll"] = "Select All"
 
 ---------------------------------------
--- Data Collection
+-- Info
 ---------------------------------------
-
-L["DataCollection_NotEnabled"] = "Data collection is not enabled. Set db.collectData = true first."
-L["DataCollection_NoDataYet"] = "No spell data has been collected yet."
-L["DataCollection_ExportTitle"] = "sArena Collected Spell Data"
-L["DataCollection_ExportComplete"] = "Collected %d total entries. Data displayed in export window."
 
 L["Print_CurrentVersion"] = "Current Version: %s"
 L["Print_MultipleVersionsLoaded"] = "Two different versions of sArena are loaded. Please select how you want to continue by typing /sarena"

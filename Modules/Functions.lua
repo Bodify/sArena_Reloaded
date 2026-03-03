@@ -4,8 +4,9 @@
 -- in other projects without explicit prior written permission from the author.
 
 local isRetail = sArenaMixin.isRetail
-local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
+local isMidnight = sArenaMixin.isMidnight
 local isTBC = sArenaMixin.isTBC
+local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
 
 function sArenaFrameMixin:SetUnitAuraRegistration()
     local db = self.parent and self.parent.db
@@ -13,6 +14,62 @@ function sArenaFrameMixin:SetUnitAuraRegistration()
         self:UnregisterEvent("UNIT_AURA")
     else
         self:RegisterUnitEvent("UNIT_AURA", self.unit)
+    end
+end
+
+function sArenaFrameMixin:RegisterFrameEvents()
+    local unit = self.unit
+
+    self:RegisterEvent("PLAYER_LOGIN")
+    self:RegisterEvent("PLAYER_ENTERING_WORLD")
+    self:RegisterEvent("UNIT_NAME_UPDATE")
+    self:RegisterEvent("ARENA_PREP_OPPONENT_SPECIALIZATIONS")
+    self:RegisterEvent("ARENA_COOLDOWNS_UPDATE")
+    self:RegisterEvent("ARENA_OPPONENT_UPDATE")
+    self:RegisterUnitEvent("UNIT_HEALTH", unit)
+    self:RegisterUnitEvent("UNIT_MAXHEALTH", unit)
+    self:RegisterUnitEvent("UNIT_POWER_UPDATE", unit)
+    self:RegisterUnitEvent("UNIT_MAXPOWER", unit)
+    self:RegisterUnitEvent("UNIT_DISPLAYPOWER", unit)
+    self:SetUnitAuraRegistration()
+
+    if not isMidnight then
+        self:RegisterUnitEvent("UNIT_ABSORB_AMOUNT_CHANGED", unit)
+        self:RegisterUnitEvent("UNIT_HEAL_ABSORB_AMOUNT_CHANGED", unit)
+        self:RegisterEvent("ARENA_CROWD_CONTROL_SPELL_UPDATE")
+    end
+end
+
+function sArenaFrameMixin:HookMidnightTrinket()
+    local blizzArenaFrame = _G["CompactArenaFrameMember" .. self:GetID()]
+    local trinketFrame = blizzArenaFrame.CcRemoverFrame
+    if trinketFrame then
+        trinketFrame:SetParent(self)
+        trinketFrame:SetAlpha(0)
+        hooksecurefunc(trinketFrame.Cooldown, "SetCooldown", function(_, start, duration)
+            local db = self.parent and self.parent.db
+            self.Trinket.Cooldown:SetCooldown(start, duration)
+            self.Trinket.Texture:SetDesaturated(db and db.profile.desaturateTrinketCD and not db.profile.colorTrinket)
+            if db and db.profile.colorTrinket then
+                self.Trinket.Texture:SetColorTexture(1, 0, 0)
+            end
+        end)
+
+        hooksecurefunc(trinketFrame.Icon, "SetTexture", function(_, texture)
+            local db = self.parent and self.parent.db
+            if db and db.profile.colorTrinket then
+                self.Trinket.Texture:SetColorTexture(0, 1, 0)
+            else
+                self.Trinket.Texture:SetTexture(texture)
+            end
+        end)
+
+        trinketFrame.Cooldown:HookScript("OnCooldownDone", function()
+            local db = self.parent and self.parent.db
+            if db and db.profile.colorTrinket then
+                self.Trinket.Texture:SetColorTexture(0, 1, 0)
+            end
+        end)
     end
 end
 
