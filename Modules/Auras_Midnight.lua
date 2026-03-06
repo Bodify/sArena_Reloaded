@@ -101,5 +101,6 @@ function sArenaFrameMixin:UpdateAuraStacks()
     end
 
     self.AuraStacks:SetText(self.currentAuraApplications)
+    self.AuraStacks:SetAlpha(self.currentAuraApplications)
     self.AuraStacks:SetScale(1)
 end
