@@ -95,12 +95,12 @@ function sArenaFrameMixin:FindAura(updateInfo)
 end
 
 function sArenaFrameMixin:UpdateAuraStacks()
-    if not self.currentAuraApplications then
+    -- if not self.currentAuraApplications then
         self.AuraStacks:SetText("")
-        return
-    end
+    --     return
+    -- end
 
-    self.AuraStacks:SetText(self.currentAuraApplications)
-    self.AuraStacks:SetAlpha(self.currentAuraApplications)
-    self.AuraStacks:SetScale(1)
+    -- self.AuraStacks:SetText(self.currentAuraApplications)
+    -- self.AuraStacks:SetAlpha(self.currentAuraApplications)
+    -- self.AuraStacks:SetScale(1)
 end
