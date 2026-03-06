@@ -13,7 +13,7 @@ sArenaMixin.trinketTexture = (isRetail and 1322720) or 133453
 sArenaMixin.trinketID = (isRetail and 336126) or 42292
 sArenaMixin.showPixelBorder = false
 sArenaMixin.interruptReady = true
-C_AddOns.EnableAddOn("sArena_Reloaded")
+
 local LSM = LibStub("LibSharedMedia-3.0")
 local decimalThreshold = 6 -- Default value, will be updated from db
 LSM:Register("statusbar", "Blizzard RetailBar", [[Interface\AddOns\sArena_Reloaded\Textures\BlizzardRetailBar]])
