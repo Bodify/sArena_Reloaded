@@ -1,3 +1,7 @@
+2.3.9c
+- Add Saul profile (www.twitch.tv/saul). Thank you for sharing.
+- Remove Trimaz profile upon request after a change of hearts.
+
 2.3.9b
 - Midnight: Hide stack number on Class Icon
 - Misc tweaks
