@@ -8,6 +8,15 @@ local isMidnight = sArenaMixin.isMidnight
 local isTBC = sArenaMixin.isTBC
 local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
 
+function sArenaMixin:GetSpecNameByID(specId)
+    if GetSpecializationInfoByID then
+        local _, name = GetSpecializationInfoByID(specId)
+        if name then return name end
+    end
+    local info = self.specInfo[specId]
+    return info and info.name or "Unknown"
+end
+
 function sArenaFrameMixin:SetUnitAuraRegistration()
     local db = self.parent and self.parent.db
     if db and db.profile.disableAurasOnClassIcon then
@@ -251,11 +260,63 @@ function sArenaMixin:EnsureArenaFramesEnabled()
     end
 end
 
+function sArenaFrameMixin:NormalEmpoweredCastbar()
+    local castBar = self.CastBar
+
+    if castBar.empoweredFix then return end
+
+    local empowerEvents = {
+        ["UNIT_SPELLCAST_EMPOWER_START"] = true,
+        ["UNIT_SPELLCAST_EMPOWER_UPDATE"] = true,
+        ["UNIT_SPELLCAST_EMPOWER_STOP"] = true,
+    }
+
+    local function HideChargeTiers(castBar)
+        for _, child in ipairs({castBar:GetChildren()}) do
+            if child.BasePip or (child.Normal and child.Disabled) then
+                child:SetAlpha(0)
+                castBar.empowerHidden = true
+            end
+        end
+    end
+
+    if not castBar.empowerSpark then
+        castBar.empowerSpark = castBar:CreateTexture(nil, "OVERLAY")
+        castBar.empowerSpark:SetAtlas("UI-CastingBar-Pip")
+        castBar.empowerSpark:SetSize(3, 20)
+        castBar.empowerSpark:SetPoint("CENTER", castBar.Spark, "CENTER", 0, -4.5)
+    end
+
+    castBar:HookScript("OnEvent", function(self, event)
+        if empowerEvents[event] then
+            if not self.empowerHidden then
+                HideChargeTiers(castBar)
+            end
+            if not self.textureChangedNeedsColor then
+                self:SetStatusBarTexture("UI-CastingBar-Filling-Standard")
+            end
+            self.Spark:Hide()
+            self.empowerSparkShown = true
+            self.empowerSpark:Show()
+        else
+            if self.empowerSparkShown then
+                self.empowerSpark:Hide()
+                self.Spark:Show()
+                self.empowerSparkShown = false
+            end
+        end
+    end)
+
+    castBar.empoweredFix = true
+end
+
 function sArenaMixin:InitializeDRFrames()
     if not sArenaMixin.isMidnight then return end
 
-    if EditModeManagerFrame and EditModeManagerFrame.AccountSettings then
-        ShowUIPanel(EditModeManagerFrame)
+    if not sArena_ReloadedDB.skipEMDR then
+        if EditModeManagerFrame and EditModeManagerFrame.AccountSettings then
+            ShowUIPanel(EditModeManagerFrame)
+        end
     end
 
     local layoutdb = self.db.profile.layoutSettings[self.db.profile.currentLayout]
@@ -408,8 +469,10 @@ function sArenaMixin:InitializeDRFrames()
     end
 
 
-    if EditModeManagerFrame and EditModeManagerFrame.AccountSettings then
-        HideUIPanel(EditModeManagerFrame)
+    if not sArena_ReloadedDB.skipEMDR then
+        if EditModeManagerFrame and EditModeManagerFrame.AccountSettings then
+            HideUIPanel(EditModeManagerFrame)
+        end
     end
 
 end

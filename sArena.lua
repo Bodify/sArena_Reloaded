@@ -31,7 +31,7 @@ local stealthAlpha = 0.4
 local shadowsightStartTime = 95
 local shadowsightResetTime = 122
 local shadowSightID = 34709
---sArenaMixin.beenInArena = false
+
 sArenaMixin.shadowsightTimers = {0, 0}
 sArenaMixin.shadowsightAvailable = 2
 
@@ -620,12 +620,6 @@ function sArenaMixin:OnEvent(event, ...)
         end
 
     elseif (event == "PLAYER_LOGIN") then
-        local _, instanceType = IsInInstance()
-        -- if instanceType ~= "arena" then
-        --     C_Timer.After(3, function()
-        --         sArenaMixin.beenInArena = true
-        --     end)
-        -- end
         if isMidnight then
             C_CVar.SetCVar("spellDiminishPVPEnemiesEnabled", "1")
             self:EnsureArenaFramesEnabled()
@@ -683,12 +677,6 @@ function sArenaMixin:OnEvent(event, ...)
                 self:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
             else
                 self:InitializeDRFrames()
-
-                -- if not sArenaMixin.beenInArena then
-                --     sArenaMixin.beenInArena = true
-                -- else
-                --     self:ShowMidnightDRWarning()
-                -- end
             end
             self:RegisterWidgetEvents()
             self:RegisterInterruptEvents()
@@ -1709,6 +1697,7 @@ function sArenaFrameMixin:OnLoad()
         self.totalAbsorbBarOverlay:Hide()
         self.myHealPredictionBar:Hide()
 
+        self:NormalEmpoweredCastbar()
         self:HookMidnightTrinket()
     end
 

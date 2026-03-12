@@ -14,183 +14,239 @@ local LSM = LibStub("LibSharedMedia-3.0")
 local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
 local isModernArena = isRetail or isMidnight -- For old trinkets
 
+sArenaMixin.specInfo = {
+    -- Tanks
+    [66]   = { type = "Tanks",   name = "Protection" },
+    [73]   = { type = "Tanks",   name = "Protection" },
+    [104]  = { type = "Tanks",   name = "Guardian" },
+    [250]  = { type = "Tanks",   name = "Blood" },
+    [268]  = { type = "Tanks",   name = "Brewmaster" },
+    [581]  = { type = "Tanks",   name = "Vengeance" },
+    -- Healers
+    [65]   = { type = "Healers", name = "Holy" },
+    [105]  = { type = "Healers", name = "Restoration" },
+    [256]  = { type = "Healers", name = "Discipline" },
+    [257]  = { type = "Healers", name = "Holy" },
+    [264]  = { type = "Healers", name = "Restoration" },
+    [270]  = { type = "Healers", name = "Mistweaver" },
+    [1468] = { type = "Healers", name = "Preservation" },
+    -- Casters
+    [62]   = { type = "Casters", name = "Arcane" },
+    [63]   = { type = "Casters", name = "Fire" },
+    [64]   = { type = "Casters", name = "Frost" },
+    [102]  = { type = "Casters", name = "Balance" },
+    [258]  = { type = "Casters", name = "Shadow" },
+    [262]  = { type = "Casters", name = "Elemental" },
+    [265]  = { type = "Casters", name = "Affliction" },
+    [266]  = { type = "Casters", name = "Demonology" },
+    [267]  = { type = "Casters", name = "Destruction" },
+    [1467] = { type = "Casters", name = "Devastation" },
+    [1473] = { type = "Casters", name = "Augmentation" },
+    -- Hunters
+    [253]  = { type = "Hunters", name = "Beast Mastery" },
+    [254]  = { type = "Hunters", name = "Marksmanship" },
+    [255]  = { type = "Hunters", name = "Survival" },
+    -- Melee
+    [70]   = { type = "Melee",   name = "Retribution" },
+    [71]   = { type = "Melee",   name = "Arms" },
+    [72]   = { type = "Melee",   name = "Fury" },
+    [103]  = { type = "Melee",   name = "Feral" },
+    [251]  = { type = "Melee",   name = "Frost" },
+    [252]  = { type = "Melee",   name = "Unholy" },
+    [259]  = { type = "Melee",   name = "Assassination" },
+    [260]  = { type = "Melee",   name = "Outlaw" },
+    [261]  = { type = "Melee",   name = "Subtlety" },
+    [263]  = { type = "Melee",   name = "Enhancement" },
+    [269]  = { type = "Melee",   name = "Windwalker" },
+    [577]  = { type = "Melee",   name = "Havoc" },
+    [1480] = { type = "Melee",   name = "Devourer" },
+}
+
+sArenaMixin.defaultSpecOrder = {
+    Tanks   = {66, 73, 104, 250, 268, 581},
+    Healers = {65, 105, 256, 257, 264, 270, 1468},
+    Casters = {62, 63, 64, 102, 258, 262, 265, 266, 267, 1467, 1473},
+    Hunters = {253, 254, 255},
+    Melee   = {70, 71, 72, 103, 251, 252, 259, 260, 261, 263, 269, 577, 1480},
+}
+
 local specTemplates = {
     BM_HUNTER = {
         class = "HUNTER",
+        specId = 253,
         specIcon = noEarlyFrames and 132164 or 461112,
         castName = "Cobra Shot",
         castIcon = noEarlyFrames and 132211 or 461114,
         racial = 135726,
         race = "Orc",
-        specName = "Beast Mastery",
         unint = true,
     },
     MM_HUNTER = {
         class = "HUNTER",
+        specId = 254,
         specIcon = noEarlyFrames and 132222 or 461113,
         castName = "Aimed Shot",
         castIcon = 132222,
         racial = 136225,
         race = "NightElf",
-        specName = "Marksmanship",
         unint = true,
     },
     SURV_HUNTER = {
         class = "HUNTER",
+        specId = 255,
         specIcon = noEarlyFrames and 132215 or 461113,
         castName = "Mending Bandage",
         castIcon = isRetail and 1014022 or 133690,
         racial = 136225,
         race = "NightElf",
-        specName = "Survival",
         channel = true,
     },
     ELE_SHAMAN = {
         class = "SHAMAN",
+        specId = 262,
         specIcon = 136048,
         castName = "Lightning Bolt",
         castIcon = 136048,
         racial = 135726,
         race = "Orc",
-        specName = "Elemental",
     },
     ENH_SHAMAN = {
         class = "SHAMAN",
+        specId = 263,
         specIcon = noEarlyFrames and 136051 or 237581,
         castName = "Stormstrike",
         castIcon = 132314,
         racial = 135726,
         race = "Orc",
-        specName = "Enhancement",
     },
     RESTO_SHAMAN = {
         class = "SHAMAN",
+        specId = 264,
         specIcon = 136052,
         castName = "Healing Wave",
         castIcon = 136052,
         racial = 135726,
         race = "Orc",
-        specName = "Restoration",
     },
     RESTO_DRUID = {
         class = "DRUID",
+        specId = 105,
         specIcon = 136041,
         castName = "Regrowth",
         castIcon = 136085,
         racial = 132089,
         race = "NightElf",
-        specName = "Restoration",
     },
     AFF_WARLOCK = {
         class = "WARLOCK",
+        specId = 265,
         specIcon = 136145,
         castName = "Fear",
         castIcon = 136183,
         racial = 132089,
         race = "NightElf",
-        specName = "Affliction",
     },
     DESTRO_WARLOCK = {
         class = "WARLOCK",
+        specId = 267,
         specIcon = 136145,
         castName = "Chaos Bolt",
         castIcon = 136186,
         racial = 132089,
         race = "NightElf",
-        specName = "Destruction",
     },
     ARMS_WARRIOR = {
         class = "WARRIOR",
+        specId = 71,
         specIcon = 132355,
         castName = "Slam",
         castIcon = 132340,
         racial = 136129,
         race = "Human",
-        specName = "Arms",
         unint = true,
     },
     DISC_PRIEST = {
         class = "PRIEST",
+        specId = 256,
         specIcon = 135940,
         castName = "Penance",
         castIcon = 237545,
         racial = 136129,
         race = "Human",
-        specName = "Discipline",
         channel = true,
     },
     HOLY_PRIEST = {
         class = "PRIEST",
+        specId = 257,
         specIcon = 237542,
         castName = "Holy Fire",
         castIcon = 135972,
         racial = 136129,
         race = "Human",
-        specName = "Holy",
     },
     FERAL_DRUID = {
         class = "DRUID",
+        specId = 103,
         specIcon = 132115,
         castName = "Cyclone",
         castIcon = noEarlyFrames and 136022 or 132469,
         racial = 132089,
         race = "NightElf",
-        specName = "Feral",
     },
     FROST_MAGE = {
         class = "MAGE",
+        specId = 64,
         specIcon = 135846,
         castName = "Frostbolt",
         castIcon = 135846,
         racial = 136129,
         race = "Human",
-        specName = "Frost",
     },
     ARCANE_MAGE = {
         class = "MAGE",
+        specId = 62,
         specIcon = 135932,
         castName = "Arcane Blast",
         castIcon = 135735,
         racial = 136129,
         race = "Human",
-        specName = "Arcane",
     },
     FIRE_MAGE = {
         class = "MAGE",
+        specId = 63,
         specIcon = 135810,
         castName = "Pyroblast",
         castIcon = 135808,
         racial = 132089,
         race = "NightElf",
-        specName = "Fire",
     },
     RET_PALADIN = {
         class = "PALADIN",
+        specId = 70,
         specIcon = 135873,
         castName = "Feet Up",
         castIcon = 133029,
         racial = 136129,
         race = "Human",
-        specName = "Retribution",
     },
     UNHOLY_DK = {
         class = "DEATHKNIGHT",
+        specId = 252,
         specIcon = isTBC and 136212 or 135775,
         racial = 135726,
         race = "Orc",
-        specName = "Unholy",
         castName = "Army of the Dead",
         castIcon = isTBC and 136212 or 237511,
         channel = true,
     },
     SUB_ROGUE = {
         class = "ROGUE",
+        specId = 261,
         specIcon = 132320,
         castName = "Crippling Poison",
         castIcon = 132273,
         racial = 135726,
         race = "Orc",
-        specName = "Subtlety",
         unint = true,
     },
 }
@@ -258,6 +314,90 @@ local function GetFactionTrinketIconByRace(race)
     end
 end
 
+-- FrameSort integration: sort test players based on FrameSort's configured enemy arena sort mode
+function sArenaMixin:SortTestPlayersForFrameSort(players)
+    if not FrameSortApi or not FrameSortApi.v3 then return players end
+
+    local enabled = FrameSortApi.v3.Options:GetEnabled("EnemyArena")
+    if not enabled then
+        return players
+    end
+
+    if not self.FrameSortCallbackRegistered then
+        self.FrameSortCallbackRegistered = true
+        FrameSortApi.v3.Options:RegisterConfigurationChangedCallback(function()
+            if self.testMode then
+                self:Test()
+            end
+        end)
+    end
+
+    local sortMode = FrameSortApi.v3.Options:GetGroupSortMode("EnemyArena")
+    local reverse = FrameSortApi.v3.Options:GetReverse("EnemyArena")
+
+    if sortMode == "Role" then
+        local ordering = FrameSortDB and FrameSortDB.Options and FrameSortDB.Options.Sorting and FrameSortDB.Options.Sorting.Ordering
+        local typeOrder = {
+            Tanks   = ordering and ordering.Tanks   or 1,
+            Healers = ordering and ordering.Healers or 2,
+            Casters = ordering and ordering.Casters or 3,
+            Hunters = ordering and ordering.Hunters or 4,
+            Melee   = ordering and ordering.Melee   or 5,
+        }
+
+        -- Build sorted type list for spec ordering
+        local sortedTypes = {}
+        for key, order in pairs(typeOrder) do
+            sortedTypes[#sortedTypes + 1] = {key = key, order = order}
+        end
+        table.sort(sortedTypes, function(a, b) return a.order < b.order end)
+
+        -- Build specId → global position lookup (mirrors FrameSort's Comparer.lua Ordering())
+        local specPriority = FrameSortDB and FrameSortDB.Options and FrameSortDB.Options.Sorting and FrameSortDB.Options.Sorting.SpecPriority
+        local specOrderLookup = {}
+        local globalIndex = 1
+        for _, entry in ipairs(sortedTypes) do
+            local priority = specPriority and specPriority[entry.key]
+            if not priority or #priority == 0 then
+                priority = self.defaultSpecOrder[entry.key]
+            end
+            for _, specId in ipairs(priority) do
+                specOrderLookup[specId] = globalIndex
+                globalIndex = globalIndex + 1
+            end
+        end
+
+        local specInfo = self.specInfo
+        table.sort(players, function(a, b)
+            local aInfo = specInfo[a.specId]
+            local bInfo = specInfo[b.specId]
+            local aTypeOrder = aInfo and typeOrder[aInfo.type] or 5
+            local bTypeOrder = bInfo and typeOrder[bInfo.type] or 5
+            if aTypeOrder ~= bTypeOrder then
+                return aTypeOrder < bTypeOrder
+            end
+            local aSpecOrder = specOrderLookup[a.specId] or 999
+            local bSpecOrder = specOrderLookup[b.specId] or 999
+            if aSpecOrder ~= bSpecOrder then
+                return aSpecOrder < bSpecOrder
+            end
+            if a.class ~= b.class then
+                return a.class < b.class
+            end
+            return a.name < b.name
+        end)
+    end
+
+    if reverse then
+        local n = #players
+        for i = 1, math.floor(n / 2) do
+            players[i], players[n - i + 1] = players[n - i + 1], players[i]
+        end
+    end
+
+    return players
+end
+
 function sArenaMixin:ExpandTestTemplates()
     for _, player in ipairs(testPlayers) do
         local template = specTemplates[player.template]
@@ -269,6 +409,10 @@ function sArenaMixin:ExpandTestTemplates()
             end
             player.template = nil
         end
+
+        if player.specId and not player.specName then
+            player.specName = self:GetSpecNameByID(player.specId)
+        end
     end
     self.expandedTemplates = true
 end
@@ -277,8 +421,11 @@ local function Shuffle()
     local MAX = sArenaMixin.maxArenaOpponents or 3
     if MAX < 1 then return {} end
 
-    local HEALER_SPECS = { Restoration = true, Discipline = true, Holy = true, Mistweaver = true, Preservation = true }
-    local function isHealer(p) return HEALER_SPECS[p.specName] == true end
+    local specInfo = sArenaMixin.specInfo
+    local function isHealer(p)
+        local info = p.specId and specInfo[p.specId]
+        return info and info.type == "Healers" or false
+    end
 
     local byClass, nonHealerByClass, healerList, classes = {}, {}, {}, {}
 
@@ -354,7 +501,7 @@ end
 function sArenaMixin:Test()
     local _, instanceType = IsInInstance()
     if (InCombatLockdown() or instanceType == "arena") then
-        sArenaMixin:Print(L["Message_TestModeWarning"])
+        self:Print(L["Message_TestModeWarning"])
         return
     end
 
@@ -365,6 +512,7 @@ function sArenaMixin:Test()
         self:ExpandTestTemplates()
     end
     local shuffledPlayers = Shuffle()
+    shuffledPlayers = self:SortTestPlayersForFrameSort(shuffledPlayers)
     local db = self.db
     local cropIcons = db.profile.layoutSettings[db.profile.currentLayout].cropIcons
     local replaceClassIcon = db.profile.layoutSettings[db.profile.currentLayout].replaceClassIcon
