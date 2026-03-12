@@ -1,3 +1,7 @@
+2.3.9d
+- Fix Evoker castbars to look normal again after more changes from Blizzard.
+- Add FrameSort support for Test Mode display so it sorts the preview according to your FrameSort settings.
+
 2.3.9c
 - Add Saul profile (www.twitch.tv/saul). Thank you for sharing.
 - Remove Trimaz profile upon request after a change of hearts.
