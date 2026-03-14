@@ -1,3 +1,6 @@
+2.3.9e
+- Tweak and fix some minor issues related to the new Evoker Castbars.
+
 2.3.9d
 - Fix Evoker castbars to look normal again after more changes from Blizzard.
 - Add FrameSort support for Test Mode display so it sorts the preview according to your FrameSort settings.
