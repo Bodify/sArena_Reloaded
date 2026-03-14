@@ -285,6 +285,7 @@ function sArenaFrameMixin:NormalEmpoweredCastbar()
         castBar.empowerSpark:SetAtlas("UI-CastingBar-Pip")
         castBar.empowerSpark:SetSize(3, 20)
         castBar.empowerSpark:SetPoint("CENTER", castBar.Spark, "CENTER", 0, -4.5)
+        castBar.empowerSpark:Hide()
     end
 
     castBar:HookScript("OnEvent", function(self, event)
