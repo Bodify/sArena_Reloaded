@@ -1016,6 +1016,9 @@ function sArenaMixin:CreateCustomCooldown(cooldown, showDecimals, isDR)
     local hideNumbers
     if isMidnight then
         hideNumbers = false
+        if showDecimals and cooldown.SetCountdownMillisecondsThreshold then
+            cooldown:SetCountdownMillisecondsThreshold(decimalThreshold)
+        end
     else
         hideNumbers = showDecimals
     end
