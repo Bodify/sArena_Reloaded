@@ -69,7 +69,17 @@ function sArenaFrameMixin:HookMidnightTrinket()
             if db and db.profile.colorTrinket then
                 self.Trinket.Texture:SetColorTexture(0, 1, 0)
             else
-                self.Trinket.Texture:SetTexture(texture)
+                if texture == "INTERFACE\\ICONS\\INV_MISC_QUESTIONMARK.BLP" then
+                    self.Trinket.Texture:SetTexture(nil)
+                    C_Timer.After(0.5, function()
+                        local tex = trinketFrame.Icon:GetTexture()
+                        if tex and tex ~= "INTERFACE\\ICONS\\INV_MISC_QUESTIONMARK.BLP" then
+                            self.Trinket.Texture:SetTexture(tex)
+                        end
+                    end)
+                else
+                    self.Trinket.Texture:SetTexture(texture)
+                end
             end
         end)
 
