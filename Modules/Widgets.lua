@@ -30,7 +30,7 @@ function sArenaMixin:RegisterWidgetEvents()
             for i = 1, sArenaMixin.maxArenaOpponents do
                 local frame = self["arena" .. i]
                 local unit = frame.unit
-                self:RegisterUnitEvent("UNIT_FLAGS", unit)
+                frame:RegisterUnitEvent("UNIT_FLAGS", unit)
             end
         end
     end
@@ -42,8 +42,7 @@ function sArenaMixin:UnregisterWidgetEvents()
     self:UnregisterEvent("UNIT_TARGET")
     for i = 1, sArenaMixin.maxArenaOpponents do
         local frame = self["arena" .. i]
-        local unit = frame.unit
-        self:UnregisterEvent("UNIT_FLAGS", unit)
+        frame:UnregisterEvent("UNIT_FLAGS")
     end
 end
 
