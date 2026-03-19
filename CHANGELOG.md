@@ -1,3 +1,7 @@
+2.3.9g
+- Fix Combat Indicator not properly hiding when it should due to a mistake in event registering
+- Update Mes profile (www.twitch.tv/notmes). Thank you for sharing.
+
 2.3.9f
 - Fix millisecond timer setting for upcoming 12.0.5 patch using new API
 - Minor tweaks and fixes.
