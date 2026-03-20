@@ -379,7 +379,7 @@ function sArenaMixin:InitializeDRFrames()
 
                         if self.db and self.db.profile.colorDRCooldownText then
                             if sArenaDrFrame.Cooldown.sArenaText then
-                                sArenaDrFrame.Cooldown.sArenaText:SetTextColorFromBoolean(shown, red, green)
+                                sArenaDrFrame.Cooldown.sArenaText:SetVertexColorFromBoolean(shown, red, green)
                             end
                         end
 
