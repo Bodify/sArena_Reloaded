@@ -1,4 +1,4 @@
-2.4.1b
+2.4.0b
 - Fix typo causing a lua error related to the colored DR CD Text setting.
 
 2.4.0
