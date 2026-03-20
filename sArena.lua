@@ -672,8 +672,6 @@ function sArenaMixin:OnEvent(event, ...)
                 end
                 self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
                 self:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
-            else
-                self:InitializeDRFrames()
             end
             self:RegisterWidgetEvents()
             self:RegisterInterruptEvents()
@@ -688,11 +686,11 @@ function sArenaMixin:OnEvent(event, ...)
                     frame.tempSpecIcon = nil
                     frame.isHealer = nil
 
-                    if frame.fakeDRFrames then
-                        for n = 1, 4 do
-                            local fakeDRFrame = frame.fakeDRFrames[n]
-                            if fakeDRFrame then
-                                fakeDRFrame:Hide()
+                    if frame.drFrames then
+                        for n = 1, #frame.drFrames do
+                            local drFrame = frame.drFrames[n]
+                            if drFrame then
+                                drFrame:Hide()
                             end
                         end
                     end
@@ -1024,6 +1022,7 @@ function sArenaMixin:CreateCustomCooldown(cooldown, showDecimals, isDR)
     cooldown:SetHideCountdownNumbers(hideNumbers)
 
     if showDecimals and not isMidnight then
+        cooldown.hideDefaultCD = true
         local lastUpdate = 0
         cooldown:SetScript("OnUpdate", function(self, elapsed)
             lastUpdate = lastUpdate + elapsed
@@ -1050,11 +1049,13 @@ function sArenaMixin:CreateCustomCooldown(cooldown, showDecimals, isDR)
             end
         end)
     elseif isMidnight and isDR then
+        cooldown.hideDefaultCD = true
         cooldown:SetScript("OnUpdate", function(self)
             text:SetText(self.Text:GetText())
         end)
         cooldown.Text:SetAlpha(0)
     else
+        cooldown.hideDefaultCD = nil
         cooldown:SetScript("OnUpdate", nil)
         text:SetText(nil)
     end
@@ -1070,18 +1071,12 @@ function sArenaMixin:SetupCustomCD()
         -- Class icon cooldown
         self:CreateCustomCooldown(frame.ClassIcon.Cooldown, self.db.profile.showDecimalsClassIcon)
 
-        if isMidnight then
-            if frame.drFrames then
-                for _, drFrame in ipairs(frame.drFrames) do
-                    if drFrame and drFrame.Cooldown then
-                        self:CreateCustomCooldown(drFrame.Cooldown, self.db.profile.showDecimalsDR, true)
-                    end
-                end
-            end
-        else
-            for _, category in ipairs(self.drCategories) do
-                local drFrame = frame[category]
-                if drFrame and drFrame.Cooldown then
+        local useDrFrames = frame.drFrames ~= nil
+        local drList = frame.drFrames or self.drCategories
+        if drList then
+            for i = 1, #drList do
+                local drFrame = useDrFrames and drList[i] or frame[drList[i]]
+                if drFrame then
                     self:CreateCustomCooldown(drFrame.Cooldown, self.db.profile.showDecimalsDR, true)
                 end
             end
@@ -1546,24 +1541,14 @@ function sArenaMixin:SetMouseState(state)
             frame.midnightCastBarMoveFrame:EnableMouse(state)
         end
 
-        if isMidnight and frame.drTray then
-            frame.drTray:EnableMouse(false)
-            frame.drTray:SetMouseClickEnabled(false)
-            if frame.drFrames then
-                for _, drFrame in ipairs(frame.drFrames) do
-                    if drFrame then
-                        drFrame:EnableMouse(false)
-                        drFrame:SetMouseClickEnabled(false)
-                    end
-                end
-            end
-        end
-
-        if not isMidnight and sArenaMixin.drCategories then
-            for _, category in ipairs(sArenaMixin.drCategories) do
-                local drFrame = frame[category]
+        local useDrFrames = frame.drFrames ~= nil
+        local drList = frame.drFrames or sArenaMixin.drCategories
+        if drList then
+            local mouseState = useDrFrames and false or state
+            for i = 1, #drList do
+                local drFrame = useDrFrames and drList[i] or frame[drList[i]]
                 if drFrame then
-                    drFrame:EnableMouse(state)
+                    drFrame:EnableMouse(mouseState)
                 end
             end
         end
@@ -1953,9 +1938,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
         self:Initialize()
     elseif (event == "PLAYER_ENTERING_WORLD") or (event == "ARENA_PREP_OPPONENT_SPECIALIZATIONS") then
         local _, instanceType = IsInInstance()
-        if self.drTray then
-            self.drTray:SetAlpha(instanceType == "arena" and 1 or 0)
-        end
+
 
         if noEarlyFrames and instanceType == "arena" and self.ogShow then
             self.ogShow(self)
@@ -1974,8 +1957,8 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
         self:ResetRacial()
         if not isMidnight then
             self:ResetDispel()
-            self:ResetDR()
         end
+        self:ResetDR()
         self:UpdateHealPrediction()
         self:UpdateAbsorb()
         if UnitExists(self.unit) then
@@ -1998,17 +1981,13 @@ function sArenaFrameMixin:Initialize()
     self:SetMysteryPlayer()
     self.parent:SetupDrag(self, self.parent, nil, "UpdateFrameSettings")
 
-    -- Setup DR dragging based on system
+    local firstDR = self.drFrames and self.drFrames[1] or self[sArenaMixin.drCategories[1]]
+    if firstDR then
+        self.parent:SetupDrag(firstDR, firstDR, "dr", "UpdateDRSettings")
+    end
     if isMidnight then
-        local blizzArenaFrame = _G["CompactArenaFrameMember" .. self:GetID()]
-        if blizzArenaFrame and blizzArenaFrame.SpellDiminishStatusTray then
-            self.drTray = blizzArenaFrame.SpellDiminishStatusTray
-            blizzArenaFrame.SpellDiminishStatusTray:SetMovable(true)
-            self.parent:SetupDrag(blizzArenaFrame.SpellDiminishStatusTray, blizzArenaFrame.SpellDiminishStatusTray, "dr", "UpdateDRSettings")
-        end
         self:SetupMidnightCastBarDrag()
     else
-        self.parent:SetupDrag(self[sArenaMixin.drCategories[1]], self[sArenaMixin.drCategories[1]], "dr", "UpdateDRSettings")
         self.parent:SetupDrag(self.CastBar, self.CastBar, "castBar", "UpdateCastBarSettings")
     end
 

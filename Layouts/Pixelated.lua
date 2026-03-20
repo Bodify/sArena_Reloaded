@@ -44,7 +44,7 @@ layout.defaultSettings = {
         fontSize = 14,
     },
     castBar = {
-        posX = -125,
+        posX = -127,
         posY = -8.2,
         scale = 1.33,
         width = 115,

@@ -1,28 +1,64 @@
 local drCategories = sArenaMixin.drCategories
 
 function sArenaFrameMixin:ResetDRCooldownTextColors()
-	if not sArenaMixin.isMidnight then
-		for i = 1, #drCategories do
-			local drFrame = self[drCategories[i]]
-			if drFrame and drFrame.Cooldown.sArenaText then
-				drFrame.Cooldown.sArenaText:SetTextColor(1, 1, 1, 1)
-			end
+	local useDrFrames = self.drFrames ~= nil
+	local frames = self.drFrames or drCategories
+	for i = 1, #frames do
+		local drFrame = useDrFrames and frames[i] or self[frames[i]]
+		if drFrame and drFrame.Cooldown and drFrame.Cooldown.sArenaText then
+			drFrame.Cooldown.sArenaText:SetTextColor(1, 1, 1, 1)
 		end
-	else
-		if self.drFrames then
-			for _, drFrame in ipairs(self.drFrames) do
-				if drFrame and drFrame.Cooldown and drFrame.Cooldown.sArenaText then
-					drFrame.Cooldown.sArenaText:SetTextColor(1, 1, 1, 1)
-				end
-			end
-		end
+	end
+end
 
-		if self.fakeDRFrames then
-			for _, fakeDRFrame in ipairs(self.fakeDRFrames) do
-				if fakeDRFrame and fakeDRFrame.Cooldown and fakeDRFrame.Cooldown.sArenaText then
-					fakeDRFrame.Cooldown.sArenaText:SetTextColor(1, 1, 1, 1)
+function sArenaFrameMixin:UpdateDRPositions()
+	local layoutdb = self.parent.layoutdb
+	local numActive = 0
+	local prevFrame
+	local spacing = layoutdb.dr.spacing
+	local growthDirection = layoutdb.dr.growthDirection
+	local useDrFrames = self.drFrames ~= nil
+	local frames = self.drFrames or drCategories
+
+	for i = 1, #frames do
+		local frame = useDrFrames and frames[i] or self[frames[i]]
+		if frame and frame:IsShown() then
+			frame:ClearAllPoints()
+			if numActive == 0 then
+				local offset = (sArenaMixin.drBaseSize or 28) / 2
+				if growthDirection == 4 then
+					frame:SetPoint("RIGHT", self, "CENTER", layoutdb.dr.posX + offset, layoutdb.dr.posY)
+				elseif growthDirection == 3 then
+					frame:SetPoint("LEFT", self, "CENTER", layoutdb.dr.posX - offset, layoutdb.dr.posY)
+				elseif growthDirection == 1 then
+					frame:SetPoint("TOP", self, "CENTER", layoutdb.dr.posX, layoutdb.dr.posY + offset)
+				elseif growthDirection == 2 then
+					frame:SetPoint("BOTTOM", self, "CENTER", layoutdb.dr.posX, layoutdb.dr.posY - offset)
+				end
+			else
+				if growthDirection == 4 then
+					frame:SetPoint("RIGHT", prevFrame, "LEFT", -spacing, 0)
+				elseif growthDirection == 3 then
+					frame:SetPoint("LEFT", prevFrame, "RIGHT", spacing, 0)
+				elseif growthDirection == 1 then
+					frame:SetPoint("TOP", prevFrame, "BOTTOM", 0, -spacing)
+				elseif growthDirection == 2 then
+					frame:SetPoint("BOTTOM", prevFrame, "TOP", 0, spacing)
 				end
 			end
+			numActive = numActive + 1
+			prevFrame = frame
+		end
+	end
+end
+
+function sArenaFrameMixin:ResetDR()
+	local useDrFrames = self.drFrames ~= nil
+	local frames = self.drFrames or drCategories
+	for i = 1, #frames do
+		local drFrame = useDrFrames and frames[i] or self[frames[i]]
+		if drFrame then
+			drFrame.Cooldown:Clear()
 		end
 	end
 end
@@ -207,51 +243,4 @@ function sArenaFrameMixin:UpdateDRCooldownReverse()
             frame.Cooldown:SetReverse(reverse)
         end
     end
-end
-
-function sArenaFrameMixin:UpdateDRPositions()
-	local layoutdb = self.parent.layoutdb
-	local numActive = 0
-	local frame, prevFrame
-	local spacing = layoutdb.dr.spacing
-	local growthDirection = layoutdb.dr.growthDirection
-
-	for i = 1, #drCategories do
-		frame = self[drCategories[i]]
-
-		if (frame:IsShown()) then
-			frame:ClearAllPoints()
-			if (numActive == 0) then
-				-- First frame, offset due to unique DR sizes
-				local offset = (sArenaMixin.drBaseSize or 28) / 2
-				if (growthDirection == 4) then
-					frame:SetPoint("RIGHT", self, "CENTER", layoutdb.dr.posX + offset, layoutdb.dr.posY)
-				elseif (growthDirection == 3) then
-					frame:SetPoint("LEFT", self, "CENTER", layoutdb.dr.posX - offset, layoutdb.dr.posY)
-				elseif (growthDirection == 1) then
-					frame:SetPoint("TOP", self, "CENTER", layoutdb.dr.posX, layoutdb.dr.posY + offset)
-				elseif (growthDirection == 2) then
-					frame:SetPoint("BOTTOM", self, "CENTER", layoutdb.dr.posX, layoutdb.dr.posY - offset)
-				end
-			else
-				if (growthDirection == 4) then
-					frame:SetPoint("RIGHT", prevFrame, "LEFT", -spacing, 0)
-				elseif (growthDirection == 3) then
-					frame:SetPoint("LEFT", prevFrame, "RIGHT", spacing, 0)
-				elseif (growthDirection == 1) then
-					frame:SetPoint("TOP", prevFrame, "BOTTOM", 0, -spacing)
-				elseif (growthDirection == 2) then
-					frame:SetPoint("BOTTOM", prevFrame, "TOP", 0, spacing)
-				end
-			end
-			numActive = numActive + 1
-			prevFrame = frame
-		end
-	end
-end
-
-function sArenaFrameMixin:ResetDR()
-	for i = 1, #drCategories do
-		self[drCategories[i]].Cooldown:Clear()
-	end
 end

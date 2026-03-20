@@ -179,9 +179,10 @@ function sArenaMixin:UpdateCDTextVisibility()
         -- Class Icon
         local classIconCD = frame.ClassIcon and frame.ClassIcon.Cooldown
         if classIconCD then
-            classIconCD:SetHideCountdownNumbers(hideClassIcon)
+            local hideDefaultCD = hideClassIcon or classIconCD.hideDefaultCD
+            classIconCD:SetHideCountdownNumbers(hideDefaultCD and true or false)
             if classIconCD.Text then
-                classIconCD.Text:SetAlpha(hideClassIcon and 0 or 1)
+                classIconCD.Text:SetAlpha(hideDefaultCD and 0 or 1)
             end
             if classIconCD.sArenaText then
                 classIconCD.sArenaText:SetAlpha(hideClassIcon and 0 or 1)
@@ -207,40 +208,16 @@ function sArenaMixin:UpdateCDTextVisibility()
         end
 
         -- DRs
-        if isMidnight then
-            if frame.drFrames then
-                for _, drFrame in ipairs(frame.drFrames) do
-                    if drFrame and drFrame.Cooldown then
-                        drFrame.Cooldown:SetHideCountdownNumbers(hideDR)
-                        if drFrame.Cooldown.Text then
-                            drFrame.Cooldown.Text:SetAlpha(hideDR and 0 or 1)
-                        end
-                        if drFrame.Cooldown.sArenaText then
-                            drFrame.Cooldown.sArenaText:SetAlpha(hideDR and 0 or 1)
-                        end
-                    end
-                end
-            end
-            if frame.fakeDRFrames then
-                for _, fakeDRFrame in ipairs(frame.fakeDRFrames) do
-                    if fakeDRFrame and fakeDRFrame.Cooldown then
-                        fakeDRFrame.Cooldown:SetHideCountdownNumbers(hideDR)
-                        if fakeDRFrame.Cooldown.Text then
-                            fakeDRFrame.Cooldown.Text:SetAlpha(hideDR and 0 or 1)
-                        end
-                        if fakeDRFrame.Cooldown.sArenaText then
-                            fakeDRFrame.Cooldown.sArenaText:SetAlpha(hideDR and 0 or 1)
-                        end
-                    end
-                end
-            end
-        elseif sArenaMixin.drCategories then
-            for _, category in ipairs(sArenaMixin.drCategories) do
-                local drFrame = frame[category]
-                if drFrame and drFrame.Cooldown then
-                    drFrame.Cooldown:SetHideCountdownNumbers(hideDR)
+        local useDrFrames = frame.drFrames ~= nil
+        local drList = frame.drFrames or sArenaMixin.drCategories
+        if drList then
+            for j = 1, #drList do
+                local drFrame = useDrFrames and drList[j] or frame[drList[j]]
+                if drFrame then
+                    local hideDefaultCD = hideDR or drFrame.Cooldown.hideDefaultCD
+                    drFrame.Cooldown:SetHideCountdownNumbers(hideDefaultCD and true or false)
                     if drFrame.Cooldown.Text then
-                        drFrame.Cooldown.Text:SetAlpha(hideDR and 0 or 1)
+                        drFrame.Cooldown.Text:SetAlpha(hideDefaultCD and 0 or 1)
                     end
                     if drFrame.Cooldown.sArenaText then
                         drFrame.Cooldown.sArenaText:SetAlpha(hideDR and 0 or 1)
@@ -322,147 +299,99 @@ function sArenaMixin:InitializeDRFrames()
         end
     end
 
-    local layoutdb = self.db.profile.layoutSettings[self.db.profile.currentLayout]
-    local growthDirection = layoutdb.dr.growthDirection
-
     for i = 1, sArenaMixin.maxArenaOpponents do
         local blizzArenaFrame = _G["CompactArenaFrameMember" .. i]
         local arenaFrame = self["arena" .. i]
 
         if not blizzArenaFrame or not arenaFrame then return end
 
-        -- Initialize DR frames from Blizzard's SpellDiminishStatusTray
         local drTray = blizzArenaFrame.SpellDiminishStatusTray
         if not drTray then return end
 
-        drTray:SetParent(arenaFrame)
-        arenaFrame.drTray = drTray
-        drTray:SetFrameStrata("MEDIUM")
-        drTray:SetFrameLevel(10)
-        drTray:EnableMouse(false)
-        drTray:SetMouseClickEnabled(false)
-        --local arenaExtraOffset = 0
-        -- if inArena then
-        --     -- If reloaded in arena the DR frames are secrets and can't be adjusted.
-        --     -- Instead we mimic the users settings the best we can using only the parent frame.
-        --     drTray:SetScale(1.2)
-        --     arenaExtraOffset = 20
-        --     sArenaMixin.launchedDuringArena = true
-        -- end
-        drTray:ClearAllPoints()
-        local offset = ((sArenaMixin.drBaseSize or 28) / 2)-- + arenaExtraOffset
+        local blizzDRFrames = {drTray:GetChildren()}
+        local NUM_DR_FRAMES = #blizzDRFrames
 
-        local anchorPoint
-        if (growthDirection == 4) then
-            anchorPoint = "RIGHT"
-        elseif (growthDirection == 3) then
-            anchorPoint = "LEFT"
-        elseif (growthDirection == 1) then
-            anchorPoint = "RIGHT"
-        elseif (growthDirection == 2) then
-            anchorPoint = "RIGHT"
-        end
-        drTray:SetPoint(anchorPoint, arenaFrame, "CENTER", layoutdb.dr.posX + offset, layoutdb.dr.posY)
+        if not arenaFrame.drFrames then
+            drTray:SetParent(arenaFrame)
+            drTray:SetAlpha(0)
+            drTray:EnableMouse(false)
+            arenaFrame.drFrames = {}
 
-        -- Get the 4 DR frames from the tray
-        local drFrames = {drTray:GetChildren()}
-        arenaFrame.drFrames = drFrames
+            for drIndex = 1, NUM_DR_FRAMES do
+                local name = "sArenaEnemyFrame" .. i .. "_DR" .. drIndex
+                local sArenaDrFrame = CreateFrame("Frame", name, arenaFrame, "sArenaDRFrameTemplate")
+                sArenaDrFrame:SetFrameStrata("MEDIUM")
+                sArenaDrFrame:SetFrameLevel(11)
+                arenaFrame.drFrames[drIndex] = sArenaDrFrame
 
-        -- Initialize each DR frame with custom borders
-        for drIndex, drFrame in ipairs(drFrames) do
-            if drFrame and drFrame.Icon then
-                drFrame:SetFrameStrata("MEDIUM")
-                drFrame:SetFrameLevel(11)
-                drFrame:SetAlpha(1)
-                drFrame:Show()
-                drFrame.Icon:Show()
-                drFrame:EnableMouse(false)
-                drFrame:SetMouseClickEnabled(false)
+                local drTextFrame = sArenaDrFrame.DRTextFrame
+                local drText = drTextFrame.DRText
+                drText:SetText("½")
+                drText:SetVertexColor(0, 1, 0)
+                local fontFile, fontHeight, fontFlags = drText:GetFont()
+                local drTextImmune = drTextFrame:CreateFontString(nil, "OVERLAY")
+                drTextImmune:SetFont(fontFile, fontHeight, fontFlags)
+                drTextImmune:SetJustifyH("RIGHT")
+                drTextImmune:SetJustifyV("BOTTOM")
+                drTextImmune:SetPoint("BOTTOMRIGHT", 4, -4)
+                drTextImmune:SetText("%")
+                drTextImmune:SetTextColor(1, 0, 0)
+                drTextImmune:SetAlpha(0)
+                drTextFrame.DRTextImmune = drTextImmune
 
-                -- Create border for active DR (will be styled by UpdateDRSettings)
-                if not drFrame.Border then
-                    drFrame.Border = drFrame:CreateTexture(nil, "OVERLAY", nil, 6)
-                    drFrame.Border:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-                    drFrame.Border:SetAllPoints(drFrame)
-                    drFrame.Border:SetVertexColor(0,1,0)
+                local blizzDRFrame = blizzDRFrames[drIndex]
+                if blizzDRFrame and blizzDRFrame.Icon then
+                    sArenaDrFrame.blizzFrame = blizzDRFrame
 
-                    drFrame.ImmunityIndicator:SetFrameStrata("MEDIUM")
-                    drFrame.ImmunityIndicator:SetFrameLevel(27)
-
-                    drFrame.BorderImmune = drFrame:CreateTexture(nil, "OVERLAY", nil, 7)
-                    drFrame.BorderImmune:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-                    drFrame.BorderImmune:SetAllPoints(drFrame)
-                    drFrame.BorderImmune:SetIgnoreParentAlpha(true)
-                    drFrame.BorderImmune:SetVertexColor(1,0,0,1)
-                    hooksecurefunc(drFrame.Border, "SetTexture", function(self, texture)
-                        drFrame.BorderImmune:SetTexture(texture)
+                    hooksecurefunc(blizzDRFrame.Icon, "SetTexture", function(_, texture)
+                        sArenaDrFrame.Icon:SetTexture(texture)
                     end)
-                end
 
-                if not drFrame.DRTextFrame then
-                    drFrame.DRTextFrame = CreateFrame("Frame", nil, drFrame)
-                    drFrame.DRTextFrame:SetAllPoints(drFrame)
-                    drFrame.DRTextFrame:SetFrameStrata("MEDIUM")
-                    drFrame.DRTextFrame:SetFrameLevel(26)
+                    hooksecurefunc(blizzDRFrame, "Show", function()
+                        sArenaDrFrame:Show()
+                        arenaFrame:UpdateDRPositions()
+                    end)
 
-                    local textSettings = layoutdb.textSettings or {}
-                    local drTextAnchor = textSettings.drTextAnchor or "BOTTOMRIGHT"
-                    local drTextSize = textSettings.drTextSize or 1.0
-                    local drTextOffsetX = textSettings.drTextOffsetX or 4
-                    local drTextOffsetY = textSettings.drTextOffsetY or -4
+                    hooksecurefunc(blizzDRFrame, "Hide", function()
+                        sArenaDrFrame.Icon:SetTexture(nil)
+                        sArenaDrFrame:Hide()
+                        arenaFrame:UpdateDRPositions()
+                    end)
 
-                    drFrame.DRText = drFrame.DRTextFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-                    drFrame.DRText:SetPoint(drTextAnchor, drTextOffsetX, drTextOffsetY)
-                    drFrame.DRText:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 14, "OUTLINE")
-                    drFrame.DRText:SetScale(drTextSize)
-                    drFrame.DRText:SetTextColor(0, 1, 0)
-                    drFrame.DRText:SetText("½")
+                    hooksecurefunc(blizzDRFrame.Cooldown, "SetCooldown", function(_, start, duration)
+                        sArenaDrFrame.Cooldown:SetCooldown(start, duration)
+                    end)
 
                     local green = CreateColor(0, 1, 0, 1)
                     local red = CreateColor(1, 0, 0, 1)
 
-                    if not drFrame.Cooldown.Text then
-                        drFrame.Cooldown.Text = drFrame.Cooldown:GetCountdownFontString()
-                        drFrame.Cooldown.Text.fontFile = drFrame.Cooldown.Text:GetFont()
-                    end
+                    hooksecurefunc(blizzDRFrame.ImmunityIndicator, "SetShown", function(_, shown)
+                        local layout = self.db.profile.layoutSettings[self.db.profile.currentLayout]
+                        local blackBorder = layout and layout.dr and layout.dr.blackDRBorder
+                        local borderHidden = layout and layout.dr and layout.dr.disableDRBorder
 
-                    hooksecurefunc(drFrame.ImmunityIndicator, "SetShown", function(immunityIndicator, SetShown)
-                        drFrame.Border:SetAlphaFromBoolean(SetShown, 0, 1)
-                        drFrame.DRText:SetAlphaFromBoolean(SetShown, 0, 1)
+                        if not blackBorder and not borderHidden then
+                            sArenaDrFrame.Border:SetVertexColorFromBoolean(shown, red, green)
+                            if sArenaDrFrame.PixelBorder then
+                                sArenaDrFrame.PixelBorder:SetVertexColorFromBoolean(shown, red, green)
+                            end
+                        end
 
                         if self.db and self.db.profile.colorDRCooldownText then
-                            drFrame.Cooldown.sArenaText:SetVertexColorFromBoolean(SetShown, red, green)
+                            if sArenaDrFrame.Cooldown.sArenaText then
+                                sArenaDrFrame.Cooldown.sArenaText:SetTextColorFromBoolean(shown, red, green)
+                            end
                         end
+
+                        local drText = sArenaDrFrame.DRTextFrame.DRText
+                        local drTextImmune = sArenaDrFrame.DRTextFrame.DRTextImmune
+                        drText:SetAlphaFromBoolean(shown, 0, 1)
+                        drTextImmune:SetAlphaFromBoolean(shown, 1, 0)
                     end)
-
-                    drFrame.DRText2 = drFrame.DRTextFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-                    drFrame.DRText2:SetPoint(drTextAnchor, drTextOffsetX, drTextOffsetY)
-                    drFrame.DRText2:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 14, "OUTLINE")
-                    drFrame.DRText2:SetScale(drTextSize)
-                    drFrame.DRText2:SetTextColor(1, 0, 0)
-                    drFrame.DRText2:SetText("%")
-                    drFrame.DRText2:SetParent(drFrame.ImmunityIndicator)
-                    drFrame.DRText2:SetIgnoreParentAlpha(true)
-                    drFrame.DRText2:SetAlpha(1)
-
-                end
-
-                if not drFrame.Boverlay then
-                    drFrame.Boverlay = CreateFrame("Frame", nil, drFrame)
-                    drFrame.Boverlay:SetFrameStrata("MEDIUM")
-                    drFrame.Boverlay:SetFrameLevel(26)
-                end
-                drFrame.Boverlay:Show()
-                drFrame.Border:SetParent(drFrame.Boverlay)
-                drFrame.BorderImmune:SetParent(drFrame.ImmunityIndicator)
-                drFrame.ImmunityIndicator:SetAlpha(0)
-
-                -- Border color will be set by UpdateDRSettings
-                drFrame.Border:Show()
-                if not drFrame.Cooldown then
-                    drFrame.Cooldown = drFrame.Icon
                 end
             end
+
+            self:SetupDrag(arenaFrame.drFrames[1], arenaFrame.drFrames[1], "dr", "UpdateDRSettings")
         end
     end
 

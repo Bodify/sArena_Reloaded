@@ -147,10 +147,14 @@ function sArenaMixin:AddMasqueSupport()
         end
 
         -- DR frames
-        for _, category in ipairs(self.drCategories) do
-            local drFrame = frame[category]
-            if drFrame then
-                addToMasque(drFrame, sArenaDRs)
+        local useDrFrames = frame.drFrames ~= nil
+        local drList = frame.drFrames or self.drCategories
+        if drList then
+            for i = 1, #drList do
+                local drFrame = useDrFrames and drList[i] or frame[drList[i]]
+                if drFrame then
+                    addToMasque(drFrame, sArenaDRs)
+                end
             end
         end
     end

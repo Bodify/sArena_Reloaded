@@ -1093,19 +1093,6 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 end
             end,
             args = {
-                midnightDisclaimer = {
-                    order = 0,
-                    type = "description",
-                    name = isMidnight and L["DR_MidnightDisclaimer"] or "",
-                    fontSize = "medium",
-                    hidden = function() return not isMidnight end,
-                },
-                midnightDisclaimerSpacer = {
-                    order = 0.1,
-                    type = "description",
-                    name = " ",
-                    hidden = function() return not isMidnight end,
-                },
                 options = {
                     order = 0.2,
                     name = L["Options"],
@@ -1279,9 +1266,6 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             softMin = 0,
                             softMax = 32,
                             step = 1,
-                            disabled = function()
-                                return sArenaMixin.isMidnight
-                            end,
                         },
                         growthDirection = {
                             order = 4,
@@ -1341,7 +1325,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                     name = L["DR_SpecificSizeAdjustment"],
                     type = "group",
                     inline = true,
-                    disabled = function() return isMidnight end,
+                    hidden = function() return isMidnight end,
                     args = {},
                 },
             },
@@ -3377,7 +3361,6 @@ local function CreatePixelTextureBorder(parent, target, key, size, offset)
 end
 
 function sArenaMixin:UpdateDRSettings(db, info, val)
-    -- Early return if db is nil or frames aren't ready
     if not db then return end
 
     if (val) then
@@ -3386,827 +3369,178 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
 
     local layoutCF = (self.layoutdb and self.layoutdb.changeFont)
 
-    -- For Midnight: full DR settings support with new frame structure
-    if sArenaMixin.isMidnight then
-        sArenaMixin.drBaseSize = db.size or 28
-        local currentLayout = self.db and self.db.profile and self.db.profile.currentLayout
-        local layoutSettings = self.db and self.db.profile and self.db.profile.layoutSettings and self.db.profile.layoutSettings[currentLayout]
-        local cropIcons = layoutSettings and layoutSettings.cropIcons or false
-        
-        for i = 1, sArenaMixin.maxArenaOpponents do
-            local frame = self["arena" .. i]
-            -- Handle DR swipe settings (global setting) - defined here for both real and fake frames
-            local disableSwipeEdge = self.db.profile.disableSwipeEdge
-            local disableDRSwipe = self.db.profile.disableDRSwipe
-            local reverseDR = self.db.profile.invertDRCooldown
+    sArenaMixin.drBaseSize = isMidnight and (db.size or 28) or db.size
 
-            -- Settings for positioning
-            local growthDirection = db.growthDirection or 4
-            local spacing = db.spacing or 3
-            local size = db.size or 28
+    local currentLayout = self.db and self.db.profile and self.db.profile.currentLayout
+    local layoutSettings = self.db and self.db.profile and self.db.profile.layoutSettings and self.db.profile.layoutSettings[currentLayout]
+    local cropIcons = layoutSettings and layoutSettings.cropIcons or false
 
-            if frame and frame.drFrames then
-                -- Get Blizzard's DR tray for positioning
-                local blizzArenaFrame = _G["CompactArenaFrameMember" .. i]
-                local drTray = blizzArenaFrame and blizzArenaFrame.SpellDiminishStatusTray
+    local categorySizeOffsets = not isMidnight and (db.drCategorySizeOffsets or {}) or nil
 
-                if drTray then
-                    -- Position the tray
-                    --local arenaScale = 0.05143 * size - 0.24
-                    local arenaOffset = 0--2.43 * size - 52
-                    -- local _, instanceType = IsInInstance()
-                    -- local inArena = (instanceType == "arena")
-                    -- if inArena then
-                    --     -- If reloaded in arena the DR frames are secrets and can't be adjusted.
-                    --     -- Instead we mimic the users settings the best we can using only the parent frame.
-                    --     drTray:SetScale(arenaScale) -- 1.2 == 28 size, 1.56 == 35 size.
-                    --     -- For default settings, aka 28 size. We need to do SetScale(1.2) and offset by 15.
-                    --     -- For 35 size, we do SetScale(1.56) and offset by 32.
-                    --     sArenaMixin.launchedDuringArena = true
-                    -- end
-
-                    local anchorPoint
-                    if (growthDirection == 4) then
-                        anchorPoint = "RIGHT"
-                    elseif (growthDirection == 3) then
-                        anchorPoint = "LEFT"
-                    elseif (growthDirection == 1) then
-                        anchorPoint = "RIGHT"
-                    elseif (growthDirection == 2) then
-                        anchorPoint = "RIGHT"
-                    end
-                    drTray:ClearAllPoints()
-                    local offset = ((sArenaMixin.drBaseSize or 28) / 2) + (sArenaMixin.launchedDuringArena and arenaOffset or 0)
-                    drTray:SetPoint(anchorPoint, frame, "CENTER", db.posX + offset, db.posY)
-                end
-
-                for drIndex, drFrame in ipairs(frame.drFrames) do
-                    if drFrame then
-                        -- Set size
-                        drFrame:SetSize(size, size)
-
-                        local text = drFrame.Cooldown.Text
-                        local fontToUse = text.fontFile
-                        if layoutCF then
-                            fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
-                        end
-                        text:SetFont(fontToUse, db.fontSize, "OUTLINE")
-                        local sArenaText = drFrame.Cooldown.sArenaText
-                        if sArenaText then
-                            sArenaText:SetFont(fontToUse, db.fontSize, "OUTLINE")
-                        end
-
-                        -- Position based on growth direction
-                        -- drFrame:ClearAllPoints()
-                        -- if drIndex == 1 then
-                        --     -- First frame anchors to the tray
-                        --     if drTray then
-                        --         drFrame:SetPoint("CENTER", drTray, "CENTER", 0, 0)
-                        --     end
-                        -- else
-                        --     -- Subsequent frames position relative to previous frame
-                        --     local prevFrame = frame.drFrames[drIndex - 1]
-                        --     if prevFrame then
-                        --         if growthDirection == 1 then
-                        --             -- Down
-                        --             drFrame:SetPoint("TOP", prevFrame, "BOTTOM", 0, -spacing)
-                        --         elseif growthDirection == 2 then
-                        --             -- Up
-                        --             drFrame:SetPoint("BOTTOM", prevFrame, "TOP", 0, spacing)
-                        --         elseif growthDirection == 3 then
-                        --             -- Right
-                        --             drFrame:SetPoint("LEFT", prevFrame, "RIGHT", spacing, 0)
-                        --         elseif growthDirection == 4 then
-                        --             -- Left (default)
-                        --             drFrame:SetPoint("RIGHT", prevFrame, "LEFT", -spacing, 0)
-                        --         end
-                        --     end
-                        -- end
-
-                        -- Handle swipe/edge settings if Cooldown exists
-                        if drFrame.Cooldown then
-                            drFrame.Cooldown:SetReverse(reverseDR)
-                            if disableDRSwipe then
-                                drFrame.Cooldown:SetDrawSwipe(false)
-                                drFrame.Cooldown:SetDrawEdge(false)
-                            else
-                                drFrame.Cooldown:SetSwipeColor(0, 0, 0, 0.55)
-                                drFrame.Cooldown:SetDrawSwipe(true)
-                                drFrame.Cooldown:SetDrawEdge(not disableSwipeEdge)
-                            end
-                        end
-
-                        -- Reset states before applying new styles
-                        if drFrame.Icon then
-                            drFrame.Icon:SetDrawLayer("ARTWORK", 0)
-                        end
-                        if drFrame.Boverlay then
-                            drFrame.Border:SetParent(drFrame)
-                            drFrame.Boverlay:Hide()
-                        end
-                        if drFrame.Mask and drFrame.Icon then
-                            drFrame.Icon:RemoveMaskTexture(drFrame.Mask)
-                        end
-                        if drFrame.PixelBorder then
-                            drFrame.PixelBorder:Hide()
-                        end
-                        if drFrame.PixelBorderImmune then
-                            drFrame.PixelBorderImmune:Hide()
-                        end
-
-                        -- Apply border styles
-                        if db.disableDRBorder then
-                            if drFrame.Border then
-                                drFrame.Border:Hide()
-                            end
-                            if drFrame.BorderImmune then
-                                drFrame.BorderImmune:Hide()
-                            end
-                            if drFrame.PixelBorder then
-                                drFrame.PixelBorder:Hide()
-                            end
-                            if drFrame.PixelBorderImmune then
-                                drFrame.PixelBorderImmune:Hide()
-                            end
-                            if drFrame.Icon then
-                                if cropIcons then
-                                    drFrame.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-                                else
-                                    drFrame.Icon:SetTexCoord(0, 1, 0, 1)
-                                end
-                            end
-                            if drFrame.Cooldown then
-                                drFrame.Cooldown:SetSwipeTexture(1)
-                            end
-
-                        elseif db.thinPixelBorder then
-                            -- Thin pixel border style
-                            if drFrame.Border then
-                                drFrame.Border:Show()
-                                drFrame.Border:SetAtlas("communities-create-avatar-border-selected")
-                            end
-                            if drFrame.BorderImmune then
-                                drFrame.BorderImmune:Show()
-                                drFrame.BorderImmune:SetAtlas("communities-create-avatar-border-selected")
-                            end
-                            if drFrame.PixelBorder then
-                                drFrame.PixelBorder:Hide()
-                            end
-                            if drFrame.PixelBorderImmune then
-                                drFrame.PixelBorderImmune:Hide()
-                            end
-                            if drFrame.Icon then
-                                drFrame.Icon:SetTexCoord(0.05, 0.95, 0.07, 0.9)
-                            end
-                            if drFrame.Cooldown then
-                                drFrame.Cooldown:SetSwipeTexture(1)
-                            end
-
-                        elseif db.thickPixelBorder then
-                            -- Thick pixel border style with dual borders (green/red)
-                            if drFrame.Border then
-                                drFrame.Border:Hide()
-                            end
-                            if drFrame.BorderImmune then
-                                drFrame.BorderImmune:Hide()
-                            end
-                            local drSize = 2
-
-                            -- Create green border (active DR)
-                            CreatePixelTextureBorder(drFrame, drFrame, "PixelBorder", drSize, 0)
-                            drFrame.PixelBorder:Show()
-
-                            -- Create red border (immune) - parent to ImmunityIndicator
-                            if not drFrame.PixelBorderImmune then
-                                CreatePixelTextureBorder(drFrame, drFrame, "PixelBorderImmune", drSize, 0)
-                                drFrame.PixelBorderImmune:SetParent(drFrame.ImmunityIndicator)
-                                drFrame.PixelBorderImmune:SetIgnoreParentAlpha(true)
-                                -- Hook to keep both borders in sync when positioning
-                                hooksecurefunc(drFrame.PixelBorder, "ClearAllPoints", function()
-                                    if drFrame.PixelBorderImmune then
-                                        drFrame.PixelBorderImmune:ClearAllPoints()
-                                        drFrame.PixelBorderImmune:SetPoint("TOPLEFT", drFrame, "TOPLEFT", -drSize, drSize)
-                                        drFrame.PixelBorderImmune:SetPoint("BOTTOMRIGHT", drFrame, "BOTTOMRIGHT", drSize, -drSize)
-                                    end
-                                end)
-                            end
-                            drFrame.PixelBorderImmune:Show()
-
-                            if db.blackDRBorder then
-                                drFrame.PixelBorder:SetVertexColor(0, 0, 0, 1)
-                                drFrame.PixelBorderImmune:SetVertexColor(0, 0, 0, 1)
-                            else
-                                drFrame.PixelBorder:SetVertexColor(0, 1, 0, 1)
-                                drFrame.PixelBorderImmune:SetVertexColor(1, 0, 0, 1)
-                            end
-                            if drFrame.Icon then
-                                drFrame.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-                            end
-                            if drFrame.Cooldown then
-                                drFrame.Cooldown:SetSwipeTexture(1)
-                            end
-
-                        elseif db.drBorderGlowOff then
-                            -- Square border with cut corners (no glow)
-                            if drFrame.Border then
-                                drFrame.Border:Show()
-                                drFrame.Border:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-
-                                -- Set border color
-                                if db.blackDRBorder then
-                                    drFrame.Border:SetVertexColor(0, 0, 0, 1)
-                                    drFrame.BorderImmune:SetVertexColor(0, 0, 0, 1)
-                                else
-                                    drFrame.Border:SetVertexColor(0, 1, 0, 1)
-                                    drFrame.BorderImmune:SetVertexColor(1, 0, 0, 1)
-                                end
-                            end
-                            if drFrame.BorderImmune then
-                                drFrame.BorderImmune:Show()
-                                drFrame.BorderImmune:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-                            end
-                            if drFrame.PixelBorder then
-                                drFrame.PixelBorder:Hide()
-                            end
-                            if drFrame.PixelBorderImmune then
-                                drFrame.PixelBorderImmune:Hide()
-                            end
-                            if not drFrame.Mask then
-                                drFrame.Mask = drFrame:CreateMaskTexture()
-                            end
-                            drFrame.Mask:SetPoint("TOPLEFT", drFrame.Icon, "TOPLEFT", 0.5, -0.5)
-                            drFrame.Mask:SetPoint("BOTTOMRIGHT", drFrame.Icon, "BOTTOMRIGHT", -0.5, 0.5)
-                            if drFrame.Cooldown then
-                                drFrame.Cooldown:SetSwipeTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\squarecutcornermask")
-                            end
-                            drFrame.Mask:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\squarecutcornermask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-                            if drFrame.Icon then
-                                drFrame.Icon:SetDrawLayer("OVERLAY", 7)
-                                drFrame.Icon:SetTexCoord(0.05, 0.95, 0.05, 0.9)
-                                drFrame.Icon:AddMaskTexture(drFrame.Mask)
-                            end
-
-                            -- Set border size
-                            local borderSize = 1.5
-                            if drFrame.Border then
-                                drFrame.Border:SetPoint("TOPLEFT", drFrame, "TOPLEFT", -borderSize, borderSize)
-                                drFrame.Border:SetPoint("BOTTOMRIGHT", drFrame, "BOTTOMRIGHT", borderSize, -borderSize)
-                                drFrame.BorderImmune:SetPoint("TOPLEFT", drFrame, "TOPLEFT", -borderSize, borderSize)
-                                drFrame.BorderImmune:SetPoint("BOTTOMRIGHT", drFrame, "BOTTOMRIGHT", borderSize, -borderSize)
-                            end
-
-                        elseif db.brightDRBorder then
-                            -- Bright/glow border style
-                            if drFrame.Border then
-                                drFrame.Border:Show()
-                                drFrame.Border:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-HUD-ActionBar-PetAutoCast-Mask.tga")
-
-                                -- Set border color
-                                if db.blackDRBorder then
-                                    drFrame.Border:SetVertexColor(0, 0, 0, 1)
-                                    drFrame.BorderImmune:SetVertexColor(0, 0, 0, 1)
-                                else
-                                    drFrame.Border:SetVertexColor(0, 1, 0, 1)
-                                    drFrame.BorderImmune:SetVertexColor(1, 0, 0, 1)
-                                end
-                            end
-                            if drFrame.BorderImmune then
-                                drFrame.BorderImmune:Show()
-                                drFrame.BorderImmune:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-HUD-ActionBar-PetAutoCast-Mask.tga")
-                            end
-                            if drFrame.PixelBorder then
-                                drFrame.PixelBorder:Hide()
-                            end
-                            if drFrame.PixelBorderImmune then
-                                drFrame.PixelBorderImmune:Hide()
-                            end
-                            if not drFrame.Mask then
-                                drFrame.Mask = drFrame:CreateMaskTexture()
-                            end
-                            drFrame.Mask:SetPoint("TOPLEFT", drFrame.Icon, "TOPLEFT", -1, 1)
-                            drFrame.Mask:SetPoint("BOTTOMRIGHT", drFrame.Icon, "BOTTOMRIGHT", 1, -1)
-                            if isRetail then
-                                if drFrame.Cooldown then
-                                    drFrame.Cooldown:SetSwipeTexture("Interface\\TalentFrame\\talentsmasknodechoiceflyout")
-                                end
-                                drFrame.Mask:SetTexture("Interface\\TalentFrame\\talentsmasknodechoiceflyout", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-                            else
-                                if drFrame.Cooldown then
-                                    drFrame.Cooldown:SetSwipeTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\talentsmasknodechoiceflyout")
-                                end
-                                drFrame.Mask:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\talentsmasknodechoiceflyout", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-                            end
-                            if drFrame.Icon then
-                                drFrame.Icon:SetTexCoord(0.05, 0.95, 0.05, 0.9)
-                                drFrame.Icon:AddMaskTexture(drFrame.Mask)
-                            end
-
-                            if not drFrame.Boverlay then
-                                drFrame.Boverlay = CreateFrame("Frame", nil, drFrame)
-                                drFrame.Boverlay:SetFrameStrata("MEDIUM")
-                                drFrame.Boverlay:SetFrameLevel(6)
-                            end
-                            drFrame.Boverlay:Show()
-                            if drFrame.Border then
-                                drFrame.Border:SetParent(drFrame.Boverlay)
-                            end
-
-                            -- Set border size
-                            local borderSize = 1
-                            if drFrame.Border then
-                                drFrame.Border:SetPoint("TOPLEFT", drFrame, "TOPLEFT", -borderSize, borderSize)
-                                drFrame.Border:SetPoint("BOTTOMRIGHT", drFrame, "BOTTOMRIGHT", borderSize, -borderSize)
-                                drFrame.BorderImmune:SetPoint("TOPLEFT", drFrame, "TOPLEFT", -borderSize, borderSize)
-                                drFrame.BorderImmune:SetPoint("BOTTOMRIGHT", drFrame, "BOTTOMRIGHT", borderSize, -borderSize)
-                            end
-
-                        else
-                            -- Default border style
-                            if drFrame.Border then
-                                drFrame.Border:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-                                drFrame.Border:Show()
-
-                                if db.blackDRBorder then
-                                    drFrame.Border:SetVertexColor(0, 0, 0, 1)
-                                    drFrame.BorderImmune:SetVertexColor(0, 0, 0, 1)
-                                else
-                                    drFrame.Border:SetVertexColor(0, 1, 0, 1)
-                                    drFrame.BorderImmune:SetVertexColor(1, 0, 0, 1)
-                                end
-
-                                local borderSize = db.borderSize or 1
-                                drFrame.Border:SetPoint("TOPLEFT", drFrame, "TOPLEFT", -borderSize, borderSize)
-                                drFrame.Border:SetPoint("BOTTOMRIGHT", drFrame, "BOTTOMRIGHT", borderSize, -borderSize)
-                                drFrame.BorderImmune:SetPoint("TOPLEFT", drFrame, "TOPLEFT", -borderSize, borderSize)
-                                drFrame.BorderImmune:SetPoint("BOTTOMRIGHT", drFrame, "BOTTOMRIGHT", borderSize, -borderSize)
-                            end
-                            if drFrame.BorderImmune then
-                                drFrame.BorderImmune:Show()
-                                drFrame.BorderImmune:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-                            end
-                            if drFrame.PixelBorder then
-                                drFrame.PixelBorder:Hide()
-                            end
-                            if drFrame.PixelBorderImmune then
-                                drFrame.PixelBorderImmune:Hide()
-                            end
-                            if drFrame.Icon then
-                                drFrame.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-                            end
-                            if drFrame.Cooldown then
-                                drFrame.Cooldown:SetSwipeTexture(1)
-                            end
-                        end
-
-                        if drFrame.DRTextFrame then
-                            drFrame.DRTextFrame:SetShown(db.showDRText == true)
-                        end
-                        if drFrame.DRText2 then
-                            drFrame.DRText2:SetShown(db.showDRText == true)
-                        end
-                    end
-                end
-            end
-
-            -- Also update FAKE DR frames if they exist (from test mode)
-            if frame.fakeDRFrames then
-                for drIndex, fakeDRFrame in ipairs(frame.fakeDRFrames) do
-                    if fakeDRFrame then
-                        fakeDRFrame:SetSize(size, size)
-
-                        fakeDRFrame:ClearAllPoints()
-                        if drIndex == 1 then
-                            if growthDirection == 3 then
-                                fakeDRFrame:SetPoint("LEFT", frame.drTray, "LEFT", 2, 0)
-                            else
-                                fakeDRFrame:SetPoint("RIGHT", frame.drTray, "RIGHT", 0, 0)
-                            end
-                        else
-                            local prev = frame.fakeDRFrames[drIndex - 1]
-                            if growthDirection == 3 then
-                                fakeDRFrame:SetPoint("LEFT", prev, "RIGHT", spacing, 0)
-                            elseif growthDirection == 1 then
-                                fakeDRFrame:SetPoint("TOP", prev, "BOTTOM", 0, -spacing)
-                            elseif growthDirection == 2 then
-                                fakeDRFrame:SetPoint("BOTTOM", prev, "TOP", 0, spacing)
-                            else
-                                fakeDRFrame:SetPoint("RIGHT", prev, "LEFT", -spacing, 0)
-                            end
-                        end
-
-                        local text = fakeDRFrame.Cooldown.Text
-                        local fontToUse = text.fontFile
-                        if layoutCF then
-                            fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
-                        end
-                        text:SetFont(fontToUse, db.fontSize, "OUTLINE")
-                        local sArenaText = fakeDRFrame.Cooldown.sArenaText
-                        if sArenaText then
-                            sArenaText:SetFont(fontToUse, db.fontSize, "OUTLINE")
-                        end
-
-                        -- Set border and text colors based on DR index
-                        if fakeDRFrame.Border then
-                            if drIndex == 1 then
-                                fakeDRFrame.Border:SetVertexColor(1, 0, 0)
-                            else
-                                fakeDRFrame.Border:SetVertexColor(0, 1, 0)
-                            end
-                        end
-                        
-                        if fakeDRFrame.DRText then
-                            if drIndex == 1 then
-                                fakeDRFrame.DRText:SetTextColor(1, 0, 0)
-                                fakeDRFrame.DRText:SetText("%")
-                            else
-                                fakeDRFrame.DRText:SetTextColor(0, 1, 0)
-                                fakeDRFrame.DRText:SetText("½")
-                            end
-                        end
-                        
-                        if fakeDRFrame.Cooldown then
-                            fakeDRFrame.Cooldown:SetReverse(reverseDR)
-                            if disableDRSwipe then
-                                fakeDRFrame.Cooldown:SetDrawSwipe(false)
-                                fakeDRFrame.Cooldown:SetDrawEdge(false)
-                            else
-                                fakeDRFrame.Cooldown:SetDrawSwipe(true)
-                                fakeDRFrame.Cooldown:SetDrawEdge(not disableSwipeEdge)
-                            end
-                        end
-                        fakeDRFrame.Icon:SetDrawLayer("ARTWORK", 0)
-                        fakeDRFrame.Border:SetParent(fakeDRFrame)
-                        fakeDRFrame.Boverlay:Hide()
-                        if fakeDRFrame.Mask then
-                            fakeDRFrame.Icon:RemoveMaskTexture(fakeDRFrame.Mask)
-                        end
-                        if fakeDRFrame.PixelBorder then
-                            fakeDRFrame.PixelBorder:Hide()
-                        end
-
-                        if db.disableDRBorder then
-                            if fakeDRFrame.Border then
-                                fakeDRFrame.Border:Hide()
-                            end
-                            if fakeDRFrame.PixelBorder then
-                                fakeDRFrame.PixelBorder:Hide()
-                            end
-                            if fakeDRFrame.Icon then
-                                if cropIcons then
-                                    fakeDRFrame.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-                                else
-                                    fakeDRFrame.Icon:SetTexCoord(0, 1, 0, 1)
-                                end
-                            end
-                            if fakeDRFrame.Cooldown then
-                                fakeDRFrame.Cooldown:SetSwipeTexture(1)
-                            end
-                            
-                        elseif db.thinPixelBorder then
-                            if fakeDRFrame.Border then
-                                fakeDRFrame.Border:Show()
-                                fakeDRFrame.Border:SetAtlas("communities-create-avatar-border-selected")
-                            end
-                            if fakeDRFrame.PixelBorder then
-                                fakeDRFrame.PixelBorder:Hide()
-                            end
-                            if fakeDRFrame.Icon then
-                                fakeDRFrame.Icon:SetTexCoord(0.05, 0.95, 0.07, 0.9)
-                            end
-                            if fakeDRFrame.Cooldown then
-                                fakeDRFrame.Cooldown:SetSwipeTexture(1)
-                            end
-
-                        elseif db.thickPixelBorder then
-                            if fakeDRFrame.Border then
-                                fakeDRFrame.Border:Hide()
-                            end
-                            local drSize = 2
-                            CreatePixelTextureBorder(fakeDRFrame, fakeDRFrame, "PixelBorder", drSize, 0)
-                            fakeDRFrame.PixelBorder:Show()
-
-                            if db.blackDRBorder then
-                                fakeDRFrame.PixelBorder:SetVertexColor(0, 0, 0, 1)
-                            else
-                                if drIndex == 1 then
-                                    fakeDRFrame.PixelBorder:SetVertexColor(1, 0, 0, 1)
-                                else
-                                    fakeDRFrame.PixelBorder:SetVertexColor(0, 1, 0, 1)
-                                end
-                            end
-                            if fakeDRFrame.Icon then
-                                fakeDRFrame.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-                            end
-                            if fakeDRFrame.Cooldown then
-                                fakeDRFrame.Cooldown:SetSwipeTexture(1)
-                            end
-
-                        elseif db.drBorderGlowOff then
-                            if fakeDRFrame.Border then
-                                fakeDRFrame.Border:Show()
-                                fakeDRFrame.Border:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-
-                                if db.blackDRBorder then
-                                    fakeDRFrame.Border:SetVertexColor(0, 0, 0, 1)
-                                else
-                                    if drIndex == 1 then
-                                        fakeDRFrame.Border:SetVertexColor(1, 0, 0, 1)
-                                    else
-                                        fakeDRFrame.Border:SetVertexColor(0, 1, 0, 1)
-                                    end
-                                end
-                            end
-                            if fakeDRFrame.PixelBorder then
-                                fakeDRFrame.PixelBorder:Hide()
-                            end
-                            if not fakeDRFrame.Mask then
-                                fakeDRFrame.Mask = fakeDRFrame:CreateMaskTexture()
-                            end
-                            fakeDRFrame.Mask:SetPoint("TOPLEFT", fakeDRFrame.Icon, "TOPLEFT", 0.5, -0.5)
-                            fakeDRFrame.Mask:SetPoint("BOTTOMRIGHT", fakeDRFrame.Icon, "BOTTOMRIGHT", -0.5, 0.5)
-                            if fakeDRFrame.Cooldown then
-                                fakeDRFrame.Cooldown:SetSwipeTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\squarecutcornermask")
-                            end
-                            fakeDRFrame.Mask:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\squarecutcornermask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-                            if fakeDRFrame.Icon then
-                                fakeDRFrame.Icon:SetDrawLayer("OVERLAY", 7)
-                                fakeDRFrame.Icon:SetTexCoord(0.05, 0.95, 0.05, 0.9)
-                                fakeDRFrame.Icon:AddMaskTexture(fakeDRFrame.Mask)
-                            end
-
-                            local borderSize = 1.5
-                            if fakeDRFrame.Border then
-                                fakeDRFrame.Border:SetPoint("TOPLEFT", fakeDRFrame, "TOPLEFT", -borderSize, borderSize)
-                                fakeDRFrame.Border:SetPoint("BOTTOMRIGHT", fakeDRFrame, "BOTTOMRIGHT", borderSize, -borderSize)
-                            end
-                            
-                        elseif db.brightDRBorder then
-
-                            if fakeDRFrame.Border then
-                                fakeDRFrame.Border:Show()
-                                fakeDRFrame.Border:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-HUD-ActionBar-PetAutoCast-Mask.tga")
-                                if db.blackDRBorder then
-                                    fakeDRFrame.Border:SetVertexColor(0, 0, 0, 1)
-                                else
-                                    if drIndex == 1 then
-                                        fakeDRFrame.Border:SetVertexColor(1, 0, 0, 1)
-                                    else
-                                        fakeDRFrame.Border:SetVertexColor(0, 1, 0, 1)
-                                    end
-                                end
-                            end
-                            if fakeDRFrame.PixelBorder then
-                                fakeDRFrame.PixelBorder:Hide()
-                            end
-                            if not fakeDRFrame.Mask then
-                                fakeDRFrame.Mask = fakeDRFrame:CreateMaskTexture()
-                            end
-                            fakeDRFrame.Mask:SetPoint("TOPLEFT", fakeDRFrame.Icon, "TOPLEFT", -1, 1)
-                            fakeDRFrame.Mask:SetPoint("BOTTOMRIGHT", fakeDRFrame.Icon, "BOTTOMRIGHT", 1, -1)
-                            if isRetail then
-                                if fakeDRFrame.Cooldown then
-                                    fakeDRFrame.Cooldown:SetSwipeTexture("Interface\\TalentFrame\\talentsmasknodechoiceflyout")
-                                end
-                                fakeDRFrame.Mask:SetTexture("Interface\\TalentFrame\\talentsmasknodechoiceflyout", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-                            else
-                                if fakeDRFrame.Cooldown then
-                                    fakeDRFrame.Cooldown:SetSwipeTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\talentsmasknodechoiceflyout")
-                                end
-                                fakeDRFrame.Mask:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\talentsmasknodechoiceflyout", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-                            end
-                            fakeDRFrame.Icon:SetTexCoord(0.05, 0.95, 0.05, 0.9)
-                            fakeDRFrame.Icon:AddMaskTexture(fakeDRFrame.Mask)
-                            if not fakeDRFrame.Boverlay then
-                                fakeDRFrame.Boverlay = CreateFrame("Frame", nil, fakeDRFrame)
-                                fakeDRFrame.Boverlay:SetFrameStrata("MEDIUM")
-                                fakeDRFrame.Boverlay:SetFrameLevel(6)
-                            end
-                            fakeDRFrame.Boverlay:Show()
-                            if fakeDRFrame.Border then
-                                fakeDRFrame.Border:SetParent(fakeDRFrame.Boverlay)
-                            end
-
-                            local borderSize = 1
-                            if fakeDRFrame.Border then
-                                fakeDRFrame.Border:SetPoint("TOPLEFT", fakeDRFrame, "TOPLEFT", -borderSize, borderSize)
-                                fakeDRFrame.Border:SetPoint("BOTTOMRIGHT", fakeDRFrame, "BOTTOMRIGHT", borderSize, -borderSize)
-                            end
-                        else
-                            if fakeDRFrame.Border then
-                                fakeDRFrame.Border:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-                                fakeDRFrame.Border:Show()
-
-                                if db.blackDRBorder then
-                                    fakeDRFrame.Border:SetVertexColor(0, 0, 0, 1)
-                                else
-                                    if drIndex == 1 then
-                                        fakeDRFrame.Border:SetVertexColor(1, 0, 0, 1)
-                                    else
-                                        fakeDRFrame.Border:SetVertexColor(0, 1, 0, 1)
-                                    end
-                                end
-
-                                local borderSize = db.borderSize or 1
-                                fakeDRFrame.Border:SetPoint("TOPLEFT", fakeDRFrame, "TOPLEFT", -borderSize, borderSize)
-                                fakeDRFrame.Border:SetPoint("BOTTOMRIGHT", fakeDRFrame, "BOTTOMRIGHT", borderSize, -borderSize)
-                            end
-                            if fakeDRFrame.Icon then
-                                fakeDRFrame.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-                            end
-                            if fakeDRFrame.Cooldown then
-                                fakeDRFrame.Cooldown:SetSwipeTexture(1)
-                            end
-                        end
-
-                        if fakeDRFrame.DRTextFrame then
-                            fakeDRFrame.DRTextFrame:SetShown(db.showDRText == true)
-                        end
-                        if fakeDRFrame.DRText2 then
-                            fakeDRFrame.DRText2:SetShown(db.showDRText == true)
-                        end
-                    end
-                end
-            end
-        end
-        
-        local currentLayout = self.db and self.db.profile and self.db.profile.currentLayout
-        local layoutSettings = self.db and self.db.profile and self.db.profile.layoutSettings and self.db.profile.layoutSettings[currentLayout]
-        if layoutSettings and layoutSettings.textSettings then
-            self:UpdateDRTextPositions(layoutSettings.textSettings)
-        end
-        
-        return
-    end
-
-    -- Legacy system for non-Midnight
-    local categories = sArenaMixin.drCategories
-    local categorySizeOffsets = db.drCategorySizeOffsets or {}
-
-    sArenaMixin.drBaseSize = db.size
+    local disableSwipeEdge = self.db.profile.disableSwipeEdge
+    local disableDRSwipe = self.db.profile.disableDRSwipe
+    local reverseDR = self.db.profile.invertDRCooldown
 
     for i = 1, sArenaMixin.maxArenaOpponents do
         local frame = self["arena" .. i]
         if not frame then return end
 
-        if frame.UpdateDRPositions then
-            frame:UpdateDRPositions()
-        end
+        frame:UpdateDRPositions()
 
-        for n = 1, #categories do
-            local category = categories[n]
-            local dr = frame[category]
-            -- Skip if DR frame doesn't exist yet (not initialized)
-            if not dr then
-                return
+        local useDrFrames = frame.drFrames ~= nil
+        local drList = frame.drFrames or sArenaMixin.drCategories
+        local drCount = drList and #drList or 0
+
+        for n = 1, drCount do
+            local dr = useDrFrames and drList[n] or frame[drList[n]]
+            if not dr then return end
+            local sizeOffset = 0
+            if categorySizeOffsets and not useDrFrames then
+                sizeOffset = categorySizeOffsets[drList[n]] or 0
             end
 
-            local offset = categorySizeOffsets[category] or 0
-            local borderSize = (db.drBorderGlowOff and 1.5) or (db.brightDRBorder and 1) or db.borderSize or 1
-            local size = db.size + offset
+            if dr then
+                local size = (db.size or 28) + sizeOffset
 
-            dr:SetFrameLevel(20)
-            dr:SetSize(size, size)
-            dr.Border:SetPoint("TOPLEFT", dr, "TOPLEFT", -borderSize, borderSize)
-            dr.Border:SetPoint("BOTTOMRIGHT", dr, "BOTTOMRIGHT", borderSize, -borderSize)
-            dr.Cooldown:SetSwipeColor(0, 0, 0, 0.55)
+                dr:SetFrameLevel(20)
+                dr:SetSize(size, size)
 
-            local text = dr.Cooldown.Text
-            local fontToUse = text.fontFile
-            if layoutCF then
-                fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
-            end
-            text:SetFont(fontToUse, db.fontSize, "OUTLINE")
-            local sArenaText = dr.Cooldown.sArenaText
-            if sArenaText then
-                sArenaText:SetFont(fontToUse, db.fontSize, "OUTLINE")
-            end
+                local borderSize = (db.drBorderGlowOff and 1.5) or (db.brightDRBorder and 1) or db.borderSize or 1
+                dr.Border:SetPoint("TOPLEFT", dr, "TOPLEFT", -borderSize, borderSize)
+                dr.Border:SetPoint("BOTTOMRIGHT", dr, "BOTTOMRIGHT", borderSize, -borderSize)
+                dr.Cooldown:SetSwipeColor(0, 0, 0, 0.55)
 
-            -- Handle DR swipe settings (global setting)
-            local disableSwipeEdge = self.db.profile.disableSwipeEdge
-            local disableDRSwipe = self.db.profile.disableDRSwipe
-            local reverseDR = self.db.profile.invertDRCooldown
-
-            dr.Cooldown:SetReverse(reverseDR)
-            if disableDRSwipe then
-                dr.Cooldown:SetDrawSwipe(false)
-                dr.Cooldown:SetDrawEdge(false)
-            else
-                dr.Cooldown:SetDrawSwipe(true)
-                dr.Cooldown:SetDrawEdge(not disableSwipeEdge)
-            end
-
-            if db.showDRText then
-                dr.DRTextFrame:Show()
-            else
-                dr.DRTextFrame:Hide()
-            end
-
-            dr.Icon:SetDrawLayer("ARTWORK", 0)
-
-            if dr.Boverlay then
-                dr.Border:SetParent(dr)
-                dr.Boverlay:Hide()
-            end
-            if dr.Mask then
-                dr.Icon:RemoveMaskTexture(dr.Mask)
-            end
-            if dr.PixelBorder then
-                dr.PixelBorder:Hide()
-            end
-
-            dr.Border:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-            dr.Border:Show()
-            dr.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-            dr.Cooldown:SetSwipeTexture(1)
-
-            local currentLayout = self.db and self.db.profile and self.db.profile.currentLayout
-            local layoutSettings = self.db and self.db.profile and self.db.profile.layoutSettings and self.db.profile.layoutSettings[currentLayout]
-            local cropIcons = layoutSettings and layoutSettings.cropIcons or false
-
-            if db.disableDRBorder then
-                dr.Border:Hide()
-                if dr.PixelBorder then
-                    dr.PixelBorder:Hide()
+                local text = dr.Cooldown.Text
+                local fontToUse = text.fontFile
+                if layoutCF then
+                    fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
                 end
-                if cropIcons then
-                    dr.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-                else
-                    dr.Icon:SetTexCoord(0, 1, 0, 1)
+                text:SetFont(fontToUse, db.fontSize, "OUTLINE")
+                local sArenaText = dr.Cooldown.sArenaText
+                if sArenaText then
+                    sArenaText:SetFont(fontToUse, db.fontSize, "OUTLINE")
                 end
-            elseif db.thinPixelBorder then
-                dr.Border:Show()
-                if dr.PixelBorder then
-                    dr.PixelBorder:Hide()
-                end
-                dr.Border:SetAtlas("communities-create-avatar-border-selected")
-                dr.Icon:SetTexCoord(0.05, 0.95, 0.07, 0.9)
-            elseif db.thickPixelBorder then
-                dr.Border:Hide()
-                local drSize = 2
-                CreatePixelTextureBorder(dr, dr, "PixelBorder", drSize, 0)
-                dr.PixelBorder:Show()
 
-                if db.blackDRBorder then
-                    dr.PixelBorder:SetVertexColor(0, 0, 0, 1)
-                else
-                    if frame:GetID() == 1 then
-                        dr.PixelBorder:SetVertexColor(1, 0, 0, 1)
+                if dr.Cooldown then
+                    dr.Cooldown:SetReverse(reverseDR)
+                    if disableDRSwipe then
+                        dr.Cooldown:SetDrawSwipe(false)
+                        dr.Cooldown:SetDrawEdge(false)
                     else
-                        dr.PixelBorder:SetVertexColor(0, 1, 0, 1)
+                        dr.Cooldown:SetDrawSwipe(true)
+                        dr.Cooldown:SetDrawEdge(not disableSwipeEdge)
                     end
                 end
-            elseif db.drBorderGlowOff then
-                dr.Border:Show()
-                if dr.PixelBorder then
-                    dr.PixelBorder:Hide()
-                end
-                if not dr.Mask then
-                    dr.Mask = dr:CreateMaskTexture()
-                end
-                dr.Mask:SetPoint("TOPLEFT", dr.Icon, "TOPLEFT", 0.5, -0.5)
-                dr.Mask:SetPoint("BOTTOMRIGHT", dr.Icon, "BOTTOMRIGHT", -0.5, 0.5)
-                dr.Border:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-                dr.Cooldown:SetSwipeTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\squarecutcornermask")
-                dr.Mask:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\squarecutcornermask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-                dr.Icon:SetDrawLayer("OVERLAY", 7)
-                dr.Icon:SetTexCoord(0.05, 0.95, 0.05, 0.9)
-                dr.Icon:AddMaskTexture(dr.Mask)
-            elseif db.brightDRBorder then
-                dr.Border:Show()
-                if dr.PixelBorder then
-                    dr.PixelBorder:Hide()
-                end
-                if not dr.Mask then
-                    dr.Mask = dr:CreateMaskTexture()
-                end
-                dr.Mask:SetPoint("TOPLEFT", dr.Icon, "TOPLEFT", -1, 1)
-                dr.Mask:SetPoint("BOTTOMRIGHT", dr.Icon, "BOTTOMRIGHT", 1, -1)
-                if isRetail then
-                    dr.Border:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-HUD-ActionBar-PetAutoCast-Mask.tga")
-                    dr.Cooldown:SetSwipeTexture("Interface\\TalentFrame\\talentsmasknodechoiceflyout")
-                    dr.Mask:SetTexture("Interface\\TalentFrame\\talentsmasknodechoiceflyout", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+
+                if db.showDRText then
+                    dr.DRTextFrame:Show()
                 else
-                    dr.Border:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-HUD-ActionBar-PetAutoCast-Mask.tga")
-                    dr.Cooldown:SetSwipeTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\talentsmasknodechoiceflyout")
-                    dr.Mask:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\talentsmasknodechoiceflyout", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+                    dr.DRTextFrame:Hide()
                 end
-                dr.Icon:SetTexCoord(0.05, 0.95, 0.05, 0.9)
 
-                dr.Icon:AddMaskTexture(dr.Mask)
-
-                if not dr.Boverlay then
-                    dr.Boverlay = CreateFrame("Frame", nil, dr)
-                    dr.Boverlay:SetFrameStrata("MEDIUM")
-                    dr.Boverlay:SetFrameLevel(26)
+                dr.Icon:SetDrawLayer("ARTWORK", 0)
+                if dr.Boverlay then
+                    dr.Border:SetParent(dr)
+                    dr.Boverlay:Hide()
                 end
-                dr.Boverlay:Show()
-                dr.Border:SetParent(dr.Boverlay)
+                if dr.Mask then
+                    dr.Icon:RemoveMaskTexture(dr.Mask)
+                end
+                if dr.PixelBorder then
+                    dr.PixelBorder:Hide()
+                end
+
+                dr.Border:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
+                dr.Border:Show()
+                dr.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+                dr.Cooldown:SetSwipeTexture(1)
+
+                if db.disableDRBorder then
+                    dr.Border:Hide()
+                    if dr.PixelBorder then
+                        dr.PixelBorder:Hide()
+                    end
+                    if cropIcons then
+                        dr.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+                    else
+                        dr.Icon:SetTexCoord(0, 1, 0, 1)
+                    end
+
+                elseif db.thinPixelBorder then
+                    dr.Border:Show()
+                    if dr.PixelBorder then
+                        dr.PixelBorder:Hide()
+                    end
+                    dr.Border:SetAtlas("communities-create-avatar-border-selected")
+                    dr.Icon:SetTexCoord(0.05, 0.95, 0.07, 0.9)
+
+                elseif db.thickPixelBorder then
+                    dr.Border:Hide()
+                    local drSize = 2
+                    CreatePixelTextureBorder(dr, dr, "PixelBorder", drSize, 0)
+                    dr.PixelBorder:Show()
+
+                    if db.blackDRBorder then
+                        dr.PixelBorder:SetVertexColor(0, 0, 0, 1)
+                    else
+                        if frame:GetID() == 1 then
+                            dr.PixelBorder:SetVertexColor(1, 0, 0, 1)
+                        else
+                            dr.PixelBorder:SetVertexColor(0, 1, 0, 1)
+                        end
+                    end
+
+                elseif db.drBorderGlowOff then
+                    dr.Border:Show()
+                    if dr.PixelBorder then
+                        dr.PixelBorder:Hide()
+                    end
+                    if not dr.Mask then
+                        dr.Mask = dr:CreateMaskTexture()
+                    end
+                    dr.Mask:SetPoint("TOPLEFT", dr.Icon, "TOPLEFT", 0.5, -0.5)
+                    dr.Mask:SetPoint("BOTTOMRIGHT", dr.Icon, "BOTTOMRIGHT", -0.5, 0.5)
+                    dr.Border:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
+                    dr.Cooldown:SetSwipeTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\squarecutcornermask")
+                    dr.Mask:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\squarecutcornermask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+                    dr.Icon:SetDrawLayer("OVERLAY", 7)
+                    dr.Icon:SetTexCoord(0.05, 0.95, 0.05, 0.9)
+                    dr.Icon:AddMaskTexture(dr.Mask)
+
+                elseif db.brightDRBorder then
+                    dr.Border:Show()
+                    if dr.PixelBorder then
+                        dr.PixelBorder:Hide()
+                    end
+                    if not dr.Mask then
+                        dr.Mask = dr:CreateMaskTexture()
+                    end
+                    dr.Mask:SetPoint("TOPLEFT", dr.Icon, "TOPLEFT", -1, 1)
+                    dr.Mask:SetPoint("BOTTOMRIGHT", dr.Icon, "BOTTOMRIGHT", 1, -1)
+                    if isRetail then
+                        dr.Border:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-HUD-ActionBar-PetAutoCast-Mask.tga")
+                        dr.Cooldown:SetSwipeTexture("Interface\\TalentFrame\\talentsmasknodechoiceflyout")
+                        dr.Mask:SetTexture("Interface\\TalentFrame\\talentsmasknodechoiceflyout", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+                    else
+                        dr.Border:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-HUD-ActionBar-PetAutoCast-Mask.tga")
+                        dr.Cooldown:SetSwipeTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\talentsmasknodechoiceflyout")
+                        dr.Mask:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\talentsmasknodechoiceflyout", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+                    end
+                    dr.Icon:SetTexCoord(0.05, 0.95, 0.05, 0.9)
+                    dr.Icon:AddMaskTexture(dr.Mask)
+
+                    if not dr.Boverlay then
+                        dr.Boverlay = CreateFrame("Frame", nil, dr)
+                        dr.Boverlay:SetFrameStrata("MEDIUM")
+                        dr.Boverlay:SetFrameLevel(26)
+                    end
+                    dr.Boverlay:Show()
+                    dr.Border:SetParent(dr.Boverlay)
+                end
             end
         end
     end
 
-    local currentLayout = self.db and self.db.profile and self.db.profile.currentLayout
-    local layoutSettings = self.db and self.db.profile and self.db.profile.layoutSettings and self.db.profile.layoutSettings[currentLayout]
     if layoutSettings and layoutSettings.textSettings then
         self:UpdateDRTextPositions(layoutSettings.textSettings)
     end
@@ -4316,48 +3650,24 @@ function sArenaMixin:UpdateDRTextPositions(db, info, val)
         local frame = info and info.handler["arena" .. i] or self["arena" .. i]
         if not frame then return end
 
-        -- Update real DR frames for Midnight
-        if sArenaMixin.isMidnight and frame.drFrames then
-            for drIndex, drFrame in ipairs(frame.drFrames) do
-                if drFrame and drFrame.DRText then
-                    drFrame.DRText:ClearAllPoints()
-                    drFrame.DRText:SetPoint(db.drTextAnchor or "BOTTOMRIGHT", 
-                        (db.drTextOffsetX or 4), 
-                        (db.drTextOffsetY or -4))
-                    drFrame.DRText:SetScale(db.drTextSize or 1.0)
-                end
-                if drFrame and drFrame.DRText2 then
-                    drFrame.DRText2:ClearAllPoints()
-                    drFrame.DRText2:SetPoint("CENTER", drFrame.DRText, "CENTER", 0, 0)
-                    drFrame.DRText2:SetScale(db.drTextSize or 1.0)
-                end
-            end
-        end
+        local useDrFrames = frame.drFrames ~= nil
+        local drList = frame.drFrames or sArenaMixin.drCategories
+        local drCount = drList and #drList or 0
 
-        -- Update Retail DR frames (non-Midnight)
-        if not sArenaMixin.isMidnight then
-            for _, category in ipairs(sArenaMixin.drCategories) do
-                local drFrame = frame[category]
-                if drFrame and drFrame.DRTextFrame and drFrame.DRTextFrame.DRText then
-                    local drText = drFrame.DRTextFrame.DRText
-                    drText:ClearAllPoints()
-                    drText:SetPoint(db.drTextAnchor or "BOTTOMRIGHT", 
-                        (db.drTextOffsetX or 4), 
-                        (db.drTextOffsetY or -4))
-                    drText:SetScale(db.drTextSize or 1.0)
-                end
-            end
-        end
+        for n = 1, drCount do
+            local drFrame = useDrFrames and drList[n] or frame[drList[n]]
 
-        -- Update fake DR frames (test mode)
-        if frame.fakeDRFrames then
-            for drIndex, fakeDRFrame in ipairs(frame.fakeDRFrames) do
-                if fakeDRFrame and fakeDRFrame.DRText then
-                    fakeDRFrame.DRText:ClearAllPoints()
-                    fakeDRFrame.DRText:SetPoint(db.drTextAnchor or "BOTTOMRIGHT",
-                        (db.drTextOffsetX or 4),
-                        (db.drTextOffsetY or -4))
-                    fakeDRFrame.DRText:SetScale(db.drTextSize or 1.0)
+            if drFrame then
+                local drText = drFrame.DRTextFrame.DRText
+                drText:ClearAllPoints()
+                drText:SetPoint(db.drTextAnchor or "BOTTOMRIGHT", (db.drTextOffsetX or 4), (db.drTextOffsetY or -4))
+                drText:SetScale(db.drTextSize or 1.0)
+
+                if drFrame.DRTextFrame.DRTextImmune then
+                    local drTextImmune = drFrame.DRTextFrame.DRTextImmune
+                    drTextImmune:ClearAllPoints()
+                    drTextImmune:SetPoint("CENTER", drText, "CENTER", 0, 0)
+                    drTextImmune:SetScale(db.drTextSize or 1.0)
                 end
             end
         end
@@ -5810,6 +5120,13 @@ else
                             },
                                 },
                             },
+                            midnightDisclaimerBottom = {
+                                order = 4,
+                                type = "description",
+                                name = isMidnight and L["DR_MidnightDisclaimer"] or "",
+                                fontSize = "medium",
+                                hidden = function() return not isMidnight end,
+                            },
                         },
                     },
                     racialGroup = {
@@ -5883,7 +5200,7 @@ else
                     dispelGroup = {
                         order = 4,
                         name = L["Category_Dispels"],
-                        disabled = function() return isMidnight end,
+                        hidden = function() return isMidnight end,
                         type = "group",
                         args = (function()
                             local args = {
@@ -6120,6 +5437,17 @@ else
                         name = "",
                         inline = true,
                         args = sArenaMixin:BuildStreamerProfileArgs(),
+                    },
+                    streamerProfilesSpacer = {
+                        order = 3,
+                        type = "description",
+                        name = " ",
+                    },
+                    streamerProfilesMissing = {
+                        order = 4,
+                        type = "description",
+                        name = L["Option_StreamerProfiles_Missing"],
+                        fontSize = "medium",
                     },
                 },
             },

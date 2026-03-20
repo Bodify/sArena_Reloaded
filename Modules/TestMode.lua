@@ -798,181 +798,57 @@ function sArenaMixin:Test()
 
         -- DR Frames
         if isMidnight then
-            local blizzArenaFrame = _G["CompactArenaFrameMember" .. i]
-            local arenaFrame = self["arena" .. i]
-            local drTray = blizzArenaFrame.SpellDiminishStatusTray
-            --drTray:SetParent(arenaFrame)
-            --drTray:Show()
-            drTray:EnableMouse(false)  -- Make sure the tray is clickthrough
-            arenaFrame.drTray = drTray
-            drTray:ClearAllPoints()
             local layoutdb = db.profile.layoutSettings[db.profile.currentLayout]
-            local growthDirection = layoutdb.dr.growthDirection or 4
-            local offset = ((self.drBaseSize or 28) / 2) + (self.launchedDuringArena and 16 or 0)
-            local anchorPoint
-            if growthDirection == 3 then
-                anchorPoint = "LEFT"
-            else
-                anchorPoint = "RIGHT"
-            end
-            drTray:SetPoint(anchorPoint, arenaFrame, "CENTER", layoutdb.dr.posX + offset, layoutdb.dr.posY)
-            local drsEnabled = #self.drCategories
-            if drsEnabled > 0 then
-                if not frame.fakeDRFrames then
-                    frame.fakeDRFrames = {}
+            local drSettings = layoutdb.dr or {}
 
-                    -- Get DR settings from saved config
-                    local layout = self.db.profile.layoutSettings[self.db.profile.currentLayout]
-                    local drSettings = layout.dr or {}
-                    local drSize = drSettings.size or 28
-                    local textSettings = layout.textSettings or {}
-                    local drTextAnchor = textSettings.drTextAnchor or "BOTTOMRIGHT"
-                    local drTextSize = textSettings.drTextSize or 1.0
-                    local drTextOffsetX = textSettings.drTextOffsetX or 4
-                    local drTextOffsetY = textSettings.drTextOffsetY or -4
+            if frame.drFrames then
+                local drCategoryTextures = {
+                    [1] = 136071,     -- Incap (Poly)
+                    [2] = 135860,     -- Stun (Whirl)
+                    [3] = 136100,     -- Root (Entangling Roots)
+                    [4] = 136183,     -- Fear (Fear)
+                    [5] = 458230,     -- Silence
+                    [6] = 132114,     -- Disarm (Dismantle)
+                }
 
-                    local drCategoryTextures = {
-                        [1] = 136071,     -- Incap (Poly)
-                        [2] = 135860,     -- Stun (Whirl)
-                        [3] = 136100,     -- Root (Entangling Roots)
-                        [4] = 136183,     -- Fear (Fear)
-                    }
+                for n = 1, #frame.drFrames do
+                    local drFrame = frame.drFrames[n]
+                    if drFrame then
+                        drFrame.Icon:SetTexture(drCategoryTextures[n])
+                        drFrame:Show()
+                        drFrame.Cooldown:SetCooldown(currTime, math.random(12, 35))
 
-                    for drIndex = 1, 4 do
-                        local fakeDRFrame = CreateFrame("Frame", "sArenaFakeDR" .. i .. "_" .. drIndex, arenaFrame)
-                        fakeDRFrame:SetSize(drSize, drSize)
-                        fakeDRFrame:SetFrameStrata("MEDIUM")
-                        fakeDRFrame:SetFrameLevel(11)
-                        fakeDRFrame:EnableMouse(false)
+                        local blackDRBorder = drSettings.blackDRBorder
 
-                        -- Create Icon texture (identical to real DR frames)
-                        fakeDRFrame.Icon = fakeDRFrame:CreateTexture(nil, "ARTWORK")
-                        fakeDRFrame.Icon:SetAllPoints(fakeDRFrame)
-                        fakeDRFrame.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-                        fakeDRFrame.Icon:SetTexture(drCategoryTextures[drIndex])
-                        fakeDRFrame.Icon:Show()
-
-                        -- Create Cooldown frame (identical to real DR frames)
-                        fakeDRFrame.Cooldown = CreateFrame("Cooldown", nil, fakeDRFrame, "CooldownFrameTemplate")
-                        fakeDRFrame.Cooldown:SetAllPoints(fakeDRFrame)
-                        fakeDRFrame.Cooldown:SetDrawBling(false)
-                        fakeDRFrame.Cooldown:SetHideCountdownNumbers(false)
-                        fakeDRFrame.Cooldown:SetSwipeColor(0, 0, 0, 0.55)
-                        fakeDRFrame.Cooldown.Text = fakeDRFrame.Cooldown:GetCountdownFontString()
-                        fakeDRFrame.Cooldown.Text.fontFile = fakeDRFrame.Cooldown.Text:GetFont()
-
-                        -- Create Border texture (identical to real DR frames)
-                        fakeDRFrame.Border = fakeDRFrame:CreateTexture(nil, "OVERLAY", nil, 6)
-                        fakeDRFrame.Border:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress")
-                        fakeDRFrame.Border:SetAllPoints(fakeDRFrame)
-                        if drIndex == 1 then
-                            fakeDRFrame.Border:SetVertexColor(1, 0, 0)
-                        else
-                            fakeDRFrame.Border:SetVertexColor(0, 1, 0)
-                        end
-                        fakeDRFrame.Border:Show()
-
-                        -- Create Boverlay frame (identical to real DR frames)
-                        fakeDRFrame.Boverlay = CreateFrame("Frame", nil, fakeDRFrame)
-                        fakeDRFrame.Boverlay:SetFrameStrata("DIALOG")
-                        fakeDRFrame.Boverlay:SetFrameLevel(26)
-                        fakeDRFrame.Boverlay:SetAllPoints(fakeDRFrame)
-                        fakeDRFrame.Boverlay:Show()
-                        fakeDRFrame.Border:SetParent(fakeDRFrame.Boverlay)
-
-
-                        fakeDRFrame.DRTextFrame = CreateFrame("Frame", nil, fakeDRFrame)
-                        fakeDRFrame.DRTextFrame:SetAllPoints(fakeDRFrame)
-                        fakeDRFrame.DRTextFrame:SetFrameStrata("DIALOG")
-                        fakeDRFrame.DRTextFrame:SetFrameLevel(27)
-
-                        fakeDRFrame.DRText = fakeDRFrame.DRTextFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-                        fakeDRFrame.DRText:SetPoint(drTextAnchor, drTextOffsetX, drTextOffsetY)
-                        fakeDRFrame.DRText:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 14, "OUTLINE")
-                        fakeDRFrame.DRText:SetScale(drTextSize)
-                        if drIndex == 1 then
-                            fakeDRFrame.DRText:SetTextColor(1, 0, 0)
-                            fakeDRFrame.DRText:SetText("%")
-                        else
-                            fakeDRFrame.DRText:SetTextColor(0, 1, 0)
-                            fakeDRFrame.DRText:SetText("½")
-                        end
-
-                        if not C_AddOns.IsAddOnLoaded("OmniCC") then
-                            fakeDRFrame.Cooldown:SetHideCountdownNumbers(false)
-                            self:CreateCustomCooldown(fakeDRFrame.Cooldown, self.db.profile.showDecimalsDR, true)
-                        end
-                        if self.db.profile.colorDRCooldownText and fakeDRFrame.Cooldown.sArenaText then
-                            if drIndex == 1 then
-                                fakeDRFrame.Cooldown.sArenaText:SetTextColor(1, 0, 0, 1)
-                            else
-                                fakeDRFrame.Cooldown.sArenaText:SetTextColor(0, 1, 0, 1)
+                        if (n == 1) then
+                            local borderColor = blackDRBorder and { 0, 0, 0, 1 } or { 1, 0, 0, 1 }
+                            drFrame.Border:SetVertexColor(unpack(borderColor))
+                            if drFrame.PixelBorder then
+                                drFrame.PixelBorder:SetVertexColor(unpack(borderColor))
                             end
-                        end
+                            drFrame.DRTextFrame.DRText:SetText("%")
+                            drFrame.DRTextFrame.DRText:SetTextColor(1, 0, 0)
 
-                        local spacing = drSettings.spacing or 3
-                        fakeDRFrame:ClearAllPoints()
-                        if drIndex == 1 then
-                            if growthDirection == 3 then
-                                fakeDRFrame:SetPoint("LEFT", drTray, "LEFT", 2, 0)
-                            else
-                                fakeDRFrame:SetPoint("RIGHT", drTray, "RIGHT", 0, 0)
+                            if self.db.profile.colorDRCooldownText and drFrame.Cooldown.sArenaText then
+                                drFrame.Cooldown.sArenaText:SetTextColor(1, 0, 0, 1)
                             end
                         else
-                            local prev = frame.fakeDRFrames[drIndex - 1]
-                            if growthDirection == 3 then
-                                fakeDRFrame:SetPoint("LEFT", prev, "RIGHT", spacing, 0)
-                            elseif growthDirection == 1 then
-                                fakeDRFrame:SetPoint("TOP", prev, "BOTTOM", 0, -spacing)
-                            elseif growthDirection == 2 then
-                                fakeDRFrame:SetPoint("BOTTOM", prev, "TOP", 0, spacing)
-                            else
-                                fakeDRFrame:SetPoint("RIGHT", prev, "LEFT", -spacing, 0)
+                            local borderColor = blackDRBorder and { 0, 0, 0, 1 } or { 0, 1, 0, 1 }
+                            drFrame.Border:SetVertexColor(unpack(borderColor))
+                            if drFrame.PixelBorder then
+                                drFrame.PixelBorder:SetVertexColor(unpack(borderColor))
                             end
-                        end
+                            drFrame.DRTextFrame.DRText:SetText("½")
+                            drFrame.DRTextFrame.DRText:SetTextColor(0, 1, 0)
 
-                        fakeDRFrame:Show()
-                        fakeDRFrame:SetAlpha(1)
-                        frame.fakeDRFrames[drIndex] = fakeDRFrame
-                        fakeDRFrame.Cooldown:SetCooldown(currTime, math.random(12, 25))
-                    end
-
-                    self:UpdateDRSettings(drSettings)
-                end
-
-                if frame.fakeDRFrames then
-                    local spacing = layoutdb.dr.spacing or 3
-                    for n = 1, 4 do
-                        local fakeDRFrame = frame.fakeDRFrames[n]
-                        if fakeDRFrame then
-                            fakeDRFrame:ClearAllPoints()
-                            if n == 1 then
-                                if growthDirection == 3 then
-                                    fakeDRFrame:SetPoint("LEFT", drTray, "LEFT", 2, 0)
-                                else
-                                    fakeDRFrame:SetPoint("RIGHT", drTray, "RIGHT", 0, 0)
-                                end
-                            else
-                                local prev = frame.fakeDRFrames[n - 1]
-                                if growthDirection == 3 then
-                                    fakeDRFrame:SetPoint("LEFT", prev, "RIGHT", spacing, 0)
-                                elseif growthDirection == 1 then
-                                    fakeDRFrame:SetPoint("TOP", prev, "BOTTOM", 0, -spacing)
-                                elseif growthDirection == 2 then
-                                    fakeDRFrame:SetPoint("BOTTOM", prev, "TOP", 0, spacing)
-                                else
-                                    fakeDRFrame:SetPoint("RIGHT", prev, "LEFT", -spacing, 0)
-                                end
-                            end
-                            fakeDRFrame:Show()
-                            if fakeDRFrame.Cooldown then
-                                fakeDRFrame.Cooldown:SetCooldown(currTime, math.random(12, 35))
+                            if self.db.profile.colorDRCooldownText and drFrame.Cooldown.sArenaText then
+                                drFrame.Cooldown.sArenaText:SetTextColor(0, 1, 0, 1)
                             end
                         end
                     end
-                    local drSettings = layoutdb.dr or {}
-                    self:UpdateDRSettings(drSettings)
                 end
+
+                self:UpdateDRSettings(drSettings)
             end
         else
             local drsEnabled = #self.drCategories
