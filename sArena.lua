@@ -791,6 +791,8 @@ function sArenaMixin:Initialize()
         self:DatabaseCleanup(db)
         if not isMidnight then
             self:UpdateDRTimeSetting()
+        else
+            self:UpdateAuraPrioImportant()
         end
         self:UpdateDecimalThreshold()
         self:UpdateNoTrinketTexture()

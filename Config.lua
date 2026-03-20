@@ -5123,6 +5123,7 @@ else
                                         get = function(info) return info.handler.db.profile.prioImportantOverDefensives end,
                                         set = function(info, val)
                                             info.handler.db.profile.prioImportantOverDefensives = val
+                                            info.handler:UpdateAuraPrioImportant()
                                         end,
                                     },
                                     reverseBarsFill = {

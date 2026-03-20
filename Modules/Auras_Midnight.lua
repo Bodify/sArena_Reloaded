@@ -52,6 +52,13 @@ local function IterateAuras(filter, validateDefensive, unit)
     return spellID, start, duration, icon, applications
 end
 
+local prioImportant
+
+function sArenaMixin:UpdateAuraPrioImportant()
+    local db = self.db
+    prioImportant = db and db.profile.prioImportantOverDefensives or false
+end
+
 function sArenaFrameMixin:FindAura(updateInfo)
     if updateInfo and not AurasChanged(updateInfo) then return end
 
@@ -61,19 +68,36 @@ function sArenaFrameMixin:FindAura(updateInfo)
     -- Crowd Control
     spellID, startTime, duration, texture, applications = IterateAuras("HARMFUL|CROWD_CONTROL", false, unit)
 
-    -- Big Defensives
-    if not spellID then
-        spellID, startTime, duration, texture, applications = IterateAuras("HELPFUL|BIG_DEFENSIVE", true, unit)
-    end
+    if prioImportant then
+        -- Important buffs
+        if not spellID then
+            spellID, startTime, duration, texture, applications = IterateAuras("HELPFUL|IMPORTANT", false, unit)
+        end
 
-    -- External Defensives
-    if not spellID then
-        spellID, startTime, duration, texture, applications = IterateAuras("HELPFUL|EXTERNAL_DEFENSIVE", false, unit)
-    end
+        -- Big Defensives
+        if not spellID then
+            spellID, startTime, duration, texture, applications = IterateAuras("HELPFUL|BIG_DEFENSIVE", true, unit)
+        end
 
-    -- Important buffs
-    if not spellID then
-        spellID, startTime, duration, texture, applications = IterateAuras("HELPFUL|IMPORTANT", false, unit)
+        -- External Defensives
+        if not spellID then
+            spellID, startTime, duration, texture, applications = IterateAuras("HELPFUL|EXTERNAL_DEFENSIVE", false, unit)
+        end
+    else
+        -- Big Defensives
+        if not spellID then
+            spellID, startTime, duration, texture, applications = IterateAuras("HELPFUL|BIG_DEFENSIVE", true, unit)
+        end
+
+        -- External Defensives
+        if not spellID then
+            spellID, startTime, duration, texture, applications = IterateAuras("HELPFUL|EXTERNAL_DEFENSIVE", false, unit)
+        end
+
+        -- Important buffs
+        if not spellID then
+            spellID, startTime, duration, texture, applications = IterateAuras("HELPFUL|IMPORTANT", false, unit)
+        end
     end
 
     if spellID then
