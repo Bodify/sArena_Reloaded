@@ -1,3 +1,6 @@
+2.4.1b
+- Fix typo causing a lua error related to the colored DR CD Text setting.
+
 2.4.0
 - You can adjust DR spacing again on Midnight.
 - Refactor Midnight DR Frames handling towards a more permanent solution. (Still wish Blizzard improved on this)
