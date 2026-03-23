@@ -400,7 +400,8 @@ function sArenaFrameMixin:SetupTrinketCooldownDone()
     self.Trinket.Cooldown:HookScript("OnCooldownDone", function()
         local db = self.parent and self.parent.db
         if db and db.profile.colorTrinket then
-            self.Trinket.Texture:SetColorTexture(0, 1, 0)
+            local colors = db.profile.trinketColors
+            self.Trinket.Texture:SetColorTexture(unpack(colors.available))
         end
     end)
 end
@@ -542,7 +543,8 @@ function sArenaFrameMixin:HookMidnightTrinket()
         hooksecurefunc(trinketFrame.Icon, "SetTexture", function(_, texture)
             local db = self.parent and self.parent.db
             if db and db.profile.colorTrinket then
-                self.Trinket.Texture:SetColorTexture(0, 1, 0)
+                local colors = db.profile.trinketColors
+                self.Trinket.Texture:SetColorTexture(unpack(colors.available))
             else
                 if texture ~= "INTERFACE\\ICONS\\INV_MISC_QUESTIONMARK.BLP" then
                     self.Trinket.Texture:SetTexture(texture)
