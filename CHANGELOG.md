@@ -1,7 +1,7 @@
 2.4.1b
-- Midnight: Fix stuff for new Midnight changes.
 - Add new color settings for Color Trinket instead of just green/red.
 - Fix Color Trinket on TBC/MoP not going green again when trinket is up.
+- Midnight: Fix stuff for new Midnight changes.
 
 2.4.1
 - Add Jazggz profile (www.twitch.tv/jazggz). Thank you for sharing <3
