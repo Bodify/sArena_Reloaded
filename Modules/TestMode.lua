@@ -522,7 +522,10 @@ function sArenaMixin:Test()
     local modernCastbars = db.profile.layoutSettings[db.profile.currentLayout].castBar.useModernCastbars
     local keepDefaultModernTextures = db.profile.layoutSettings[db.profile.currentLayout].castBar.keepDefaultModernTextures
     local widgetSettings = db.profile.layoutSettings[db.profile.currentLayout].widgets
-    local partyTargetIndicatorsOn = widgetSettings.partyTargetIndicators.enabled
+    local partyTargetIndicatorsOn = widgetSettings.partyTargetIndicators
+        and widgetSettings.partyTargetIndicators.enabled
+        and widgetSettings.partyTargetIndicators.partyOnArena
+        and widgetSettings.partyTargetIndicators.partyOnArena.enabled
     local targetIndicatorOn = widgetSettings.targetIndicator.enabled
     local focusIndicatorOn = widgetSettings.focusIndicator.enabled
     local combatIndicatorOn = widgetSettings.combatIndicator.enabled
@@ -606,20 +609,31 @@ function sArenaMixin:Test()
             end
         elseif i == 3 then
             frame.HealthBar:SetValue(45)
+        end
 
+        -- Show 2 party target indicators on every arena frame
+        if partyTargetIndicatorsOn then
             local classColors = {}
             for classToken, color in pairs(RAID_CLASS_COLORS) do
                 table.insert(classColors, color)
             end
-
-            local color1 = classColors[math.random(#classColors)]
-            local color2 = classColors[math.random(#classColors)]
-
-            frame.WidgetOverlay.partyTarget1.Texture:SetVertexColor(color1.r, color1.g, color1.b)
-            frame.WidgetOverlay.partyTarget2.Texture:SetVertexColor(color2.r, color2.g, color2.b)
-
-            frame.WidgetOverlay.partyTarget1:SetShown(partyTargetIndicatorsOn)
-            frame.WidgetOverlay.partyTarget2:SetShown(partyTargetIndicatorsOn)
+            for j = 1, 4 do
+                local indicator = frame.WidgetOverlay["partyTarget" .. j]
+                if j <= 2 then
+                    local c = classColors[math.random(#classColors)]
+                    indicator.Texture:SetVertexColor(c.r, c.g, c.b)
+                    indicator:Show()
+                    indicator:SetAlpha(1)
+                else
+                    indicator:Hide()
+                    indicator:SetAlpha(0)
+                end
+            end
+        else
+            for j = 1, 4 do
+                frame.WidgetOverlay["partyTarget" .. j]:Hide()
+                frame.WidgetOverlay["partyTarget" .. j]:SetAlpha(0)
+            end
         end
 
         if i > 2 and frame.TargetFocusBorder then
@@ -694,7 +708,15 @@ function sArenaMixin:Test()
 
         frame.ClassIcon.Cooldown:SetCooldown(currTime, math.random(5, 35))
 
-        frame.Name:SetText((db.profile.showArenaNumber and "arena" .. i) or data.name)
+        if db.profile.showArenaNumber then
+            if db.profile.arenaNumberIdOnly then
+                frame.Name:SetText(i)
+            else
+                frame.Name:SetText("Arena " .. i)
+            end
+        else
+            frame.Name:SetText(data.name)
+        end
         frame.Name:SetShown(db.profile.showNames or db.profile.showArenaNumber)
         frame:UpdateNameColor()
 
@@ -1076,6 +1098,48 @@ function sArenaMixin:Test()
         end
     end
 
+    local arenaTargetsOnPartyOn = widgetSettings.partyTargetIndicators
+        and widgetSettings.partyTargetIndicators.enabled
+        and widgetSettings.partyTargetIndicators.arenaOnParty
+        and widgetSettings.partyTargetIndicators.arenaOnParty.enabled
+    if arenaTargetsOnPartyOn then
+        local aop = widgetSettings.partyTargetIndicators.arenaOnParty
+        local arenaDirection = aop.direction or "LEFT"
+        local arenaSpacing = aop.spacing or 1
+        local arenaScale = aop.scale or 1
+        local aopPosX = aop.posX or 0
+        local aopPosY = aop.posY or 0
+        local classColors = {}
+        for _, color in pairs(RAID_CLASS_COLORS) do
+            table.insert(classColors, color)
+        end
+
+        for i = 1, 5 do
+            local partyFrame = self:GetPartyFrame(i)
+            if partyFrame then
+                self:CreatePartyFrameIndicators(partyFrame)
+                self:RepositionPartyFrameIndicators(partyFrame, arenaDirection, arenaSpacing, aopPosX, aopPosY)
+                for j = 1, sArenaMixin.maxArenaOpponents do
+                    local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
+                    indicator:SetScale(arenaScale)
+                    local c = classColors[math.random(#classColors)]
+                    indicator.Texture:SetVertexColor(c.r, c.g, c.b)
+                    indicator:Show()
+                    indicator:SetAlpha(1)
+                end
+            end
+        end
+    else
+        for i = 1, 5 do
+            local partyFrame = self:GetPartyFrame(i)
+            if partyFrame and partyFrame.WidgetOverlay then
+                for j = 1, sArenaMixin.maxArenaOpponents do
+                    partyFrame.WidgetOverlay["arenaTarget" .. j]:Hide()
+                end
+            end
+        end
+    end
+
     if not self.TestTitle then
         local f = CreateFrame("Frame")
         self.TestTitle = f
@@ -1112,6 +1176,16 @@ function sArenaMixin:Test()
 
         self.TestTitle:SetScript("OnHide", function(frame)
             self.testMode = nil
+            for i = 1, 5 do
+                local partyFrame = self:GetPartyFrame(i)
+                if partyFrame and partyFrame.WidgetOverlay then
+                    for j = 1, sArenaMixin.maxArenaOpponents do
+                        local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
+                        indicator:Hide()
+                        indicator:SetAlpha(0)
+                    end
+                end
+            end
         end)
 
         self:SetupDrag(self.TestTitle, self, nil, "UpdateFrameSettings")

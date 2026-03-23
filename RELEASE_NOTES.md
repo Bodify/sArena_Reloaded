@@ -1,3 +1,14 @@
+2.4.1
+- Add Jazggz profile (www.twitch.tv/jazggz). Thank you for sharing <3
+- The "Party Target Indicators" Widget now also has options to show who Enemy Arena Units are targeting on your PartyFrame. Also fixed for 5v5.
+- Midnight: DR Frames now show the DR cooldown immediately (and updates proper time later, similar to how Diminish used to work)
+- Midnight: Fix an issue potentially causing a DR frame to disappear until DR reset.
+- Midnight: Add new Reload UI warning if your Edit Mode settings did not have "Arena Frames" checked; This needs to be enabled and sArena will automatically enable it if it isnt and request a reload to avoid issues.
+- Midnight: Fix potential error caused by Blizzard Edit Mode and some rare times data returning slow.
+- Tweak "Show Arena Number" setting to show "Arena 1" instead of "arena1". Also add a sub-setting "ID Only" to only show the number itself.
+- Added FrameSort support for "Show Arena Number" settings.
+- Update and fix Saul & Snupy profile import string. Apologies :x
+
 2.4.0b
 - Fix typo causing a lua error related to the colored DR CD Text setting.
 

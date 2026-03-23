@@ -25,6 +25,8 @@ LSM:Register("font", "Prototype", "Interface\\Addons\\sArena_Reloaded\\Textures\
 LSM:Register("font", "PT Sans Narrow Bold", "Interface\\Addons\\sArena_Reloaded\\Textures\\PTSansNarrow-Bold.ttf", LSM.LOCALE_BIT_western + LSM.LOCALE_BIT_ruRU)
 -- Fetch pFont through LSM: use Prototype if registered, otherwise fall back to LSM's default font for the current locale
 sArenaMixin.pFont = LSM:Fetch(LSM.MediaType.FONT, "Prototype") or LSM:Fetch(LSM.MediaType.FONT, LSM:GetDefault(LSM.MediaType.FONT))
+sArenaMixin.hiddenFrame = CreateFrame("Frame")
+sArenaMixin.hiddenFrame:Hide()
 
 local GetSpellTexture = GetSpellTexture or C_Spell.GetSpellTexture
 local stealthAlpha = 0.4
@@ -616,9 +618,9 @@ function sArenaMixin:OnEvent(event, ...)
     elseif (event == "UNIT_TARGET") then
         for i = 1, sArenaMixin.maxArenaOpponents do
             local frame = self["arena" .. i]
-            frame:UpdatePartyTargets(frame.unit)
+            frame:UpdateArenaTargets(frame.unit)
         end
-
+        self:UpdateArenaTargetsOnPartyFrames()
     elseif (event == "PLAYER_LOGIN") then
         if isMidnight then
             C_CVar.SetCVar("spellDiminishPVPEnemiesEnabled", "1")
@@ -657,12 +659,12 @@ function sArenaMixin:OnEvent(event, ...)
             end
         end
 
-        if isMidnight and not self.midnightDRFrames then
-            self.midnightDRFrames = true
-            self:InitializeDRFrames()
+        if isMidnight then
+            self:InitializeMidnightDRFrames()
         end
 
         self:SetupCustomCD()
+        self:UpdateArenaTargetsOnPartyFrames()
 
         if (instanceType == "arena") then
             if not isMidnight then
@@ -983,7 +985,7 @@ function sArenaMixin:UpdateDecimalThreshold()
     decimalThreshold = self.db.profile.decimalThreshold or 6
 end
 
-function sArenaMixin:CreateCustomCooldown(cooldown, showDecimals, isDR)
+function sArenaMixin:CreateCustomCooldown(cooldown, showDecimals)
     local text = cooldown.sArenaText or cooldown:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
     if not cooldown.sArenaText then
         cooldown.sArenaText = text
@@ -1048,12 +1050,6 @@ function sArenaMixin:CreateCustomCooldown(cooldown, showDecimals, isDR)
                 text:SetText("")
             end
         end)
-    elseif isMidnight and isDR then
-        cooldown.hideDefaultCD = true
-        cooldown:SetScript("OnUpdate", function(self)
-            text:SetText(self.Text:GetText())
-        end)
-        cooldown.Text:SetAlpha(0)
     else
         cooldown.hideDefaultCD = nil
         cooldown:SetScript("OnUpdate", nil)
@@ -1077,7 +1073,7 @@ function sArenaMixin:SetupCustomCD()
             for i = 1, #drList do
                 local drFrame = useDrFrames and drList[i] or frame[drList[i]]
                 if drFrame then
-                    self:CreateCustomCooldown(drFrame.Cooldown, self.db.profile.showDecimalsDR, true)
+                    self:CreateCustomCooldown(drFrame.Cooldown, self.db.profile.showDecimalsDR)
                 end
             end
         end
@@ -1449,7 +1445,7 @@ function sArenaMixin:SetLayout(_, layout)
     end
 end
 
-function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateMethod, isWidget)
+function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateMethod, isWidget, subKey)
     local db = self.db
     if frameToClick.dragSetup then return end
 
@@ -1485,6 +1481,10 @@ function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateM
                     settings[settingsTable] = {}
                 end
                 settings = settings[settingsTable]
+                if subKey then
+                    if not settings[subKey] then settings[subKey] = {} end
+                    settings = settings[subKey]
+                end
             else
                 settings = db.profile.layoutSettings[db.profile.currentLayout]
                 if (settingsTable) then
@@ -1760,10 +1760,11 @@ function sArenaFrameMixin:OnLoad()
     self.WidgetOverlay.targetIndicator.Texture:SetAtlas("TargetCrosshairs")
     self.WidgetOverlay.focusIndicator.Texture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\Waypoint-MapPin-Untracked.tga")
     self.WidgetOverlay.combatIndicator.Texture:SetAtlas("Food")
-    self.WidgetOverlay.partyTarget1.Texture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga")
-    self.WidgetOverlay.partyTarget1.Texture:SetDesaturated(true)
-    self.WidgetOverlay.partyTarget2.Texture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga")
-    self.WidgetOverlay.partyTarget2.Texture:SetDesaturated(true)
+    for i = 1, 4 do
+        local pt = self.WidgetOverlay["partyTarget" .. i]
+        pt.Texture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga")
+        pt.Texture:SetDesaturated(true)
+    end
     self.WidgetOverlay.targetIndicator:SetFrameLevel(15)
     self.Trinket:SetFrameLevel(7)
 
@@ -1778,7 +1779,15 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
     if (eventUnit and eventUnit == unit) then
         if (event == "UNIT_NAME_UPDATE") then
             if (db.profile.showArenaNumber) then
-                self.Name:SetText(unit)
+                local id = self.unit:match("%d+")
+                if FrameSort then
+                    id = FrameSort.Api.v3.Frame:FrameNumberForUnit(self.unit) or id
+                end
+                if db.profile.arenaNumberIdOnly then
+                    self.Name:SetText(id)
+                else
+                    self.Name:SetText("Arena " .. id)
+                end
             elseif (db.profile.showNames) then
                 self.Name:SetText(UnitFullName(unit))
             end
@@ -1999,8 +2008,9 @@ function sArenaFrameMixin:Initialize()
     self.parent:SetupDrag(self.WidgetOverlay.combatIndicator, self.WidgetOverlay.combatIndicator, "combatIndicator", nil, true)
     self.parent:SetupDrag(self.WidgetOverlay.targetIndicator, self.WidgetOverlay.targetIndicator, "targetIndicator", nil, true)
     self.parent:SetupDrag(self.WidgetOverlay.focusIndicator, self.WidgetOverlay.focusIndicator, "focusIndicator", nil, true)
-    self.parent:SetupDrag(self.WidgetOverlay.partyTarget1, self.WidgetOverlay.partyTarget1, "partyTargetIndicators", nil, true)
-    self.parent:SetupDrag(self.WidgetOverlay.partyTarget2, self.WidgetOverlay.partyTarget1, "partyTargetIndicators", nil, true)
+    self.parent:SetupDrag(self.WidgetOverlay.partyTarget1, self.WidgetOverlay.partyTarget1, "partyTargetIndicators", nil, true, "partyOnArena")
+    self.parent:SetupDrag(self.WidgetOverlay.partyTarget2, self.WidgetOverlay.partyTarget1, "partyTargetIndicators", nil, true, "partyOnArena")
+    self.parent:SetupDrag(self.WidgetOverlay.partyTarget3, self.WidgetOverlay.partyTarget1, "partyTargetIndicators", nil, true, "partyOnArena")
 end
 
 function sArenaFrameMixin:OnEnter()
@@ -2145,7 +2155,7 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
     end
     self.WidgetOverlay:Show()
     self:UpdateCombatStatus(unit)
-    self:UpdatePartyTargets(unit)
+    self:UpdateArenaTargets(unit)
     self:UpdateTarget(unit)
     self:UpdateFocus(unit)
 
@@ -2161,7 +2171,15 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
         self.Name:SetShown(true)
         self:UpdateNameColor()
     elseif (db.profile.showArenaNumber) then
-        self.Name:SetText(self.unit)
+        local id = self.unit:match("%d+")
+        if FrameSort then
+            id = FrameSort.Api.v3.Frame:FrameNumberForUnit(self.unit) or id
+        end
+        if db.profile.arenaNumberIdOnly then
+            self.Name:SetText(id)
+        else
+            self.Name:SetText("Arena " .. id)
+        end
         self.Name:SetShown(true)
         self:UpdateNameColor()
     end
@@ -2307,8 +2325,8 @@ end
 
 function sArenaFrameMixin:UpdateClassIcon(continue)
 	if isMidnight then
-		if self.currentAuraSpellID and self.currentAuraStartTime and self.currentAuraDuration then
-			self.ClassIcon.Cooldown:SetCooldown(self.currentAuraStartTime, self.currentAuraDuration)
+		if self.currentAuraSpellID and self.currentAuraDurationObj then
+			self.ClassIcon.Cooldown:SetCooldownFromDurationObject(self.currentAuraDurationObj)
 		elseif not self.currentAuraSpellID then
 			self.ClassIcon.Cooldown:Clear()
 		end

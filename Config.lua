@@ -2114,16 +2114,21 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
             },
             partyTargetIndicators = {
                 order = 4,
-                name = L["Widget_PartyTargetIndicators"] .. " |TInterface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga:19:19|t",
+                name = L["Widget_ArenaTargetIndicators"] .. " |TInterface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga:19:19|t",
                 type = "group",
                 inline = true,
                 args = {
                     enabled = {
-                        order = 1,
-                        name = L["Widget_PartyTargetIndicators_Enable"],
-                        desc = L["Widget_PartyTargetIndicators_Desc"],
+                        order = 0,
+                        name = L["Widget_ArenaTargetIndicators_Enable"],
+                        desc = L["Widget_ArenaTargetIndicators_Desc"],
                         type = "toggle",
                         width = "full",
+                        get = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            local pti = widgets and widgets.partyTargetIndicators
+                            return pti and pti.enabled
+                        end,
                         set = function(info, val)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
                             widgets = widgets or {}
@@ -2134,69 +2139,393 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             info.handler:Test()
                         end,
                     },
-                    scale = {
+                    partyOnArena = {
+                        order = 1,
+                        name = L["Widget_PartyOnArena"],
+                        type = "group",
+                        inline = true,
+                        disabled = function(info)
+                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                            local pti = widgets and widgets.partyTargetIndicators
+                            return not (pti and pti.enabled)
+                        end,
+                        args = {
+                            enabled = {
+                                order = 1,
+                                name = L["Widget_PartyTargetsOnArena_Enable"],
+                                desc = L["Widget_PartyTargetsOnArena_Desc"],
+                                type = "toggle",
+                                width = "full",
+                                get = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local poa = widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.partyOnArena
+                                    return poa and poa.enabled
+                                end,
+                                set = function(info, val)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    widgets = widgets or {}
+                                    widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                    widgets.partyTargetIndicators.partyOnArena = widgets.partyTargetIndicators.partyOnArena or {}
+                                    widgets.partyTargetIndicators.partyOnArena.enabled = val
+                                    info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                    self:UpdateWidgetSettings(widgets, info, val)
+                                    info.handler:Test()
+                                end,
+                            },
+                            direction = {
+                                order = 2,
+                                name = L["Option_GrowthDirection"],
+                                type = "select",
+                                values = { LEFT = L["Direction_Left"], RIGHT = L["Direction_Right"], UP = L["Direction_Up"], DOWN = L["Direction_Down"] },
+                                width = 0.95,
+                                get = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local poa = widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.partyOnArena
+                                    return poa and poa.direction or "LEFT"
+                                end,
+                                set = function(info, val)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    widgets = widgets or {}
+                                    widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                    widgets.partyTargetIndicators.partyOnArena = widgets.partyTargetIndicators.partyOnArena or {}
+                                    widgets.partyTargetIndicators.partyOnArena.direction = val
+                                    info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                    self:UpdateWidgetSettings(widgets, info, val)
+                                end,
+                                disabled = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local pti = widgets and widgets.partyTargetIndicators
+                                    local poa = pti and pti.partyOnArena
+                                    return not (pti and pti.enabled and poa and poa.enabled)
+                                end,
+                            },
+                            scale = {
+                                order = 3,
+                                name = L["Scale"],
+                                type = "range",
+                                min = 0.5, max = 3.0, step = 0.01, bigStep = 0.01, isPercent = true,
+                                width = 0.95,
+                                get = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local poa = widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.partyOnArena
+                                    return poa and poa.scale or 1
+                                end,
+                                set = function(info, val)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    widgets = widgets or {}
+                                    widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                    widgets.partyTargetIndicators.partyOnArena = widgets.partyTargetIndicators.partyOnArena or {}
+                                    widgets.partyTargetIndicators.partyOnArena.scale = val
+                                    info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                    self:UpdateWidgetSettings(widgets, info, val)
+                                end,
+                                disabled = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local pti = widgets and widgets.partyTargetIndicators
+                                    local poa = pti and pti.partyOnArena
+                                    return not (pti and pti.enabled and poa and poa.enabled)
+                                end,
+                            },
+                            posX = {
+                                order = 4,
+                                name = L["Horizontal"],
+                                type = "range",
+                                min = -200, max = 200, step = 0.1, bigStep = 1,
+                                width = 0.95,
+                                get = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local poa = widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.partyOnArena
+                                    return poa and poa.posX or 0
+                                end,
+                                set = function(info, val)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    widgets = widgets or {}
+                                    widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                    widgets.partyTargetIndicators.partyOnArena = widgets.partyTargetIndicators.partyOnArena or {}
+                                    widgets.partyTargetIndicators.partyOnArena.posX = val
+                                    info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                    self:UpdateWidgetSettings(widgets, info, val)
+                                end,
+                                disabled = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local pti = widgets and widgets.partyTargetIndicators
+                                    local poa = pti and pti.partyOnArena
+                                    return not (pti and pti.enabled and poa and poa.enabled)
+                                end,
+                            },
+                            posY = {
+                                order = 5,
+                                name = L["Vertical"],
+                                type = "range",
+                                min = -200, max = 200, step = 0.1, bigStep = 1,
+                                width = 0.95,
+                                get = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local poa = widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.partyOnArena
+                                    return poa and poa.posY or 0
+                                end,
+                                set = function(info, val)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    widgets = widgets or {}
+                                    widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                    widgets.partyTargetIndicators.partyOnArena = widgets.partyTargetIndicators.partyOnArena or {}
+                                    widgets.partyTargetIndicators.partyOnArena.posY = val
+                                    info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                    self:UpdateWidgetSettings(widgets, info, val)
+                                end,
+                                disabled = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local pti = widgets and widgets.partyTargetIndicators
+                                    local poa = pti and pti.partyOnArena
+                                    return not (pti and pti.enabled and poa and poa.enabled)
+                                end,
+                            },
+                            spacing = {
+                                order = 6,
+                                name = L["Widget_Spacing"],
+                                type = "range",
+                                min = -15, max = 15, step = 0.1, bigStep = 1,
+                                width = 0.95,
+                                get = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local poa = widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.partyOnArena
+                                    return poa and poa.spacing or 3
+                                end,
+                                set = function(info, val)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    widgets = widgets or {}
+                                    widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                    widgets.partyTargetIndicators.partyOnArena = widgets.partyTargetIndicators.partyOnArena or {}
+                                    widgets.partyTargetIndicators.partyOnArena.spacing = val
+                                    info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                    self:UpdateWidgetSettings(widgets, info, val)
+                                end,
+                                disabled = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local pti = widgets and widgets.partyTargetIndicators
+                                    local poa = pti and pti.partyOnArena
+                                    return not (pti and pti.enabled and poa and poa.enabled)
+                                end,
+                            },
+                            resetPartyOnArena = {
+                                order = 7,
+                                name = L["Reset"],
+                                width = 0.4,
+                                type = "execute",
+                                func = function(info)
+                                    local layout = info.handler.db.profile.layoutSettings[layoutName]
+                                    local currentLayout = info.handler.layouts[layoutName]
+                                    local defaults = currentLayout.defaultSettings.widgets.partyTargetIndicators.partyOnArena
+                                    layout.widgets = layout.widgets or {}
+                                    layout.widgets.partyTargetIndicators = layout.widgets.partyTargetIndicators or {}
+                                    local poa = layout.widgets.partyTargetIndicators.partyOnArena or {}
+                                    layout.widgets.partyTargetIndicators.partyOnArena = {
+                                        enabled = poa.enabled,
+                                        direction = defaults.direction,
+                                        scale = defaults.scale,
+                                        posX = defaults.posX,
+                                        posY = defaults.posY,
+                                        spacing = defaults.spacing,
+                                    }
+                                    self:UpdateWidgetSettings(layout.widgets, info, nil)
+                                    LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                end,
+                            },
+                        },
+                    },
+                    arenaOnParty = {
                         order = 2,
-                        name = L["Scale"],
-                        type = "range",
-                        min = 0.1,
-                        max = 3.0,
-                        step = 0.01,
-                        bigStep = 0.01,
-                        isPercent = true,
-                        width = 0.95,
+                        name = L["Widget_ArenaOnParty"],
+                        type = "group",
+                        inline = true,
                         disabled = function(info)
                             local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
-                            return not (widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.enabled)
+                            local pti = widgets and widgets.partyTargetIndicators
+                            return not (pti and pti.enabled)
                         end,
-                    },
-                    posX = {
-                        order = 3,
-                        name = L["Horizontal"],
-                        type = "range",
-                        min = -500,
-                        max = 500,
-                        step = 0.1,
-                        bigStep = 1,
-                        width = 0.95,
-                        disabled = function(info)
-                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
-                            return not (widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.enabled)
-                        end,
-                    },
-                    posY = {
-                        order = 4,
-                        name = L["Vertical"],
-                        type = "range",
-                        min = -500,
-                        max = 500,
-                        step = 0.1,
-                        bigStep = 1,
-                        width = 0.95,
-                        disabled = function(info)
-                            local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
-                            return not (widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.enabled)
-                        end,
-                    },
-                    resetPartyTargetIndicators = {
-                        order = 5,
-                        name = L["Reset"],
-                        width = 0.4,
-                        type = "execute",
-                        func = function(info)
-                            local layout = info.handler.db.profile.layoutSettings[layoutName]
-                            local currentLayout = info.handler.layouts[layoutName]
-                            local defaults = currentLayout.defaultSettings.widgets
-                            layout.widgets = layout.widgets or {}
-                            local currentEnabled = layout.widgets.partyTargetIndicators and layout.widgets.partyTargetIndicators.enabled
-                            layout.widgets.partyTargetIndicators = {
-                                enabled = currentEnabled,
-                                scale = defaults.partyTargetIndicators.scale,
-                                posX = defaults.partyTargetIndicators.posX,
-                                posY = defaults.partyTargetIndicators.posY,
-                            }
-                            self:UpdateWidgetSettings(layout.widgets, info, nil)
-                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-                        end,
+                        args = {
+                            enabled = {
+                                order = 1,
+                                name = L["Widget_ArenaTargetsOnParty_Enable"],
+                                desc = L["Widget_ArenaTargetsOnParty_Desc"],
+                                type = "toggle",
+                                width = "full",
+                                get = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local aop = widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.arenaOnParty
+                                    return aop and aop.enabled
+                                end,
+                                set = function(info, val)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    widgets = widgets or {}
+                                    widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                    widgets.partyTargetIndicators.arenaOnParty = widgets.partyTargetIndicators.arenaOnParty or {}
+                                    widgets.partyTargetIndicators.arenaOnParty.enabled = val
+                                    info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                    self:UpdateWidgetSettings(widgets, info, val)
+                                    info.handler:Test()
+                                end,
+                            },
+                            direction = {
+                                order = 2,
+                                name = L["Option_GrowthDirection"],
+                                type = "select",
+                                values = { LEFT = L["Direction_Left"], RIGHT = L["Direction_Right"], UP = L["Direction_Up"], DOWN = L["Direction_Down"] },
+                                width = 0.95,
+                                get = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local aop = widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.arenaOnParty
+                                    return aop and aop.direction or "LEFT"
+                                end,
+                                set = function(info, val)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    widgets = widgets or {}
+                                    widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                    widgets.partyTargetIndicators.arenaOnParty = widgets.partyTargetIndicators.arenaOnParty or {}
+                                    widgets.partyTargetIndicators.arenaOnParty.direction = val
+                                    info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                    self:UpdateWidgetSettings(widgets, info, val)
+                                end,
+                                disabled = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local pti = widgets and widgets.partyTargetIndicators
+                                    local aop = pti and pti.arenaOnParty
+                                    return not (pti and pti.enabled and aop and aop.enabled)
+                                end,
+                            },
+                            scale = {
+                                order = 3,
+                                name = L["Scale"],
+                                type = "range",
+                                min = 0.5, max = 3.0, step = 0.01, bigStep = 0.01, isPercent = true,
+                                width = 0.95,
+                                get = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local aop = widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.arenaOnParty
+                                    return aop and aop.scale or 1
+                                end,
+                                set = function(info, val)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    widgets = widgets or {}
+                                    widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                    widgets.partyTargetIndicators.arenaOnParty = widgets.partyTargetIndicators.arenaOnParty or {}
+                                    widgets.partyTargetIndicators.arenaOnParty.scale = val
+                                    info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                    self:UpdateWidgetSettings(widgets, info, val)
+                                end,
+                                disabled = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local pti = widgets and widgets.partyTargetIndicators
+                                    local aop = pti and pti.arenaOnParty
+                                    return not (pti and pti.enabled and aop and aop.enabled)
+                                end,
+                            },
+                            posX = {
+                                order = 4,
+                                name = L["Horizontal"],
+                                type = "range",
+                                min = -200, max = 200, step = 0.1, bigStep = 1,
+                                width = 0.95,
+                                get = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local aop = widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.arenaOnParty
+                                    return aop and aop.posX or 0
+                                end,
+                                set = function(info, val)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    widgets = widgets or {}
+                                    widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                    widgets.partyTargetIndicators.arenaOnParty = widgets.partyTargetIndicators.arenaOnParty or {}
+                                    widgets.partyTargetIndicators.arenaOnParty.posX = val
+                                    info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                    self:UpdateWidgetSettings(widgets, info, val)
+                                end,
+                                disabled = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local pti = widgets and widgets.partyTargetIndicators
+                                    local aop = pti and pti.arenaOnParty
+                                    return not (pti and pti.enabled and aop and aop.enabled)
+                                end,
+                            },
+                            posY = {
+                                order = 5,
+                                name = L["Vertical"],
+                                type = "range",
+                                min = -200, max = 200, step = 0.1, bigStep = 1,
+                                width = 0.95,
+                                get = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local aop = widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.arenaOnParty
+                                    return aop and aop.posY or 0
+                                end,
+                                set = function(info, val)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    widgets = widgets or {}
+                                    widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                    widgets.partyTargetIndicators.arenaOnParty = widgets.partyTargetIndicators.arenaOnParty or {}
+                                    widgets.partyTargetIndicators.arenaOnParty.posY = val
+                                    info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                    self:UpdateWidgetSettings(widgets, info, val)
+                                end,
+                                disabled = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local pti = widgets and widgets.partyTargetIndicators
+                                    local aop = pti and pti.arenaOnParty
+                                    return not (pti and pti.enabled and aop and aop.enabled)
+                                end,
+                            },
+                            spacing = {
+                                order = 6,
+                                name = L["Widget_Spacing"],
+                                type = "range",
+                                min = -15, max = 15, step = 0.1, bigStep = 1,
+                                width = 0.95,
+                                get = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local aop = widgets and widgets.partyTargetIndicators and widgets.partyTargetIndicators.arenaOnParty
+                                    return aop and aop.spacing or 1
+                                end,
+                                set = function(info, val)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    widgets = widgets or {}
+                                    widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                    widgets.partyTargetIndicators.arenaOnParty = widgets.partyTargetIndicators.arenaOnParty or {}
+                                    widgets.partyTargetIndicators.arenaOnParty.spacing = val
+                                    info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                    self:UpdateWidgetSettings(widgets, info, val)
+                                end,
+                                disabled = function(info)
+                                    local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                    local pti = widgets and widgets.partyTargetIndicators
+                                    local aop = pti and pti.arenaOnParty
+                                    return not (pti and pti.enabled and aop and aop.enabled)
+                                end,
+                            },
+                            resetArenaOnParty = {
+                                order = 7,
+                                name = L["Reset"],
+                                width = 0.4,
+                                type = "execute",
+                                func = function(info)
+                                    local layout = info.handler.db.profile.layoutSettings[layoutName]
+                                    local currentLayout = info.handler.layouts[layoutName]
+                                    local defaults = currentLayout.defaultSettings.widgets.partyTargetIndicators.arenaOnParty
+                                    layout.widgets = layout.widgets or {}
+                                    layout.widgets.partyTargetIndicators = layout.widgets.partyTargetIndicators or {}
+                                    local aop = layout.widgets.partyTargetIndicators.arenaOnParty or {}
+                                    layout.widgets.partyTargetIndicators.arenaOnParty = {
+                                        enabled = aop.enabled,
+                                        direction = defaults.direction,
+                                        scale = defaults.scale,
+                                        posX = defaults.posX,
+                                        posY = defaults.posY,
+                                        spacing = defaults.spacing,
+                                    }
+                                    self:UpdateWidgetSettings(layout.widgets, info, nil)
+                                    LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                end,
+                            },
+                        },
                     },
                 },
             },
@@ -4412,14 +4741,48 @@ else
                                         order = 5,
                                         name = L["Option_ShowArenaNumber"],
                                         type = "toggle",
-                                        width = "full",
+                                        width = 1,
                                         get = function(info) return info.handler.db.profile.showArenaNumber end,
                                         set = function(info, val)
                                             info.handler.db.profile.showArenaNumber = val
                                             info.handler.db.profile.showNames = false
                                             for i = 1, sArenaMixin.maxArenaOpponents do
-                                                info.handler["arena" .. i].Name:SetShown(val)
-                                                info.handler["arena" .. i].Name:SetText("arena"..i)
+                                                local frame = info.handler["arena" .. i]
+                                                local id = i
+                                                if FrameSort then
+                                                    id = FrameSort.Api.v3.Frame:FrameNumberForUnit(frame.unit or ("arena"..i)) or i
+                                                end
+                                                frame.Name:SetShown(val)
+                                                if info.handler.db.profile.arenaNumberIdOnly then
+                                                    frame.Name:SetText(id)
+                                                else
+                                                    frame.Name:SetText("Arena " .. id)
+                                                end
+                                            end
+                                        end,
+                                    },
+                                    arenaNumberIdOnly = {
+                                        order = 5.01,
+                                        name = L["Option_ArenaNumberIdOnly"],
+                                        type = "toggle",
+                                        width = 1,
+                                        disabled = function(info) return not info.handler.db.profile.showArenaNumber end,
+                                        get = function(info) return info.handler.db.profile.arenaNumberIdOnly end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.arenaNumberIdOnly = val
+                                            if info.handler.db.profile.showArenaNumber then
+                                                for i = 1, sArenaMixin.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    local id = i
+                                                    if FrameSort then
+                                                        id = FrameSort.Api.v3.Frame:FrameNumberForUnit(frame.unit or ("arena"..i)) or i
+                                                    end
+                                                    if val then
+                                                        frame.Name:SetText(id)
+                                                    else
+                                                        frame.Name:SetText("Arena " .. id)
+                                                    end
+                                                end
                                             end
                                         end,
                                     },

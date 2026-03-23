@@ -72,9 +72,22 @@ layout.defaultSettings = {
             useBorderWithIcon = false,
         },
         partyTargetIndicators = {
-            posX = 0,
-            posY = 0,
-            scale = 1,
+            partyOnArena = {
+                enabled = true,
+                posX = 0,
+                posY = 0,
+                scale = 1,
+                direction = "LEFT",
+                spacing = 0,
+            },
+            arenaOnParty = {
+                enabled = true,
+                posX = 0,
+                posY = 0,
+                scale = 1,
+                direction = "LEFT",
+                spacing = 0,
+            },
         },
     },
 
@@ -355,17 +368,21 @@ function layout:UpdateOrientation(frame)
         end
 
         -- Party Target Indicators
-        if w.partyTargetIndicators then
+        if w.partyTargetIndicators and w.partyTargetIndicators.partyOnArena then
+            local poa = w.partyTargetIndicators.partyOnArena
+            local direction = poa.direction or "LEFT"
             frame.WidgetOverlay.partyTarget1:ClearAllPoints()
             frame.WidgetOverlay.partyTarget1:SetSize(15, 15)
-            frame.WidgetOverlay.partyTarget1:SetScale(w.partyTargetIndicators.scale or 1)
+            frame.WidgetOverlay.partyTarget1:SetScale(poa.scale or 1)
             frame.WidgetOverlay.partyTarget1:SetPoint("TOPLEFT", frame.HealthBar, "TOPRIGHT",
-                (w.partyTargetIndicators.posX or 0) - 27, (w.partyTargetIndicators.posY or 0) + 33)
+                (poa.posX or 0) - 27, (poa.posY or 0) + 33)
 
-            frame.WidgetOverlay.partyTarget2:ClearAllPoints()
-            frame.WidgetOverlay.partyTarget2:SetSize(15, 15)
-            frame.WidgetOverlay.partyTarget2:SetScale(w.partyTargetIndicators.scale or 1)
-            frame.WidgetOverlay.partyTarget2:SetPoint("RIGHT", frame.WidgetOverlay.partyTarget1, "LEFT", 3, 0)
+            for i = 2, 4 do
+                local indicator = frame.WidgetOverlay["partyTarget" .. i]
+                indicator:SetSize(15, 15)
+                indicator:SetScale(poa.scale or 1)
+                sArenaMixin:ChainIndicator(indicator, frame.WidgetOverlay["partyTarget" .. (i - 1)], direction, poa.spacing or 3)
+            end
         end
     end
 

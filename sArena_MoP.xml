@@ -312,6 +312,18 @@
                             <KeyValue key="desaturated" value="true" type="boolean"/>
                         </KeyValues>
                     </Frame>
+                    <Frame parentKey="partyTarget3" inherits="sArenaWidgetFrameTemplate">
+                        <KeyValues>
+                            <KeyValue key="atlas" value="GM-icon-headCount" type="string"/>
+                            <KeyValue key="desaturated" value="true" type="boolean"/>
+                        </KeyValues>
+                    </Frame>
+                    <Frame parentKey="partyTarget4" inherits="sArenaWidgetFrameTemplate">
+                        <KeyValues>
+                            <KeyValue key="atlas" value="GM-icon-headCount" type="string"/>
+                            <KeyValue key="desaturated" value="true" type="boolean"/>
+                        </KeyValues>
+                    </Frame>
                 </Frames>
             </Frame>
 

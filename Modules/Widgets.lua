@@ -5,6 +5,20 @@
 
 local isMidnight = sArenaMixin.isMidnight
 
+function sArenaMixin:ChainIndicator(indicator, previous, direction, spacing)
+    indicator:ClearAllPoints()
+    spacing = spacing or 3
+    if direction == "LEFT" then
+        indicator:SetPoint("RIGHT", previous, "LEFT", -spacing, 0)
+    elseif direction == "RIGHT" then
+        indicator:SetPoint("LEFT", previous, "RIGHT", spacing, 0)
+    elseif direction == "UP" then
+        indicator:SetPoint("BOTTOM", previous, "TOP", 0, spacing)
+    elseif direction == "DOWN" then
+        indicator:SetPoint("TOP", previous, "BOTTOM", 0, -spacing)
+    end
+end
+
 function sArenaMixin:RegisterWidgetEvents()
     local db = self.db
     local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
@@ -22,7 +36,8 @@ function sArenaMixin:RegisterWidgetEvents()
             self:RegisterEvent("PLAYER_FOCUS_CHANGED")
         end
 
-        if widgetSettings.partyTargetIndicators and widgetSettings.partyTargetIndicators.enabled then
+        local pti = widgetSettings.partyTargetIndicators
+        if pti and pti.enabled and ((pti.partyOnArena and pti.partyOnArena.enabled) or (pti.arenaOnParty and pti.arenaOnParty.enabled)) then
             self:RegisterEvent("UNIT_TARGET")
         end
 
@@ -59,8 +74,10 @@ function sArenaMixin:UpdateWidgetSettings(db, info, val)
         if db.targetIndicator then frame.WidgetOverlay.targetIndicator:SetScale(db.targetIndicator.scale or 1) end
         if db.focusIndicator then frame.WidgetOverlay.focusIndicator:SetScale(db.focusIndicator.scale or 1) end
         if db.partyTargetIndicators then
-            frame.WidgetOverlay.partyTarget1:SetScale(db.partyTargetIndicators.scale or 1)
-            frame.WidgetOverlay.partyTarget2:SetScale(db.partyTargetIndicators.scale or 1)
+            local poaScale = db.partyTargetIndicators.partyOnArena and db.partyTargetIndicators.partyOnArena.scale or 1
+            for j = 1, 4 do
+                frame.WidgetOverlay["partyTarget" .. j]:SetScale(poaScale)
+            end
         end
 
         frame:UpdateTargetFocusBorderVisibility()
@@ -80,6 +97,8 @@ function sArenaMixin:UpdateWidgetSettings(db, info, val)
             end
         end
     end
+
+    self:UpdateArenaTargetsOnPartyFrames()
 end
 
 function sArenaFrameMixin:UpdateCombatStatus(unit)
@@ -386,67 +405,181 @@ function sArenaFrameMixin:UpdateTargetFocusBorderVisibility()
     end
 end
 
-function sArenaFrameMixin:UpdatePartyTargets(unit)
+function sArenaFrameMixin:UpdateArenaTargets(unit)
     local db = self.parent.db
     local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
-    if not widgetSettings or not widgetSettings.partyTargetIndicators or not widgetSettings.partyTargetIndicators.enabled then
-        self.WidgetOverlay.partyTarget1:Hide()
-        self.WidgetOverlay.partyTarget2:Hide()
+    if not widgetSettings or not widgetSettings.partyTargetIndicators
+       or not widgetSettings.partyTargetIndicators.enabled
+       or not widgetSettings.partyTargetIndicators.partyOnArena
+       or not widgetSettings.partyTargetIndicators.partyOnArena.enabled then
+        for i = 1, 4 do
+            self.WidgetOverlay["partyTarget" .. i]:Hide()
+        end
         return
     end
 
     if not unit or not UnitExists(unit) then return end
 
     if isMidnight then
-        local isParty1Target = UnitIsUnit("party1target", unit)
-        local isParty2Target = UnitIsUnit("party2target", unit)
-
-        local class1 = select(2, UnitClass("party1"))
-        if class1 then
-            local color = RAID_CLASS_COLORS[class1]
-            self.WidgetOverlay.partyTarget1.Texture:SetVertexColor(color.r, color.g, color.b)
+        for i = 1, 4 do
+            local partyUnit = "party" .. i
+            local indicator = self.WidgetOverlay["partyTarget" .. i]
+            local isTarget = UnitIsUnit(partyUnit .. "target", unit)
+            local class = select(2, UnitClass(partyUnit))
+            if class then
+                local color = RAID_CLASS_COLORS[class]
+                indicator.Texture:SetVertexColor(color.r, color.g, color.b)
+            end
+            indicator:Show()
+            indicator:SetAlphaFromBoolean(isTarget, 1, 0)
         end
-
-        local class2 = select(2, UnitClass("party2"))
-        if class2 then
-            local color = RAID_CLASS_COLORS[class2]
-            self.WidgetOverlay.partyTarget2.Texture:SetVertexColor(color.r, color.g, color.b)
-        end
-
-        self.WidgetOverlay.partyTarget1:Show()
-        self.WidgetOverlay.partyTarget2:Show()
-        self.WidgetOverlay.partyTarget1:SetAlphaFromBoolean(isParty1Target, 1, 0)
-        self.WidgetOverlay.partyTarget2:SetAlphaFromBoolean(isParty2Target, 1, 0)
     else
         local targets = {}
-        if UnitIsUnit("party1target", unit) then
-            table.insert(targets, "party1")
-        end
-        if UnitIsUnit("party2target", unit) then
-            table.insert(targets, "party2")
+        for i = 1, 4 do
+            if UnitIsUnit("party" .. i .. "target", unit) then
+                table.insert(targets, "party" .. i)
+            end
         end
 
-        -- Update Icons Based on Targets Found
-        if #targets >= 1 then
-            local class1 = select(2, UnitClass(targets[1]))
-            if class1 then
-                local color = RAID_CLASS_COLORS[class1]
-                self.WidgetOverlay.partyTarget1.Texture:SetVertexColor(color.r, color.g, color.b)
+        for i = 1, 4 do
+            local indicator = self.WidgetOverlay["partyTarget" .. i]
+            if targets[i] then
+                local class = select(2, UnitClass(targets[i]))
+                if class then
+                    local color = RAID_CLASS_COLORS[class]
+                    indicator.Texture:SetVertexColor(color.r, color.g, color.b)
+                end
+                indicator:Show()
+            else
+                indicator:Hide()
             end
-            self.WidgetOverlay.partyTarget1:Show()
-        else
-            self.WidgetOverlay.partyTarget1:Hide()
         end
+    end
+end
 
-        if #targets >= 2 then
-            local class2 = select(2, UnitClass(targets[2]))
-            if class2 then
-                local color = RAID_CLASS_COLORS[class2]
-                self.WidgetOverlay.partyTarget2.Texture:SetVertexColor(color.r, color.g, color.b)
+function sArenaMixin:CreatePartyFrameIndicators(partyFrame)
+    if partyFrame.WidgetOverlay then return end
+
+    local overlay = CreateFrame("Frame", nil, partyFrame)
+    overlay:SetAllPoints()
+    overlay:SetFrameStrata("HIGH")
+    overlay:SetFrameLevel(partyFrame:GetFrameLevel() + 10)
+    partyFrame.WidgetOverlay = overlay
+
+    for i = 1, sArenaMixin.maxArenaOpponents do
+        local indicator = CreateFrame("Frame", nil, overlay)
+        indicator:SetSize(15, 15)
+        indicator:Hide()
+        indicator:SetIgnoreParentAlpha(true)
+
+        local texture = indicator:CreateTexture(nil, "OVERLAY")
+        texture:SetAllPoints()
+        texture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga")
+        texture:SetDesaturated(true)
+        indicator.Texture = texture
+
+        overlay["arenaTarget" .. i] = indicator
+    end
+end
+
+function sArenaMixin:RepositionPartyFrameIndicators(partyFrame, direction, spacing, posX, posY)
+    local overlay = partyFrame.WidgetOverlay
+    if not overlay then return end
+
+    local first = overlay.arenaTarget1
+    first:ClearAllPoints()
+    first:SetPoint("TOPRIGHT", partyFrame, "TOPRIGHT", posX or 0, (posY or 0) -0.5)
+    for i = 2, sArenaMixin.maxArenaOpponents do
+        self:ChainIndicator(overlay["arenaTarget" .. i], overlay["arenaTarget" .. (i - 1)], direction, spacing or 1)
+    end
+end
+
+function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
+    local db = self.db
+    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
+    if not widgetSettings or not widgetSettings.partyTargetIndicators
+       or not widgetSettings.partyTargetIndicators.enabled
+       or not widgetSettings.partyTargetIndicators.arenaOnParty
+       or not widgetSettings.partyTargetIndicators.arenaOnParty.enabled then
+        for i = 1, 5 do
+            local partyFrame = self:GetPartyFrame(i)
+            if partyFrame and partyFrame.WidgetOverlay then
+                for j = 1, sArenaMixin.maxArenaOpponents do
+                    partyFrame.WidgetOverlay["arenaTarget" .. j]:Hide()
+                end
             end
-            self.WidgetOverlay.partyTarget2:Show()
-        else
-            self.WidgetOverlay.partyTarget2:Hide()
+        end
+        return
+    end
+
+    local aop = widgetSettings.partyTargetIndicators.arenaOnParty
+    local arenaDirection = aop.direction or "LEFT"
+    local arenaSpacing = aop.spacing or 1
+    local arenaScale = aop.scale or 1
+    local aopPosX = aop.posX or 0
+    local aopPosY = aop.posY or 0
+
+    for i = 1, 5 do
+        local partyFrame = self:GetPartyFrame(i)
+        if partyFrame then
+            self:CreatePartyFrameIndicators(partyFrame)
+            self:RepositionPartyFrameIndicators(partyFrame, arenaDirection, arenaSpacing, aopPosX, aopPosY)
+
+            for j = 1, sArenaMixin.maxArenaOpponents do
+                partyFrame.WidgetOverlay["arenaTarget" .. j]:SetScale(arenaScale)
+            end
+
+            if self.testMode then
+                for j = 1, sArenaMixin.maxArenaOpponents do
+                    local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
+                    indicator:Show()
+                    indicator:SetAlpha(1)
+                end
+            else
+            local partyUnit = partyFrame.unit or partyFrame:GetAttribute("unit")
+            if partyUnit and UnitExists(partyUnit) then
+                if isMidnight then
+                    for j = 1, sArenaMixin.maxArenaOpponents do
+                        local arenaUnit = "arena" .. j
+                        local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
+                        local isTarget = UnitExists(arenaUnit) and UnitIsUnit(arenaUnit .. "target", partyUnit)
+                        local class = select(2, UnitClass(arenaUnit))
+                        if class then
+                            local color = RAID_CLASS_COLORS[class]
+                            indicator.Texture:SetVertexColor(color.r, color.g, color.b)
+                        end
+                        indicator:Show()
+                        indicator:SetAlphaFromBoolean(isTarget, 1, 0)
+                    end
+                else
+                    local attackers = {}
+                    for j = 1, sArenaMixin.maxArenaOpponents do
+                        local arenaUnit = "arena" .. j
+                        if UnitExists(arenaUnit) and UnitIsUnit(arenaUnit .. "target", partyUnit) then
+                            table.insert(attackers, arenaUnit)
+                        end
+                    end
+
+                    for j = 1, sArenaMixin.maxArenaOpponents do
+                        local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
+                        if attackers[j] then
+                            local class = select(2, UnitClass(attackers[j]))
+                            if class then
+                                local color = RAID_CLASS_COLORS[class]
+                                indicator.Texture:SetVertexColor(color.r, color.g, color.b)
+                            end
+                            indicator:Show()
+                        else
+                            indicator:Hide()
+                        end
+                    end
+                end
+            else
+                for j = 1, sArenaMixin.maxArenaOpponents do
+                    partyFrame.WidgetOverlay["arenaTarget" .. j]:Hide()
+                end
+            end
+            end
         end
     end
 end
