@@ -540,6 +540,25 @@ function sArenaFrameMixin:HookMidnightTrinket()
         trinketFrame:SetParent(self)
         trinketFrame:SetAlpha(0)
 
+        hooksecurefunc(trinketFrame.Cooldown, "SetCooldown", function()
+            local db = self.parent and self.parent.db
+            local colors = db.profile.trinketColors
+            local durationObj = C_PvP.GetArenaCrowdControlDuration(self.unit)
+            self.Trinket.Cooldown:SetCooldownFromDurationObject(durationObj)
+            self.Trinket.Texture:SetDesaturated(db and db.profile.desaturateTrinketCD and not db.profile.colorTrinket)
+            if db and db.profile.colorTrinket then
+                self.Trinket.Texture:SetColorTexture(unpack(colors.used))
+            end
+
+            -- Update shared Racial CD
+            if self.Racial.Texture:GetTexture() then
+                local sharedCD = self:GetSharedCD()
+                if sharedCD then
+                    self.Racial.Cooldown:SetCooldown(GetTime(), sharedCD)
+                end
+            end
+        end)
+
         hooksecurefunc(trinketFrame.Icon, "SetTexture", function(_, texture)
             local db = self.parent and self.parent.db
             if db and db.profile.colorTrinket then

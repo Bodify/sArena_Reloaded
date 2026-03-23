@@ -68,20 +68,20 @@ function sArenaFrameMixin:UpdateTrinket()
     if (spellID) then
         local colors = self.parent.db.profile.trinketColors
         if isMidnight then
-            local db = self.parent and self.parent.db
-            self.Trinket.Cooldown:SetCooldownFromDurationObject(spellID)
-            self.Trinket.Texture:SetDesaturated(db and db.profile.desaturateTrinketCD and not db.profile.colorTrinket)
-            if db and db.profile.colorTrinket then
-                self.Trinket.Texture:SetColorTexture(unpack(colors.used))
-            end
+            -- local db = self.parent and self.parent.db
+            -- self.Trinket.Cooldown:SetCooldownFromDurationObject(spellID)
+            -- self.Trinket.Texture:SetDesaturated(db and db.profile.desaturateTrinketCD and not db.profile.colorTrinket)
+            -- if db and db.profile.colorTrinket then
+            --     self.Trinket.Texture:SetColorTexture(unpack(colors.used))
+            -- end
 
-            -- Update shared Racial CD
-            if self.Racial.Texture:GetTexture() then
-                local sharedCD = self:GetSharedCD()
-                if sharedCD then
-                    self.Racial.Cooldown:SetCooldown(GetTime(), sharedCD)
-                end
-            end
+            -- -- Update shared Racial CD
+            -- if self.Racial.Texture:GetTexture() then
+            --     local sharedCD = self:GetSharedCD()
+            --     if sharedCD then
+            --         self.Racial.Cooldown:SetCooldown(GetTime(), sharedCD)
+            --     end
+            -- end
         else
             if (startTime ~= 0 and duration ~= 0 and self.Trinket.spellID) then
                 if self.Trinket.spellID and (self.Trinket.Texture:GetTexture() ~= sArenaMixin.noTrinketTexture)then
