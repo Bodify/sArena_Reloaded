@@ -12,7 +12,22 @@ local function GetInterruptSpell()
     return nil
 end
 
+local isMidnight = sArenaMixin.isMidnight
 local playerKick = GetInterruptSpell()
+
+local function ApplyInterruptCooldown(cooldownFrame, spellID)
+    if isMidnight then
+        local cooldownInfo = C_Spell.GetSpellCooldownDuration(spellID)
+        if cooldownInfo then
+            cooldownFrame:SetCooldownFromDurationObject(cooldownInfo)
+        end
+    else
+        local cooldownInfo = C_Spell.GetSpellCooldown(spellID)
+        if cooldownInfo then
+            cooldownFrame:SetCooldown(cooldownInfo.startTime, cooldownInfo.duration)
+        end
+    end
+end
 
 -- Recheck interrupt spells when lock resummons/sacrifices pet
 local petSummonSpells = {
@@ -44,21 +59,14 @@ local function UpdateInterruptIcon(frame)
         playerKick = GetInterruptSpell()
     end
     if playerKick then
-        -- Update cooldown
-        local cooldownInfo = C_Spell.GetSpellCooldown(playerKick)
-        if cooldownInfo then
-            frame.cooldown:SetCooldown(cooldownInfo.startTime, cooldownInfo.duration)
-        end
+        ApplyInterruptCooldown(frame.cooldown, playerKick)
     end
 end
 
 local function OnInterruptUpdate(self, event, unit, _, spellID)
     if event == "UNIT_SPELLCAST_SUCCEEDED" then
         if sArenaMixin.interruptList[spellID] then
-            local cooldownInfo = C_Spell.GetSpellCooldown(spellID)
-            if cooldownInfo then
-                sArenaMixin.interruptIcon.cooldown:SetCooldown(cooldownInfo.startTime, cooldownInfo.duration)
-            end
+            ApplyInterruptCooldown(sArenaMixin.interruptIcon.cooldown, spellID)
             sArenaMixin.interruptReady = false
             sArenaMixin:UpdateCastbarInterruptStatus()
             return

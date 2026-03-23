@@ -4871,21 +4871,71 @@ else
                                         order = 8,
                                         name = L["Option_ColorTrinket"],
                                         type = "toggle",
-                                        width = "full",
+                                        width = 0.6,
                                         desc = L["Trinket_MinimalistDesign_Desc"],
                                         get = function(info) return info.handler.db.profile.colorTrinket end,
                                         set = function(info, val)
                                             info.handler.db.profile.colorTrinket = val
+                                            local colors = info.handler.db.profile.trinketColors
                                             for i = 1, sArenaMixin.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
                                                 if val then
                                                     if i <= 2 then
-                                                        info.handler["arena" .. i].Trinket.Texture:SetColorTexture(0,1,0)
-                                                        info.handler["arena" .. i].Trinket.Cooldown:Clear()
+                                                        frame.Trinket.Texture:SetColorTexture(unpack(colors.available))
+                                                        frame.Trinket.Cooldown:Clear()
                                                     else
-                                                        info.handler["arena" .. i].Trinket.Texture:SetColorTexture(1,0,0)
+                                                        frame.Trinket.Texture:SetColorTexture(unpack(colors.used))
                                                     end
                                                 else
-                                                    info.handler["arena" .. i].Trinket.Texture:SetTexture(sArenaMixin.trinketTexture)
+                                                    frame.Trinket.Texture:SetTexture(sArenaMixin.trinketTexture)
+                                                end
+                                            end
+                                        end,
+                                    },
+                                    trinketColorAvailable = {
+                                        order = 8.1,
+                                        type = "color",
+                                        name = L["Option_TrinketColorAvailable"],
+                                        width = 0.5,
+                                        disabled = function(info) return not info.handler.db.profile.colorTrinket end,
+                                        get = function(info)
+                                            return unpack(info.handler.db.profile.trinketColors.available)
+                                        end,
+                                        set = function(info, r, g, b)
+                                            info.handler.db.profile.trinketColors.available = {r, g, b}
+                                            local used = info.handler.db.profile.trinketColors.used
+                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                if frame and info.handler.db.profile.colorTrinket then
+                                                    if i <= 2 then
+                                                        frame.Trinket.Texture:SetColorTexture(r, g, b)
+                                                    else
+                                                        frame.Trinket.Texture:SetColorTexture(unpack(used))
+                                                    end
+                                                end
+                                            end
+                                        end,
+                                    },
+                                    trinketColorUsed = {
+                                        order = 8.2,
+                                        type = "color",
+                                        name = L["Option_TrinketColorUsed"],
+                                        width = 0.6,
+                                        disabled = function(info) return not info.handler.db.profile.colorTrinket end,
+                                        get = function(info)
+                                            return unpack(info.handler.db.profile.trinketColors.used)
+                                        end,
+                                        set = function(info, r, g, b)
+                                            info.handler.db.profile.trinketColors.used = {r, g, b}
+                                            local available = info.handler.db.profile.trinketColors.available
+                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                if frame and info.handler.db.profile.colorTrinket then
+                                                    if i <= 2 then
+                                                        frame.Trinket.Texture:SetColorTexture(unpack(available))
+                                                    else
+                                                        frame.Trinket.Texture:SetColorTexture(r, g, b)
+                                                    end
                                                 end
                                             end
                                         end,

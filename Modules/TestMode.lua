@@ -729,11 +729,12 @@ function sArenaMixin:Test()
 
         frame.Trinket.Cooldown:SetCooldown(currTime, math.random(5, 35))
         if colorTrinket then
+            local colors = db.profile.trinketColors
             if i <= 2 then
-                frame.Trinket.Texture:SetColorTexture(0,1,0)
+                frame.Trinket.Texture:SetColorTexture(unpack(colors.available))
                 frame.Trinket.Cooldown:Clear()
             else
-                frame.Trinket.Texture:SetColorTexture(1,0,0)
+                frame.Trinket.Texture:SetColorTexture(unpack(colors.used))
             end
         else
             if shouldSwapRacialToTrinket then

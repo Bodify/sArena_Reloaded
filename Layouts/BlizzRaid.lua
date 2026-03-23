@@ -600,11 +600,7 @@ function layout:Initialize(frame)
             end
 
             if r ~= nil and g ~= nil and b ~= nil then
-                if (r == 1 and g == 0 and b == 0) or (r == 0 and g == 1 and b == 0) then
-                    frame.PixelBorders.trinket:Show()
-                else
-                    frame.PixelBorders.trinket:Hide()
-                end
+                frame.PixelBorders.trinket:Show()
             else
                 frame.PixelBorders.trinket:Hide()
             end

@@ -396,6 +396,15 @@ end
 --     end
 -- end
 
+function sArenaFrameMixin:SetupTrinketCooldownDone()
+    self.Trinket.Cooldown:HookScript("OnCooldownDone", function()
+        local db = self.parent and self.parent.db
+        if db and db.profile.colorTrinket then
+            self.Trinket.Texture:SetColorTexture(0, 1, 0)
+        end
+    end)
+end
+
 -- Midnight only
 if not isMidnight then return end
 
@@ -468,7 +477,7 @@ function sArenaMixin:InitializeMidnightDRFrames()
                     end)
 
                     hooksecurefunc(blizzDRFrame.Cooldown, "SetCooldown", function(_, start, duration)
-                        sArenaDrFrame.Cooldown:SetCooldown(start, duration)
+                        sArenaDrFrame.Cooldown:SetCooldown(GetTime(), 16.1)
                     end)
 
                     local green = CreateColor(0, 1, 0, 1)
@@ -529,29 +538,6 @@ function sArenaFrameMixin:HookMidnightTrinket()
     if trinketFrame then
         trinketFrame:SetParent(self)
         trinketFrame:SetAlpha(0)
-        hooksecurefunc(trinketFrame.Cooldown, "SetCooldown", function(_, start, duration)
-            local db = self.parent and self.parent.db
-            self.Trinket.Cooldown:SetCooldown(start, duration)
-            self.Trinket.Texture:SetDesaturated(db and db.profile.desaturateTrinketCD and not db.profile.colorTrinket)
-
-            -- Update shared Racial CD
-            if self.Racial.Texture:GetTexture() then
-                local sharedCD = self:GetSharedCD()
-                if sharedCD then
-                    local startTime, cdDuration = self.Racial.Cooldown:GetCooldownTimes()
-                    local remainingCD = 0
-                    if startTime and startTime > 0 then
-                        remainingCD = (startTime + cdDuration) / 1000 - GetTime()
-                    end
-                    if remainingCD < sharedCD then
-                        self.Racial.Cooldown:SetCooldown(GetTime(), sharedCD)
-                    end
-                end
-            end
-            if db and db.profile.colorTrinket then
-                self.Trinket.Texture:SetColorTexture(1, 0, 0)
-            end
-        end)
 
         hooksecurefunc(trinketFrame.Icon, "SetTexture", function(_, texture)
             local db = self.parent and self.parent.db
@@ -564,12 +550,6 @@ function sArenaFrameMixin:HookMidnightTrinket()
             end
         end)
 
-        trinketFrame.Cooldown:HookScript("OnCooldownDone", function()
-            local db = self.parent and self.parent.db
-            if db and db.profile.colorTrinket then
-                self.Trinket.Texture:SetColorTexture(0, 1, 0)
-            end
-        end)
     end
 end
 

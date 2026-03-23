@@ -1771,6 +1771,8 @@ function sArenaFrameMixin:OnLoad()
     self.DispelStacks:SetParent(self.Dispel.Overlay)
 
     self.TexturePool = CreateTexturePool(self, "ARTWORK", nil, nil, ResetTexture)
+
+    self:SetupTrinketCooldownDone()
 end
 
 function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
@@ -2478,10 +2480,17 @@ function sArenaFrameMixin:ResetLayout()
     if self.Trinket.Border then
         self.Trinket.Border:SetDesaturated(false)
         self.Trinket.Border:SetVertexColor(1, 1, 1)
+        self.Trinket.Border:Hide()
         self.Racial.Border:SetDesaturated(false)
         self.Racial.Border:SetVertexColor(1, 1, 1)
+        self.Racial.Border:Hide()
         self.Dispel.Border:SetDesaturated(false)
         self.Dispel.Border:SetVertexColor(1, 1, 1)
+        self.Dispel.Border:Hide()
+    end
+
+    if self.ClassIcon.Texture.Border then
+        self.ClassIcon.Texture.Border:Hide()
     end
 
     self.ClassIcon.Texture.useModernBorder = nil

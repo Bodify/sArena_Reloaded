@@ -330,7 +330,7 @@ L["ClassIcon_DontShowAuras"] = "Don't Show Auras on Class Icon"
 L["ClassIcon_DontShowAuras_Desc"] = "Do not show any auras on Class Icons instead always show Class/Spec Icon."
 
 L["Trinket_MinimalistDesign"] = "Minimalist Trinket Design"
-L["Trinket_MinimalistDesign_Desc"] = "Replace Trinket texture with a solid green color when it's up and red when it's on cooldown."
+L["Trinket_MinimalistDesign_Desc"] = "Replace Trinket texture with a solid color. Green when available and red when used by default."
 L["MysteryPlayer_GrayBars"] = "Mystery Player Gray Bars"
 L["MysteryPlayer_GrayBars_Desc"] = "Colors mystery players with gray status bars instead of their class colors. Mystery players are unseen players, aka before gates open and stealthed ones."
 
@@ -434,6 +434,8 @@ L["Option_ShadowsightTimer_Desc"] = "Show a timer at the top of the screen for w
 L["Shadowsight_Ready"] = "Shadowsights Ready"
 L["Shadowsight_SpawnsIn"] = "Shadowsight spawns in %d sec"
 L["Option_ColorTrinket"] = "Color Trinket"
+L["Option_TrinketColorAvailable"] = "Available"
+L["Option_TrinketColorUsed"] = "Used"
 L["Option_ColorNonVisibleFramesGray"] = "Color Non-Visible Frames Gray"
 L["Option_DisableCDTextClassIcon"] = "Disable CD Text on Class Icon"
 L["Option_DisableCDTextClassIcon_Desc"] = "Hide cooldown numbers on the class icon"

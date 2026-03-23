@@ -31,6 +31,10 @@ sArenaMixin.defaultSettings = {
             alwaysShow = true,
             formatNumbers = true,
         },
+        trinketColors = {
+            available = { 0, 1, 0 },
+            used = { 1, 0, 0 },
+        },
         castBarColors = {
             standard = { 1.0, 0.7, 0.0, 1 },
             channel = { 0.0, 1.0, 0.0, 1 },
