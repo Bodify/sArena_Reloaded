@@ -1,3 +1,6 @@
+2.4.1c
+- Fix Color Trinket setting putting available color on people without a found trinket on MoP. And this color still being hardcoded green instead of respecting new settings.
+
 2.4.1b
 - Add new color settings for Color Trinket instead of just green/red.
 - Fix Color Trinket on TBC/MoP not going green again when trinket is up.

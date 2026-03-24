@@ -150,6 +150,9 @@ else
 		[69041] = 120, -- Rocket Barrage
 		[68992] = 120, -- Darkflight
 		[107079] = 120, -- Quaking Palm
+
+		-- Trinkets
+		[42292] = 0, -- PvP Trinket
 	}
 	racialData = {
 		["Human"] = { texture = GetSpellTexture(59752), sharedCD = 120, spellID = 59752 },
@@ -249,7 +252,8 @@ function sArenaFrameMixin:FindRacial(spellID)
 					self.Trinket.Cooldown:SetCooldown(currTime, sharedCD)
 				end
 				if self.parent.db.profile.colorTrinket then
-					self.Trinket.Texture:SetColorTexture(1, 0, 0)
+					local colors = self.parent.db.profile.trinketColors
+					self.Trinket.Texture:SetColorTexture(unpack(colors.used))
 				else
 					self.Trinket.Texture:SetDesaturated(self.parent.db.profile.desaturateTrinketCD)
 				end
@@ -296,11 +300,18 @@ function sArenaFrameMixin:UpdateRacial()
 						self.Racial.Texture:SetTexture(nil)
 
 						if self.parent.db.profile.colorTrinket then
-							local start, duration = self.Racial.Cooldown:GetCooldownTimes()
-							if duration and duration > 0 and (start > 0) then
-								self.Trinket.Texture:SetColorTexture(1, 0, 0)
+							if not self.Trinket.spellID then
+								-- No trinket known, restore racial to its slot and leave trinket empty
+								self.Racial.Texture:SetTexture(racialData[self.race].texture)
+								self.Trinket.Texture:SetTexture(nil)
 							else
-								self.Trinket.Texture:SetColorTexture(0, 1, 0)
+								local colors = self.parent.db.profile.trinketColors
+								local start, duration = self.Racial.Cooldown:GetCooldownTimes()
+								if duration and duration > 0 and (start > 0) then
+									self.Trinket.Texture:SetColorTexture(unpack(colors.used))
+								else
+									self.Trinket.Texture:SetColorTexture(unpack(colors.available))
+								end
 							end
 						else
 							self.Trinket.Texture:SetTexture(racialData[self.race].texture)
