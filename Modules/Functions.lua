@@ -489,7 +489,9 @@ function sArenaMixin:InitializeMidnightDRFrames()
                         local blackBorder = layout and layout.dr and layout.dr.blackDRBorder
                         local borderHidden = layout and layout.dr and layout.dr.disableDRBorder
 
-                        sArenaDrFrame.Cooldown:SetCooldown(GetTime(), 20)
+                        if not sArenaDrFrame.Cooldown:IsShown() then
+                            sArenaDrFrame.Cooldown:SetCooldown(GetTime(), 20)
+                        end
 
                         if not blackBorder and not borderHidden then
                             sArenaDrFrame.Border:SetVertexColorFromBoolean(shown, red, green)
