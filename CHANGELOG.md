@@ -1,3 +1,6 @@
+2.4.1d
+- Midnight: Minor tweak to fix a DR issue.
+
 2.4.1c
 - Fix Color Trinket setting putting available color on people without a found trinket on MoP. And this color still being hardcoded green instead of respecting new settings.
 
