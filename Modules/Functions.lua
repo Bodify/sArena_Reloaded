@@ -473,12 +473,15 @@ function sArenaMixin:InitializeMidnightDRFrames()
 
                     hooksecurefunc(blizzDRFrame, "Hide", function()
                         sArenaDrFrame.Icon:SetTexture(nil)
+                        sArenaDrFrame.Cooldown:Clear()
                         sArenaDrFrame:Hide()
                         arenaFrame:UpdateDRPositions()
                     end)
 
                     hooksecurefunc(blizzDRFrame.Cooldown, "SetCooldown", function(_, start, duration)
                         sArenaDrFrame.Cooldown:SetCooldown(GetTime(), 16.1)
+                        sArenaDrFrame.Cooldown.trueCD = true
+                        C_Timer.After(16.1, function() sArenaDrFrame.Cooldown.trueCD = nil end)
                     end)
 
                     local green = CreateColor(0, 1, 0, 1)
@@ -489,7 +492,7 @@ function sArenaMixin:InitializeMidnightDRFrames()
                         local blackBorder = layout and layout.dr and layout.dr.blackDRBorder
                         local borderHidden = layout and layout.dr and layout.dr.disableDRBorder
 
-                        if not sArenaDrFrame.Cooldown:IsShown() then
+                        if not sArenaDrFrame.Cooldown.trueCD then
                             sArenaDrFrame.Cooldown:SetCooldown(GetTime(), 20)
                         end
 
