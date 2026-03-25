@@ -4211,6 +4211,7 @@ end
 if sArenaMixin:CompatibilityIssueExists() then
     sArenaMixin.optionsTable = {
         type = "group",
+        name = sArenaMixin.addonTitle,
         childGroups = "tab",
         validate = validateCombat,
         args = {
@@ -4301,6 +4302,7 @@ if sArenaMixin:CompatibilityIssueExists() then
 else
     sArenaMixin.optionsTable = {
         type = "group",
+        name = sArenaMixin.addonTitle,
         childGroups = "tab",
         validate = validateCombat,
         args = {

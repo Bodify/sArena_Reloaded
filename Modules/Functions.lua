@@ -603,6 +603,7 @@ end
 function sArenaMixin:ReloadRequiredUI()
     self.optionsTable = {
         type = "group",
+        name = sArenaMixin.addonTitle,
         childGroups = "tab",
         args = {
             reloadRequired = {
