@@ -1,3 +1,7 @@
+2.4.2
+- Fix lua error in pixel border DR coloring logic.
+- Add version number to title top of /sarena
+
 2.4.1e
 - Midnight: Minor tweak to DR's due to reports of funky business that I could not replicate.
 
