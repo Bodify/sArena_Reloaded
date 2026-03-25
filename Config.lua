@@ -3651,6 +3651,14 @@ local function CreatePixelTextureBorder(parent, target, key, size, offset)
                 tex:SetColorTexture(r, g, b, a or 1)
             end
         end
+
+        if isMidnight then
+            function holder:SetVertexColorFromBoolean(boolean, colorIfTrue, colorIfFalse)
+                for _, tex in ipairs(self.edges) do
+                    tex:SetVertexColorFromBoolean(boolean, colorIfTrue, colorIfFalse)
+                end
+            end
+        end
     end
 
     local holder = parent[key]
