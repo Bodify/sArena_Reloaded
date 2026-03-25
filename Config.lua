@@ -3812,7 +3812,7 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
                     if db.blackDRBorder then
                         dr.PixelBorder:SetVertexColor(0, 0, 0, 1)
                     else
-                        if frame:GetID() == 1 then
+                        if n == 1 then
                             dr.PixelBorder:SetVertexColor(1, 0, 0, 1)
                         else
                             dr.PixelBorder:SetVertexColor(0, 1, 0, 1)
