@@ -1,3 +1,7 @@
+2.4.2b
+- Midnight: New setting in Global -> DR to Disable Instant DR Cooldown. (DR cooldown spiral wont show until cc ends/breaks)
+- Midnight: Fix pixel border DR colors sometimes not applying.
+
 2.4.2
 - Fix lua error in pixel border DR coloring logic.
 - Add version number to title top of /sarena

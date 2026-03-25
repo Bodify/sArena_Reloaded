@@ -492,7 +492,7 @@ function sArenaMixin:InitializeMidnightDRFrames()
                         local blackBorder = layout and layout.dr and layout.dr.blackDRBorder
                         local borderHidden = layout and layout.dr and layout.dr.disableDRBorder
 
-                        if not sArenaDrFrame.Cooldown.trueCD then
+                        if not sArenaDrFrame.Cooldown.trueCD and not self.db.profile.disableInstantDRCooldown then
                             sArenaDrFrame.Cooldown:SetCooldown(GetTime(), 20)
                         end
 

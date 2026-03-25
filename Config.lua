@@ -5325,6 +5325,18 @@ else
                                             info.handler:Test()
                                         end
                                     },
+                                    disableInstantDRCooldown = {
+                                        order = 4,
+                                        name = L["Option_DisableInstantDRCooldown"],
+                                        desc = L["Option_DisableInstantDRCooldown_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        hidden = not isMidnight,
+                                        get = function(info) return info.handler.db.profile.disableInstantDRCooldown end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.disableInstantDRCooldown = val
+                                        end,
+                                    },
                                 },
                             },
                             categories = {
