@@ -202,6 +202,7 @@ sArenaMixin.drList = {
 	[81210]  = "Root",       -- Net
 	[135373] = "Root",       -- Entrapment (MoP)
 	[45334]  = "Root",       -- Immobilized (MoP)
+    [115757]  = "Root",      -- Frost nova
 
 	[12494]  = "RandomRoot", -- Frostbite
 	[55080]  = "RandomRoot", -- Shattered Barrier
