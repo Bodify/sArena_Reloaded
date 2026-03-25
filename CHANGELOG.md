@@ -1,3 +1,6 @@
+2.4.1e
+- Midnight: Minor tweak to DR's due to reports of funky business that I could not replicate.
+
 2.4.1d
 - Midnight: Minor tweak to fix a DR issue.
 
