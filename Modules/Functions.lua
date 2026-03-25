@@ -499,7 +499,7 @@ function sArenaMixin:InitializeMidnightDRFrames()
                         if not blackBorder and not borderHidden then
                             sArenaDrFrame.Border:SetVertexColorFromBoolean(shown, red, green)
                             if sArenaDrFrame.PixelBorder then
-                                sArenaDrFrame.PixelBorder:SetVertexColorFromBoolean(shown, red, green)
+                                sArenaDrFrame.PixelBorder:SetVertexColor(sArenaDrFrame.Border:GetVertexColor())
                             end
                         end
 
