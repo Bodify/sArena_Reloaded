@@ -1,3 +1,9 @@
+2.4.2c
+- Add new Dissonance profile (www.twitch.tv/dissonancewow). Thank you for sharing.
+- Tweak interrupt tracker logic to be more consistent. Midnight only: Include priests Silence as an "interrupt" for interrupt color.
+- Tweak default position of Party Target Indicators on BlizzRaid layout.
+- Clean up cooldown text settings a bit. Shouldnt make a difference to anything ingame.
+
 2.4.2b
 - Midnight: New setting in Global -> DR to Disable Instant DR Cooldown. (DR cooldown spiral wont show until cc ends/breaks)
 - Midnight: Fix pixel border DR colors sometimes not applying.
