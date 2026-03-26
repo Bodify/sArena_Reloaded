@@ -66,9 +66,10 @@ sArenaMixin.classPowerType = {
     EVOKER = "ESSENCE",
 }
 
-function sArenaMixin:Print(fmt, ...)
-    local prefix = "|cffffffffsArena |cffff8000Reloaded|r |T135884:13:13|t:"
-    print(prefix, string.format(fmt, ...))
+function sArenaMixin:Print(msg)
+    if msg then
+        print("|cffffffffsArena |cffff8000Reloaded|r |T135884:13:13|t: " .. msg)
+    end
 end
 
 local function IsSoloShuffle()
@@ -734,7 +735,7 @@ local function ChatCommand(input)
     elseif cmd == "convert" then
         sArenaMixin:ImportOtherForkSettings()
     elseif cmd == "ver" or cmd == "version" then
-        sArenaMixin:Print(L["Print_CurrentVersion"], C_AddOns.GetAddOnMetadata("sArena_Reloaded", "Version"))
+        sArenaMixin:Print(string.format(L["Print_CurrentVersion"], C_AddOns.GetAddOnMetadata("sArena_Reloaded", "Version")))
     elseif cmd:match("^test%s*[1-5]$") then
         sArenaMixin.testUnits = tonumber(cmd:match("(%d)"))
         input = "test"

@@ -5915,7 +5915,7 @@ else
                                     end
                                 end)
                             else
-                                sArenaMixin:Print(L["Message_ExportFailed"], err)
+                                sArenaMixin:Print(L["Message_ExportFailed"] .. " " .. err)
                             end
                         end,
                         width = "normal",
@@ -5958,7 +5958,7 @@ else
                             local str = sArenaMixin.importInputText
                             local success, err = sArenaMixin:ImportProfile(str)
                             if not success then
-                                sArenaMixin:Print(L["Message_ImportFailed"], err)
+                                sArenaMixin:Print(L["Message_ImportFailed"] .. " " .. err)
                             else
                                 sArena_ReloadedDB.reOpenOptions = true
                             end

@@ -155,6 +155,9 @@ function sArenaMixin:ImportProfile(encodedString, customProfileName, externalSou
     end
 
     local encoded = encodedString:match("^!sArena:(.+):sArena!$")
+    if not encoded or encoded:find("!") then
+        return nil, "Import code probably double copypasted. Make sure to copy the entire code only once."
+    end
     local compressed = LibDeflate:DecodeForPrint(encoded)
     local serialized, decompressErr = LibDeflate:DecompressDeflate(compressed)
 
@@ -226,7 +229,7 @@ function sArenaMixin:ImportStreamerProfile(streamerName, profileString, displayN
     if not profileExists then
         local success, err = sArenaMixin:ImportProfile(data.profileString, data.profileName)
         if not success then
-            sArenaMixin:Print(L["Message_ImportFailed"], err)
+            sArenaMixin:Print(L["Message_ImportFailed"] .. " " .. err)
         end
         return
     end
@@ -238,7 +241,7 @@ function sArenaMixin:ImportStreamerProfile(streamerName, profileString, displayN
     ShowImportConfirmDialog(message, function(d)
         local success, err = sArenaMixin:ImportProfile(d.profileString, d.profileName)
         if not success then
-            sArenaMixin:Print(L["Message_ImportFailed"], err)
+            sArenaMixin:Print(L["Message_ImportFailed"] .. " " .. err)
         end
     end, data)
 end
