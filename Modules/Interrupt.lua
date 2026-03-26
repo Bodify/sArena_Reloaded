@@ -3,8 +3,10 @@
 -- No portion of this file may be copied, modified, redistributed, or used
 -- in other projects without explicit prior written permission from the author.
 
+local interruptList = sArenaMixin.interruptList
+
 local function GetInterruptSpell()
-    for spellID, _ in pairs(sArenaMixin.interruptList) do
+    for spellID, _ in pairs(interruptList) do
         if IsSpellKnownOrOverridesKnown(spellID) or (UnitExists("pet") and IsSpellKnownOrOverridesKnown(spellID, true)) then
             return spellID
         end
@@ -55,9 +57,7 @@ end
 
 -- Function to update the interrupt icon
 local function UpdateInterruptIcon(frame)
-    if not playerKick then
-        playerKick = GetInterruptSpell()
-    end
+    playerKick = GetInterruptSpell()
     if playerKick then
         ApplyInterruptCooldown(frame.cooldown, playerKick)
     end
@@ -65,7 +65,7 @@ end
 
 local function OnInterruptUpdate(self, event, unit, _, spellID)
     if event == "UNIT_SPELLCAST_SUCCEEDED" then
-        if sArenaMixin.interruptList[spellID] then
+        if interruptList[spellID] then
             ApplyInterruptCooldown(sArenaMixin.interruptIcon.cooldown, spellID)
             sArenaMixin.interruptReady = false
             sArenaMixin:UpdateCastbarInterruptStatus()
@@ -83,7 +83,7 @@ end
 local cooldownFrame = CreateFrame("Frame")
 cooldownFrame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
 cooldownFrame:SetScript("OnEvent", function(self, event, spellID)
-    if spellID ~= playerKick then return end
+    if not interruptList[spellID] then return end
     UpdateInterruptIcon(sArenaMixin.interruptIcon)
 end)
 
