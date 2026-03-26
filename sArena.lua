@@ -986,6 +986,14 @@ function sArenaMixin:UpdateDecimalThreshold()
 end
 
 function sArenaMixin:CreateCustomCooldown(cooldown, showDecimals)
+    if isMidnight then
+        cooldown:SetHideCountdownNumbers(false)
+        if showDecimals and cooldown.SetCountdownMillisecondsThreshold then
+            cooldown:SetCountdownMillisecondsThreshold(decimalThreshold)
+        end
+        return
+    end
+
     local text = cooldown.sArenaText or cooldown:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
     if not cooldown.sArenaText then
         cooldown.sArenaText = text
@@ -1012,18 +1020,9 @@ function sArenaMixin:CreateCustomCooldown(cooldown, showDecimals)
         text:SetJustifyV("MIDDLE")
     end
 
-    local hideNumbers
-    if isMidnight then
-        hideNumbers = false
-        if showDecimals and cooldown.SetCountdownMillisecondsThreshold then
-            cooldown:SetCountdownMillisecondsThreshold(decimalThreshold)
-        end
-    else
-        hideNumbers = showDecimals
-    end
-    cooldown:SetHideCountdownNumbers(hideNumbers)
+    cooldown:SetHideCountdownNumbers(showDecimals)
 
-    if showDecimals and not isMidnight then
+    if showDecimals then
         cooldown.hideDefaultCD = true
         local lastUpdate = 0
         cooldown:SetScript("OnUpdate", function(self, elapsed)
