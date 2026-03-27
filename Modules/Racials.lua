@@ -344,5 +344,6 @@ function sArenaFrameMixin:ResetRacial()
     self.Racial.Texture:SetTexture(nil)
     self.Racial.Cooldown:Clear()
     self.updateRacialOnTrinketSlot = nil
+    self.sharedRacialCDActive = nil
     self:UpdateRacial()
 end

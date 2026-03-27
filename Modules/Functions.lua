@@ -133,6 +133,18 @@ function sArenaMixin:UpdateBlizzArenaFrameVisibility(instanceType)
     end
 end
 
+function sArenaMixin:CheckMatchStatus()
+    if not isMidnight then return end
+
+    local state = C_PvP.GetActiveMatchState()
+
+    if state == Enum.PvPMatchState.StartUp then
+        sArenaMixin.waitingForMatch = true
+    else
+        sArenaMixin.waitingForMatch = nil
+    end
+end
+
 function sArenaMixin:UpdateCDTextVisibility()
     local db = self.db
     if not db then return end
@@ -557,7 +569,11 @@ function sArenaFrameMixin:HookMidnightTrinket()
             if self.Racial.Texture:GetTexture() then
                 local sharedCD = self:GetSharedCD()
                 if sharedCD then
+                    self.sharedRacialCDActive = true
                     self.Racial.Cooldown:SetCooldown(GetTime(), sharedCD)
+                    C_Timer.After(sharedCD, function() self.sharedRacialCDActive = nil end)
+                elseif not self.sharedRacialCDActive then
+                    self.Racial.Cooldown:Clear()
                 end
             end
         end)
@@ -568,7 +584,11 @@ function sArenaFrameMixin:HookMidnightTrinket()
                 local colors = db.profile.trinketColors
                 self.Trinket.Texture:SetColorTexture(unpack(colors.available))
             else
-                if texture ~= "INTERFACE\\ICONS\\INV_MISC_QUESTIONMARK.BLP" then
+                if not issecretvalue(texture) then
+                    if texture ~= "INTERFACE\\ICONS\\INV_MISC_QUESTIONMARK.BLP" then
+                        self.Trinket.Texture:SetTexture(texture)
+                    end
+                else
                     self.Trinket.Texture:SetTexture(texture)
                 end
             end
