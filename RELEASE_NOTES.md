@@ -1,3 +1,8 @@
+2.4.2d
+- Tweaks to interrupt tracking and coloring.
+- Tweaks to Midnight Trinket/Racial icons.
+- Set frames fully visible between arena shuffle rounds on Midnight.
+
 2.4.2c
 - Add new Dissonance profile (www.twitch.tv/dissonancewow). Thank you for sharing.
 - Tweak interrupt tracker logic to be more consistent. Midnight only: Include priests Silence as an "interrupt" for interrupt color.
