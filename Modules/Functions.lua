@@ -568,7 +568,7 @@ function sArenaFrameMixin:HookMidnightTrinket()
             -- Update shared Racial CD
             if self.Racial.Texture:GetTexture() then
                 local sharedCD = self:GetSharedCD()
-                if sharedCD then
+                if sharedCD and sharedCD ~= 0 then
                     self.sharedRacialCDActive = true
                     self.Racial.Cooldown:SetCooldown(GetTime(), sharedCD)
                     C_Timer.After(sharedCD, function() self.sharedRacialCDActive = nil end)
