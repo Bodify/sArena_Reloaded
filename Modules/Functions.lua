@@ -631,7 +631,7 @@ function sArenaMixin:EnsureArenaFramesEnabled(attempt)
 
     local fixedElvUI = self:IsElvUIActive()
     if fixedElvUI then
-        C_Timer.After(3, function()
+        C_Timer.After(5, function()
             self:Print(L["ElvUI_ArenaFrames_Fix"])
         end)
     end
