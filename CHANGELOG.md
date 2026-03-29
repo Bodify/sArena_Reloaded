@@ -1,4 +1,5 @@
 2.4.3
+- Fix issue with Trinket etc not working properly due to ElvUI's setting to disable default arena frames.
 - Fix some problems with the frames not being fully visible in spawn room all the time.
 - Fix some misconfiguration issues behind the scenes. This is a lot of small changes everywhere in the addon so launching as beta for a while before release.
 
