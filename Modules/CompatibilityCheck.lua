@@ -45,7 +45,9 @@ end
 
 function sArenaMixin:IsElvUIActive()
     -- Check if ElvUI is loaded and if it hides default arena frames which causes issues.
+    -- Clean this up in a future release and maybe also add a check/warning about ElvUI's own Arena Frames once tested.
     if C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].private.unitframe.disabledBlizzardFrames.arena then
+        ElvUI[1].private.unitframe.disabledBlizzardFrames.arena = false
         return true
     end
     return false

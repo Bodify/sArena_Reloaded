@@ -629,6 +629,8 @@ function sArenaMixin:EnsureArenaFramesEnabled(attempt)
         return
     end
 
+    self:IsElvUIActive()
+
     local arenaFramesEnabled = EditModeManagerFrame:GetAccountSettingValueBool(Enum.EditModeAccountSetting.ShowArenaFrames)
     if not arenaFramesEnabled then
         EditModeManagerFrame:OnAccountSettingChanged(Enum.EditModeAccountSetting.ShowArenaFrames, true)
