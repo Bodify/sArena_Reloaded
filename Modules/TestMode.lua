@@ -417,11 +417,11 @@ function sArenaMixin:ExpandTestTemplates()
     self.expandedTemplates = true
 end
 
-local function Shuffle()
-    local MAX = sArenaMixin.maxArenaOpponents or 3
+function sArenaMixin:ShufflePlayerExamples()
+    local MAX = self.maxArenaOpponents or 3
     if MAX < 1 then return {} end
 
-    local specInfo = sArenaMixin.specInfo
+    local specInfo = self.specInfo
     local function isHealer(p)
         local info = p.specId and specInfo[p.specId]
         return info and info.type == "Healers" or false
@@ -511,7 +511,7 @@ function sArenaMixin:Test()
     if not self.expandedTemplates then
         self:ExpandTestTemplates()
     end
-    local shuffledPlayers = Shuffle()
+    local shuffledPlayers = self:ShufflePlayerExamples()
     shuffledPlayers = self:SortTestPlayersForFrameSort(shuffledPlayers)
     local db = self.db
     local cropIcons = db.profile.layoutSettings[db.profile.currentLayout].cropIcons
@@ -1130,7 +1130,7 @@ function sArenaMixin:Test()
             if partyFrame then
                 self:CreatePartyFrameIndicators(partyFrame)
                 self:RepositionPartyFrameIndicators(partyFrame, arenaDirection, arenaSpacing, aopPosX, aopPosY)
-                for j = 1, sArenaMixin.maxArenaOpponents do
+                for j = 1, self.maxArenaOpponents do
                     local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
                     indicator:SetScale(arenaScale)
                     local c = classColors[math.random(#classColors)]
@@ -1144,7 +1144,7 @@ function sArenaMixin:Test()
         for i = 1, 5 do
             local partyFrame = self:GetPartyFrame(i)
             if partyFrame and partyFrame.WidgetOverlay then
-                for j = 1, sArenaMixin.maxArenaOpponents do
+                for j = 1, self.maxArenaOpponents do
                     partyFrame.WidgetOverlay["arenaTarget" .. j]:Hide()
                 end
             end
@@ -1190,7 +1190,7 @@ function sArenaMixin:Test()
             for i = 1, 5 do
                 local partyFrame = self:GetPartyFrame(i)
                 if partyFrame and partyFrame.WidgetOverlay then
-                    for j = 1, sArenaMixin.maxArenaOpponents do
+                    for j = 1, self.maxArenaOpponents do
                         local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
                         indicator:Hide()
                         indicator:SetAlpha(0)

@@ -12,16 +12,16 @@ function sArenaFrameMixin:CheckForSpecSpell(spellID)
     if self.specName then return end
     if not self.class then return end
 
-    local detectedSpec = sArenaMixin:GetSpecNameFromSpell(spellID)
+    local detectedSpec = self.parent:GetSpecNameFromSpell(spellID)
     if not detectedSpec then return end
 
-    local classSpecs = sArenaMixin.specIconTextures[self.class]
+    local classSpecs = self.parent.specIconTextures[self.class]
     if not classSpecs or not classSpecs[detectedSpec] then
         return false
     end
 
     self.specName = detectedSpec
-    self.isHealer = sArenaMixin.healerSpecNames[detectedSpec] or false
+    self.isHealer = self.parent.healerSpecNames[detectedSpec] or false
     self.specTexture = classSpecs[detectedSpec]
 
     self.SpecNameText:SetText(detectedSpec)

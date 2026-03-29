@@ -1,3 +1,7 @@
+2.4.3
+- Fix some problems with the frames not being fully visible in spawn room all the time.
+- Fix some misconfiguration issues behind the scenes. This is a lot of small changes everywhere in the addon so launching as beta for a while before release.
+
 2.4.2d
 - Tweaks to interrupt tracking and coloring.
 - Tweaks to Midnight Trinket/Racial icons.

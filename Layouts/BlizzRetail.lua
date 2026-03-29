@@ -131,7 +131,7 @@ end
 local function setSetting(info, val)
     layout.db[info[#info]] = val
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, info.handler.maxArenaOpponents do
         local frame = info.handler["arena" .. i]
         layout:UpdateOrientation(frame)
     end
@@ -148,7 +148,7 @@ local function setSetting(info, val)
         end
     end
 
-    sArenaMixin:RefreshConfig()
+    info.handler:RefreshConfig()
 end
 
 local function setupOptionsTable(self)
@@ -179,7 +179,7 @@ function layout:Initialize(frame)
         setupOptionsTable(frame.parent)
     end
 
-    if (frame:GetID() == sArenaMixin.maxArenaOpponents) then
+    if (frame:GetID() == frame.parent.maxArenaOpponents) then
         frame.parent:UpdateCastBarSettings(self.db.castBar)
         frame.parent:UpdateDRSettings(self.db.dr)
         frame.parent:UpdateFrameSettings(self.db)

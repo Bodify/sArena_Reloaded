@@ -145,7 +145,7 @@ end
 local function setSetting(info, val)
     layout.db[info[#info]] = val
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, info.handler.maxArenaOpponents do
         local frame = info.handler["arena" .. i]
         frame:SetSize(layout.db.width, layout.db.height)
         frame.ClassIcon:SetSize(layout.db.height, layout.db.height)
@@ -153,7 +153,10 @@ local function setSetting(info, val)
         frame.PowerBar:SetHeight(layout.db.powerBarHeight)
         layout:UpdateOrientation(frame)
     end
-    sArenaMixin:RefreshConfig()
+    local setting = info[#info]
+    if (setting ~= "width" and setting ~= "height" and setting ~= "powerBarHeight") then
+        info.handler:RefreshConfig()
+    end
 end
 
 local function setupOptionsTable(self)
@@ -212,13 +215,13 @@ end
 
 function layout:Initialize(frame)
     self.db = frame.parent.db.profile.layoutSettings[layoutName]
-    sArenaMixin.useSpecClassIcon = true
+    frame.parent.useSpecClassIcon = true
 
     if (not self.optionsTable) then
         setupOptionsTable(frame.parent)
     end
 
-    if (frame:GetID() == sArenaMixin.maxArenaOpponents) then
+    if (frame:GetID() == frame.parent.maxArenaOpponents) then
         frame.parent:UpdateCastBarSettings(self.db.castBar)
         frame.parent:UpdateDRSettings(self.db.dr)
         frame.parent:UpdateFrameSettings(self.db)

@@ -13,7 +13,7 @@ function sArenaMixin:ModernOrClassicCastbar()
     local castbarSettings = layoutSettings.castBar
 
     if isMidnight then
-        for i = 1, sArenaMixin.maxArenaOpponents do
+        for i = 1, self.maxArenaOpponents do
             local frame = _G["sArenaEnemyFrame" .. i]
             local newBar = frame.CastBar
 
@@ -39,10 +39,6 @@ function sArenaMixin:ModernOrClassicCastbar()
                     newBar.Border:SetVertexColor(darkModeColor, darkModeColor, darkModeColor)
                 end
 
-                -- newBar.Border:SetPoint("TOPLEFT", newBar, "TOPLEFT", -1.4, 1.6)
-                -- newBar.Border:SetPoint("BOTTOMRIGHT", newBar, "BOTTOMRIGHT", 1.4, -1.6)
-
-                -- Handle simple castbar styling
                 newBar.Border:SetAlpha(1)
                 if simpleCastbar then
                     newBar.Text:ClearAllPoints()
@@ -72,7 +68,7 @@ function sArenaMixin:ModernOrClassicCastbar()
 
             newBar:SetParent(frame)
 
-            if i == sArenaMixin.maxArenaOpponents then
+            if i == self.maxArenaOpponents then
                 self:UpdateCastBarSettings(castbarSettings)
                 self:UpdateFonts()
             end
@@ -82,10 +78,9 @@ function sArenaMixin:ModernOrClassicCastbar()
             frame.CastBar:SetFrameLevel(7)
         end
 
-        -- Update text positioning after castbar changes
         local currentLayout = self.layouts[db.profile.currentLayout]
         if currentLayout and currentLayout.UpdateOrientation then
-            for i = 1, sArenaMixin.maxArenaOpponents do
+            for i = 1, self.maxArenaOpponents do
                 local frame = _G["sArenaEnemyFrame" .. i]
                 if frame then
                     currentLayout:UpdateOrientation(frame)
@@ -93,12 +88,12 @@ function sArenaMixin:ModernOrClassicCastbar()
             end
         end
     else
-        for i = 1, sArenaMixin.maxArenaOpponents do
+        for i = 1, self.maxArenaOpponents do
             local frame = _G["sArenaEnemyFrame" .. i]
             if (frame and useModern) or frame.CastBar.__modernHooked then
                 local unit = "arena"..i
                 self:ApplyCastbarStyle(frame, unit, useModern, simpleCastbar)
-                if i == sArenaMixin.maxArenaOpponents then
+                if i == self.maxArenaOpponents then
                     self:UpdateCastBarSettings(castbarSettings)
                     self:UpdateFonts()
                 end
@@ -109,10 +104,9 @@ function sArenaMixin:ModernOrClassicCastbar()
             end
         end
 
-        -- Update text positioning after castbar changes
         local currentLayout = self.layouts[db.profile.currentLayout]
         if currentLayout and currentLayout.UpdateOrientation then
-            for i = 1, sArenaMixin.maxArenaOpponents do
+            for i = 1, self.maxArenaOpponents do
                 local frame = _G["sArenaEnemyFrame" .. i]
                 if frame then
                     currentLayout:UpdateOrientation(frame)
@@ -186,12 +180,12 @@ function sArenaFrameMixin:SetupMidnightCastBarDrag()
 end
 
 function sArenaMixin:CreateCastbarIDText()
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         local castBar = frame.CastBar
         if castBar and not castBar.ArenaIDText then
             local idText = castBar:CreateFontString(nil, "OVERLAY")
-            -- Copy font properties from CastBar.Text
+
             local fontFile, fontSize, fontFlags = castBar.Text:GetFont()
             idText:SetFont(fontFile, fontSize, fontFlags)
             local r, g, b, a = castBar.Text:GetTextColor()
@@ -221,7 +215,7 @@ function sArenaMixin:UpdateCastbarIDText()
     local idOffsetY = textSettings and textSettings.castbarIDOffsetY or 0
     local idSize = textSettings and textSettings.castbarIDSize or 1.0
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         local castBar = frame.CastBar
         if castBar and castBar.ArenaIDText then
@@ -304,11 +298,8 @@ local function ApplyModern(bar, simpleCastbar, frame, unit)
         bar.__origColorsSaved = true
     end
 
-    -- Let the event system handle coloring instead of hardcoding colors
-    -- Use default cast color for finished casts (not a separate color)
-    local castbarColors = sArenaMixin.castbarColors
+    local castbarColors = frame.parent.castbarColors
     if castbarColors and castbarColors.enabled then
-        -- Use custom colors from config
         local standardColor = castbarColors.standard or { 1.0, 0.7, 0.0, 1 }
         local channelColor = castbarColors.channel or { 0.0, 1.0, 0.0, 1 }
         local unintColor = castbarColors.uninterruptable or { 0.7, 0.7, 0.7, 1 }
@@ -320,7 +311,6 @@ local function ApplyModern(bar, simpleCastbar, frame, unit)
         bar.startCastColor        = CreateColor(standardColor[1], standardColor[2], standardColor[3], standardColor[4])
         bar.startChannelColor     = CreateColor(channelColor[1], channelColor[2], channelColor[3], channelColor[4])
     else
-        -- Use default colors
         bar.failedCastColor       = CreateColor(1.0, 0.0, 0.0, 1)
         bar.finishedCastColor     = CreateColor(1.0, 0.7, 0.0, 1)
         bar.nonInterruptibleColor = CreateColor(0.7, 0.7, 0.7, 1)
@@ -335,7 +325,6 @@ local function ApplyModern(bar, simpleCastbar, frame, unit)
     bar.Border:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 1, -1.5)
     bar.Border:Show()
 
-    -- Handle simple castbar styling
     if simpleCastbar then
         bar.TextBorder:Hide()
         bar.Text:ClearAllPoints()
@@ -392,7 +381,7 @@ local function ApplyModern(bar, simpleCastbar, frame, unit)
     bar:Show()
 end
 
-local function RestoreClassic(bar)
+local function RestoreClassic(bar, frame)
     bar.Text:ClearAllPoints()
     bar.Text:SetPoint("CENTER", bar, "CENTER", 0, 0)
     bar:SetHeight(16)
@@ -402,10 +391,8 @@ local function RestoreClassic(bar)
     if bar.Background then bar.Background:Hide() end
     if bar.Border then bar.Border:Hide() end
 
-    -- Apply custom colors to classic castbars as well
-    local castbarColors = sArenaMixin.castbarColors
+    local castbarColors = frame and frame.parent and frame.parent.castbarColors
     if castbarColors and castbarColors.enabled then
-        -- Use custom colors from config
         local standardColor = castbarColors.standard or { 1.0, 0.7, 0.0, 1 }
         local channelColor = castbarColors.channel or { 0.0, 1.0, 0.0, 1 }
         local unintColor = castbarColors.uninterruptable or { 0.7, 0.7, 0.7, 1 }
@@ -417,7 +404,6 @@ local function RestoreClassic(bar)
         bar.startCastColor        = CreateColor(standardColor[1], standardColor[2], standardColor[3], standardColor[4])
         bar.startChannelColor     = CreateColor(channelColor[1], channelColor[2], channelColor[3], channelColor[4])
     else
-        -- Restore original colors
         local o = bar.__origColors
         if o then
             if o.failed then bar.failedCastColor = CreateColor(o.failed.r, o.failed.g, o.failed.b, o.failed.a) end
@@ -451,17 +437,15 @@ local function EnableCastBarClassicMode(bar, modern, simpleCastbar, frame, unit)
     if modern then
         ApplyModern(bar, simpleCastbar, frame, unit)
     else
-        RestoreClassic(bar)
+        RestoreClassic(bar, frame)
     end
 end
 
--- Helper function to update castbar colors for both modern and classic bars
-local function UpdateCastbarColorsMoP(bar)
+local function UpdateCastbarColorsMoP(bar, parent)
     if not bar then return end
-    
-    local castbarColors = sArenaMixin.castbarColors
+
+    local castbarColors = parent and parent.castbarColors
     if castbarColors and castbarColors.enabled then
-        -- Use custom colors from config
         local standardColor = castbarColors.standard or { 1.0, 0.7, 0.0, 1 }
         local channelColor = castbarColors.channel or { 0.0, 1.0, 0.0, 1 }
         local unintColor = castbarColors.uninterruptable or { 0.7, 0.7, 0.7, 1 }
@@ -473,7 +457,6 @@ local function UpdateCastbarColorsMoP(bar)
         bar.startCastColor        = CreateColor(standardColor[1], standardColor[2], standardColor[3], standardColor[4])
         bar.startChannelColor     = CreateColor(channelColor[1], channelColor[2], channelColor[3], channelColor[4])
     else
-        -- Restore original colors if available
         local o = bar.__origColors
         if o then
             if o.failed then bar.failedCastColor = CreateColor(o.failed.r, o.failed.g, o.failed.b, o.failed.a) end
@@ -485,12 +468,11 @@ local function UpdateCastbarColorsMoP(bar)
     end
 end
 
--- Export function to update all arena castbar colors
 function sArenaMixin:UpdateMoPCastbarColors()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         if frame and frame.CastBar then
-            UpdateCastbarColorsMoP(frame.CastBar)
+            UpdateCastbarColorsMoP(frame.CastBar, self)
         end
     end
 end

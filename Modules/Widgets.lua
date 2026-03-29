@@ -42,7 +42,7 @@ function sArenaMixin:RegisterWidgetEvents()
         end
 
         if widgetSettings.combatIndicator and widgetSettings.combatIndicator.enabled then
-            for i = 1, sArenaMixin.maxArenaOpponents do
+            for i = 1, self.maxArenaOpponents do
                 local frame = self["arena" .. i]
                 local unit = frame.unit
                 frame:RegisterUnitEvent("UNIT_FLAGS", unit)
@@ -55,7 +55,7 @@ function sArenaMixin:UnregisterWidgetEvents()
     self:UnregisterEvent("PLAYER_TARGET_CHANGED")
     self:UnregisterEvent("PLAYER_FOCUS_CHANGED")
     self:UnregisterEvent("UNIT_TARGET")
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         frame:UnregisterEvent("UNIT_FLAGS")
     end
@@ -66,7 +66,7 @@ function sArenaMixin:UpdateWidgetSettings(db, info, val)
     self:UnregisterWidgetEvents()
     self:RegisterWidgetEvents()
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
 
 
@@ -466,7 +466,7 @@ function sArenaMixin:CreatePartyFrameIndicators(partyFrame)
     overlay:SetFrameLevel(partyFrame:GetFrameLevel() + 10)
     partyFrame.WidgetOverlay = overlay
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local indicator = CreateFrame("Frame", nil, overlay)
         indicator:SetSize(15, 15)
         indicator:Hide()
@@ -489,7 +489,7 @@ function sArenaMixin:RepositionPartyFrameIndicators(partyFrame, direction, spaci
     local first = overlay.arenaTarget1
     first:ClearAllPoints()
     first:SetPoint("TOPRIGHT", partyFrame, "TOPRIGHT", posX or 0, (posY or 0) -0.5)
-    for i = 2, sArenaMixin.maxArenaOpponents do
+    for i = 2, self.maxArenaOpponents do
         self:ChainIndicator(overlay["arenaTarget" .. i], overlay["arenaTarget" .. (i - 1)], direction, spacing or 1)
     end
 end
@@ -504,7 +504,7 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
         for i = 1, 5 do
             local partyFrame = self:GetPartyFrame(i)
             if partyFrame and partyFrame.WidgetOverlay then
-                for j = 1, sArenaMixin.maxArenaOpponents do
+                for j = 1, self.maxArenaOpponents do
                     partyFrame.WidgetOverlay["arenaTarget" .. j]:Hide()
                 end
             end
@@ -525,12 +525,12 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
             self:CreatePartyFrameIndicators(partyFrame)
             self:RepositionPartyFrameIndicators(partyFrame, arenaDirection, arenaSpacing, aopPosX, aopPosY)
 
-            for j = 1, sArenaMixin.maxArenaOpponents do
+            for j = 1, self.maxArenaOpponents do
                 partyFrame.WidgetOverlay["arenaTarget" .. j]:SetScale(arenaScale)
             end
 
             if self.testMode then
-                for j = 1, sArenaMixin.maxArenaOpponents do
+                for j = 1, self.maxArenaOpponents do
                     local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
                     indicator:Show()
                     indicator:SetAlpha(1)
@@ -539,7 +539,7 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
             local partyUnit = partyFrame.unit or partyFrame:GetAttribute("unit")
             if partyUnit and UnitExists(partyUnit) then
                 if isMidnight then
-                    for j = 1, sArenaMixin.maxArenaOpponents do
+                    for j = 1, self.maxArenaOpponents do
                         local arenaUnit = "arena" .. j
                         local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
                         local isTarget = UnitExists(arenaUnit) and UnitIsUnit(arenaUnit .. "target", partyUnit)
@@ -553,14 +553,14 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
                     end
                 else
                     local attackers = {}
-                    for j = 1, sArenaMixin.maxArenaOpponents do
+                    for j = 1, self.maxArenaOpponents do
                         local arenaUnit = "arena" .. j
                         if UnitExists(arenaUnit) and UnitIsUnit(arenaUnit .. "target", partyUnit) then
                             table.insert(attackers, arenaUnit)
                         end
                     end
 
-                    for j = 1, sArenaMixin.maxArenaOpponents do
+                    for j = 1, self.maxArenaOpponents do
                         local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
                         if attackers[j] then
                             local class = select(2, UnitClass(attackers[j]))
@@ -575,7 +575,7 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
                     end
                 end
             else
-                for j = 1, sArenaMixin.maxArenaOpponents do
+                for j = 1, self.maxArenaOpponents do
                     partyFrame.WidgetOverlay["arenaTarget" .. j]:Hide()
                 end
             end

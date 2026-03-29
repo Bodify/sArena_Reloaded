@@ -23,7 +23,7 @@ function sArenaMixin:ImportOtherForkSettings()
     -- Both profileKeys and profiles are essential for AceDB addon profiles
     if not oldDB or not oldDB.profileKeys or not oldDB.profiles then
         -- Display error message to user if no valid sArena database found
-        sArenaMixin.conversionStatusText = "|cffFF0000No other sArena found. Are you sure it's enabled?|r"
+        self.conversionStatusText = "|cffFF0000No other sArena found. Are you sure it's enabled?|r"
         -- Refresh the config UI to show the error message
         LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
         return

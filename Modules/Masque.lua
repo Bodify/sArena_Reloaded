@@ -53,7 +53,7 @@ function sArenaMixin:AddMasqueSupport()
         })
     end
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         frame.FrameMsq = CreateFrame("Frame", nil, frame)
         frame.FrameMsq:SetFrameStrata("HIGH")

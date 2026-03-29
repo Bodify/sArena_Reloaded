@@ -306,8 +306,9 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             name = L["Spacing"],
                             desc = L["Option_SpacingBetweenFrames_Desc"],
                             type = "range",
-                            min = 0,
+                            min = -10,
                             max = 100,
+                            softMin = 0,
                             step = 1,
                         },
                         growthDirection = {
@@ -3399,7 +3400,7 @@ function sArenaMixin:UpdateFrameSettings(db, info, val)
     local spacing = db.spacing
     local layoutCF = (self.layoutdb and self.layoutdb.changeFont)
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local text = self["arena" .. i].ClassIcon.Cooldown.Text
         local fontToUse = text.fontFile
         if layoutCF then
@@ -3412,7 +3413,7 @@ function sArenaMixin:UpdateFrameSettings(db, info, val)
         end
     end
 
-    for i = 2, sArenaMixin.maxArenaOpponents do
+    for i = 2, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         local prevFrame = self["arena" .. i - 1]
 
@@ -3434,7 +3435,7 @@ function sArenaMixin:UpdateCastBarSettings(db, info, val)
         db[info[#info]] = val
     end
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
 
         frame.CastBar:ClearAllPoints()
@@ -3501,7 +3502,7 @@ function sArenaMixin:UpdateCastBarPixelBorders()
     local cropIcons = layoutSettings and layoutSettings.cropIcons or false
     local useModernCastbars = layoutSettings and layoutSettings.castBar and layoutSettings.castBar.useModernCastbars or false
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
 
         if frame.CastBar.castBar then
@@ -3534,7 +3535,7 @@ function sArenaMixin:UpdateCastbarColors()
     local colors = self.db and self.db.profile and self.db.profile.castBarColors
 
     if layoutSettings then
-        sArenaMixin.interruptStatusColorOn = interruptStatusColorOn
+        self.interruptStatusColorOn = interruptStatusColorOn
     end
 
     local defaultStandard = { 1.0, 0.7, 0.0, 1 }
@@ -3547,7 +3548,7 @@ function sArenaMixin:UpdateCastbarColors()
     local uninterruptableColor = (colors and colors.uninterruptable) or defaultUninterruptable
     local interruptNotReadyColor = (colors and colors.interruptNotReady) or defaultInterruptNotReady
 
-    sArenaMixin.castbarColors = {
+    self.castbarColors = {
         enabled = recolorEnabled,
         standard = standardColor,
         channel = channelColor,
@@ -3556,17 +3557,17 @@ function sArenaMixin:UpdateCastbarColors()
     }
 
     if isMidnight then
-        sArenaMixin.castbarColors.colorStandard = CreateColor(unpack(standardColor))
-        sArenaMixin.castbarColors.colorChannel = CreateColor(unpack(channelColor))
-        sArenaMixin.castbarColors.colorUninterruptable = CreateColor(unpack(uninterruptableColor))
-        sArenaMixin.castbarColors.colorInterruptNotReady = CreateColor(unpack(interruptNotReadyColor))
-        sArenaMixin.castbarColors.defaultStandard = CreateColor(1.0, 0.7, 0.0, 1)
-        sArenaMixin.castbarColors.defaultChannel = CreateColor(0.0, 1.0, 0.0, 1)
-        sArenaMixin.castbarColors.defaultUninterruptable = CreateColor(0.7, 0.7, 0.7, 1)
+        self.castbarColors.colorStandard = CreateColor(unpack(standardColor))
+        self.castbarColors.colorChannel = CreateColor(unpack(channelColor))
+        self.castbarColors.colorUninterruptable = CreateColor(unpack(uninterruptableColor))
+        self.castbarColors.colorInterruptNotReady = CreateColor(unpack(interruptNotReadyColor))
+        self.castbarColors.defaultStandard = CreateColor(1.0, 0.7, 0.0, 1)
+        self.castbarColors.defaultChannel = CreateColor(0.0, 1.0, 0.0, 1)
+        self.castbarColors.defaultUninterruptable = CreateColor(0.7, 0.7, 0.7, 1)
     end
 
     -- Update MoP castbar colors for already-created castbars
-    if sArenaMixin.isMoP and self.UpdateMoPCastbarColors then
+    if self.isMoP and self.UpdateMoPCastbarColors then
         self:UpdateMoPCastbarColors()
     end
 end
@@ -3698,7 +3699,7 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
 
     local layoutCF = (self.layoutdb and self.layoutdb.changeFont)
 
-    sArenaMixin.drBaseSize = isMidnight and (db.size or 28) or db.size
+    self.drBaseSize = isMidnight and (db.size or 28) or db.size
 
     local currentLayout = self.db and self.db.profile and self.db.profile.currentLayout
     local layoutSettings = self.db and self.db.profile and self.db.profile.layoutSettings and self.db.profile.layoutSettings[currentLayout]
@@ -3710,14 +3711,14 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
     local disableDRSwipe = self.db.profile.disableDRSwipe
     local reverseDR = self.db.profile.invertDRCooldown
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         if not frame then return end
 
         frame:UpdateDRPositions()
 
         local useDrFrames = frame.drFrames ~= nil
-        local drList = frame.drFrames or sArenaMixin.drCategories
+        local drList = frame.drFrames or self.drCategories
         local drCount = drList and #drList or 0
 
         for n = 1, drCount do
@@ -3880,7 +3881,7 @@ function sArenaMixin:UpdateSpecIconSettings(db, info, val)
         db[info[#info]] = val
     end
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
 
         frame.SpecIcon:ClearAllPoints()
@@ -3896,7 +3897,7 @@ function sArenaMixin:UpdateTrinketSettings(db, info, val)
 
     local layoutCF = (self.layoutdb and self.layoutdb.changeFont)
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
 
         frame.Trinket:ClearAllPoints()
@@ -3917,7 +3918,7 @@ function sArenaMixin:UpdateRacialSettings(db, info, val)
         db[info[#info]] = val
     end
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
 
         frame.Racial:ClearAllPoints()
@@ -3941,7 +3942,7 @@ function sArenaMixin:UpdateDispelSettings(db, info, val)
 
     local layoutCF = (self.layoutdb and self.layoutdb.changeFont)
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
 
         frame.Dispel:ClearAllPoints()
@@ -3960,7 +3961,7 @@ function sArenaMixin:UpdateDispelSettings(db, info, val)
 end
 
 function sArenaMixin:UpdateTextPositions(db, info, val)
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = info.handler["arena" .. i]
         local layout = info.handler.layouts[info.handler.db.profile.currentLayout]
 
@@ -3975,12 +3976,12 @@ function sArenaMixin:UpdateDRTextPositions(db, info, val)
         db[info[#info]] = val
     end
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = info and info.handler["arena" .. i] or self["arena" .. i]
         if not frame then return end
 
         local useDrFrames = frame.drFrames ~= nil
-        local drList = frame.drFrames or sArenaMixin.drCategories
+        local drList = frame.drFrames or self.drCategories
         local drCount = drList and #drList or 0
 
         for n = 1, drCount do
@@ -4068,7 +4069,7 @@ local function setDRIcons()
                 if db.profile.drStaticIconsPerSpec then
                     local className = select(1, UnitClass("player")) or L["Unknown"]
                     local classKey = select(2, UnitClass("player"))
-                    local specName = sArenaMixin.playerSpecName or L["Unknown"]
+                    local specName = info.handler.playerSpecName or L["Unknown"]
                     local classColor = RAID_CLASS_COLORS[classKey]
                     local coloredText = specName .. " " .. className
                     if classColor then
@@ -4101,12 +4102,12 @@ local function setDRIcons()
                 local db = info.handler.db
                 local icon = nil
                 if db.profile.drStaticIconsPerSpec then
-                    local specKey = sArenaMixin.playerSpecID or 0
+                    local specKey = info.handler.playerSpecID or 0
                     local perSpec = db.profile.drIconsPerSpec or {}
                     local specIcons = perSpec[specKey] or {}
                     icon = specIcons[category]
                 elseif db.profile.drStaticIconsPerClass then
-                    local classKey = sArenaMixin.playerClass
+                    local classKey = info.handler.playerClass
                     local perClass = db.profile.drIconsPerClass or {}
                     local classIcons = perClass[classKey] or {}
                     icon = classIcons[category]
@@ -4133,7 +4134,7 @@ local function setDRIcons()
                 -- so the edit box isn't empty and the user sees the effective icon.
                 if db.profile.drStaticIconsPerSpec then
                     local perSpec = db.profile.drIconsPerSpec or {}
-                    local specIcons = perSpec[sArenaMixin.playerSpecID or 0] or {}
+                    local specIcons = perSpec[info.handler.playerSpecID or 0] or {}
                     local specVal = specIcons[category]
                     if specVal ~= nil and specVal ~= "" then
                         return tostring(specVal)
@@ -4143,7 +4144,7 @@ local function setDRIcons()
                     return tostring(dbIcons[category] or defaultIcon or "")
                 elseif db.profile.drStaticIconsPerClass then
                     local perClass = db.profile.drIconsPerClass or {}
-                    local classIcons = perClass[sArenaMixin.playerClass] or {}
+                    local classIcons = perClass[info.handler.playerClass] or {}
                     local classVal = classIcons[category]
                     if classVal ~= nil and classVal ~= "" then
                         return tostring(classVal)
@@ -4160,7 +4161,7 @@ local function setDRIcons()
                 local db = info.handler.db
                 if db.profile.drStaticIconsPerSpec then
                     db.profile.drIconsPerSpec = db.profile.drIconsPerSpec or {}
-                    local specKey = sArenaMixin.playerSpecID or 0
+                    local specKey = info.handler.playerSpecID or 0
                     db.profile.drIconsPerSpec[specKey] = db.profile.drIconsPerSpec[specKey] or {}
                     -- treat empty string as removal of the spec-specific override so we fall back
                     -- to the global saved icon/default.
@@ -4172,14 +4173,14 @@ local function setDRIcons()
                     end
                 elseif db.profile.drStaticIconsPerClass then
                     db.profile.drIconsPerClass = db.profile.drIconsPerClass or {}
-                    db.profile.drIconsPerClass[sArenaMixin.playerClass] = db.profile.drIconsPerClass[sArenaMixin.playerClass] or {}
+                    db.profile.drIconsPerClass[info.handler.playerClass] = db.profile.drIconsPerClass[info.handler.playerClass] or {}
                     -- treat empty string as removal of the class-specific override so we fall back
                     -- to the global saved icon/default.
                     if value == nil or tostring(value) == "" then
-                        db.profile.drIconsPerClass[sArenaMixin.playerClass][category] = nil
+                        db.profile.drIconsPerClass[info.handler.playerClass][category] = nil
                     else
                         local num = tonumber(value)
-                        db.profile.drIconsPerClass[sArenaMixin.playerClass][category] = num or value
+                        db.profile.drIconsPerClass[info.handler.playerClass][category] = num or value
                     end
                 else
                     db.profile.drIcons = db.profile.drIcons or {}
@@ -4253,9 +4254,9 @@ if sArenaMixin:CompatibilityIssueExists() then
                         type = "execute",
                         name = L["Conflict_UseReloaded_Import"],
                         desc = L["Conflict_UseReloaded_Import_Desc"],
-                        func = function()
-                            if sArenaMixin.ImportOtherForkSettings then
-                                sArenaMixin:ImportOtherForkSettings()
+                        func = function(info)
+                            if info.handler.ImportOtherForkSettings then
+                                info.handler:ImportOtherForkSettings()
                             end
                         end,
                         width = "full",
@@ -4283,9 +4284,9 @@ if sArenaMixin:CompatibilityIssueExists() then
                     conversionStatus = {
                         order = 5,
                         type = "description",
-                        name = function() return sArenaMixin.conversionStatusText or "" end,
+                        name = function(info) return info.handler.conversionStatusText or "" end,
                         fontSize = "large",
-                        hidden = function() return not sArenaMixin.conversionStatusText end,
+                        hidden = function(info) return not info.handler.conversionStatusText end,
                     },
                 },
             },
@@ -4319,7 +4320,7 @@ else
                 name = L["Option_Hide"],
                 type = "execute",
                 func = function(info)
-                    for i = 1, sArenaMixin.maxArenaOpponents do
+                    for i = 1, info.handler.maxArenaOpponents do
                         info.handler["arena" .. i]:OnEvent("PLAYER_ENTERING_WORLD")
                     end
                 end,
@@ -4365,7 +4366,7 @@ else
                                         get = function(info) return info.handler.db.profile.statusText.alwaysShow end,
                                         set = function(info, val)
                                             info.handler.db.profile.statusText.alwaysShow = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 info.handler["arena" .. i]:UpdateStatusTextVisible()
                                             end
                                         end,
@@ -4413,7 +4414,7 @@ else
                                         get = function(info) return info.handler.db.profile.hidePowerText end,
                                         set = function(info, val)
                                             info.handler.db.profile.hidePowerText = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 info.handler["arena" .. i]:UpdateStatusTextVisible()
                                             end
                                         end,
@@ -4461,7 +4462,7 @@ else
                                         get = function(info) return info.handler.db.profile.darkModeValue end,
                                         set = function(info, val)
                                             info.handler.db.profile.darkModeValue = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena"..i]
                                                 if frame then
                                                     frame:UpdateFrameColors()
@@ -4481,7 +4482,7 @@ else
                                         get = function(info) return info.handler.db.profile.darkModeDesaturate end,
                                         set = function(info, val)
                                             info.handler.db.profile.darkModeDesaturate = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena"..i]
                                                 if frame then
                                                     frame:UpdateFrameColors()
@@ -4508,7 +4509,7 @@ else
                                             local db = info.handler.db
                                             db.profile.classColors = val
 
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 local class = frame.tempClass
                                                 local color = RAID_CLASS_COLORS[class]
@@ -4530,7 +4531,7 @@ else
                                         get = function(info) return info.handler.db.profile.classColorFrameTexture end,
                                         set = function(info, val)
                                             info.handler.db.profile.classColorFrameTexture = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena"..i]
                                                 if frame then
                                                     frame:UpdateFrameColors()
@@ -4552,7 +4553,7 @@ else
                                         get = function(info) return info.handler.db.profile.classColorFrameTextureOnlyClassIcon end,
                                         set = function(info, val)
                                             info.handler.db.profile.classColorFrameTextureOnlyClassIcon = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena"..i]
                                                 if frame then
                                                     frame:UpdateFrameColors()
@@ -4569,7 +4570,7 @@ else
                                         get = function(info) return info.handler.db.profile.classColorFrameTextureHealerGreen end,
                                         set = function(info, val)
                                             info.handler.db.profile.classColorFrameTextureHealerGreen = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena"..i]
                                                 if frame then
                                                     frame:UpdateFrameColors()
@@ -4593,7 +4594,7 @@ else
                                         get = function(info) return info.handler.db.profile.classColorNames end,
                                         set = function(info, val)
                                             info.handler.db.profile.classColorNames = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 if frame.Name:IsShown() then
                                                     frame:UpdateNameColor()
@@ -4613,7 +4614,7 @@ else
                                             if val then
                                                 info.handler.db.profile.classColorNames = false
                                             end
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 if frame.Name:IsShown() then
                                                     frame:UpdateNameColor()
@@ -4636,7 +4637,7 @@ else
                                         end,
                                         set = function(info, r, g, b)
                                             info.handler.db.profile.colorNameColor = {r = r, g = g, b = b}
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 if frame.Name:IsShown() then
                                                     frame:UpdateNameColor()
@@ -4660,7 +4661,7 @@ else
                                         get = function(info) return info.handler.db.profile.classColorSpecNames end,
                                         set = function(info, val)
                                             info.handler.db.profile.classColorSpecNames = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 frame:UpdateSpecNameColor()
                                             end
@@ -4678,7 +4679,7 @@ else
                                             if val then
                                                 info.handler.db.profile.classColorSpecNames = false
                                             end
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 frame:UpdateSpecNameColor()
                                             end
@@ -4699,7 +4700,7 @@ else
                                         end,
                                         set = function(info, r, g, b)
                                             info.handler.db.profile.colorSpecNameColor = {r = r, g = g, b = b}
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 frame:UpdateSpecNameColor()
                                             end
@@ -4732,7 +4733,7 @@ else
                                         set = function(info, val)
                                             info.handler.db.profile.showNames = val
                                             info.handler.db.profile.showArenaNumber = false
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 frame.Name:SetShown(val)
                                                 frame.Name:SetText(frame.tempName or "name")
@@ -4748,7 +4749,7 @@ else
                                         set = function(info, val)
                                             info.handler.db.profile.showArenaNumber = val
                                             info.handler.db.profile.showNames = false
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 local id = i
                                                 if FrameSort then
@@ -4773,7 +4774,7 @@ else
                                         set = function(info, val)
                                             info.handler.db.profile.arenaNumberIdOnly = val
                                             if info.handler.db.profile.showArenaNumber then
-                                                for i = 1, sArenaMixin.maxArenaOpponents do
+                                                for i = 1, info.handler.maxArenaOpponents do
                                                     local frame = info.handler["arena" .. i]
                                                     local id = i
                                                     if FrameSort then
@@ -4810,7 +4811,7 @@ else
                                         get = function(info) return info.handler.db.profile.reverseBarsFill end,
                                         set = function(info, val)
                                             info.handler.db.profile.reverseBarsFill = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 frame.HealthBar:SetReverseFill(val)
                                                 frame.PowerBar:SetReverseFill(val)
@@ -4826,7 +4827,7 @@ else
                                         get = function(info) return info.handler.db.profile.hideClassIcon end,
                                         set = function(info, val)
                                             info.handler.db.profile.hideClassIcon = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 if val then
                                                     info.handler["arena" .. i].ClassIcon.Texture:SetTexture(nil)
                                                 else
@@ -4849,7 +4850,7 @@ else
                                         get = function(info) return info.handler.db.profile.disableAurasOnClassIcon end,
                                         set = function(info, val)
                                             info.handler.db.profile.disableAurasOnClassIcon = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 if frame then
                                                     frame:SetUnitAuraRegistration()
@@ -4879,7 +4880,7 @@ else
                                         set = function(info, val)
                                             info.handler.db.profile.colorTrinket = val
                                             local colors = info.handler.db.profile.trinketColors
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 if val then
                                                     if i <= 2 then
@@ -4889,7 +4890,7 @@ else
                                                         frame.Trinket.Texture:SetColorTexture(unpack(colors.used))
                                                     end
                                                 else
-                                                    frame.Trinket.Texture:SetTexture(sArenaMixin.trinketTexture)
+                                                    frame.Trinket.Texture:SetTexture(info.handler.trinketTexture)
                                                 end
                                             end
                                         end,
@@ -4906,7 +4907,7 @@ else
                                         set = function(info, r, g, b)
                                             info.handler.db.profile.trinketColors.available = {r, g, b}
                                             local used = info.handler.db.profile.trinketColors.used
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 if frame and info.handler.db.profile.colorTrinket then
                                                     if i <= 2 then
@@ -4930,7 +4931,7 @@ else
                                         set = function(info, r, g, b)
                                             info.handler.db.profile.trinketColors.used = {r, g, b}
                                             local available = info.handler.db.profile.trinketColors.available
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 if frame and info.handler.db.profile.colorTrinket then
                                                     if i <= 2 then
@@ -4999,7 +5000,7 @@ else
                                         get = function(info) return info.handler.db.profile.disableSwipeEdge end,
                                         set = function(info, val)
                                             info.handler.db.profile.disableSwipeEdge = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 info.handler["arena" .. i]:UpdateSwipeEdgeSettings()
                                             end
                                             -- Update DR settings for current layout
@@ -5021,7 +5022,7 @@ else
                                         get = function(info) return info.handler.db.profile.disableClassIconSwipe end,
                                         set = function(info, val)
                                             info.handler.db.profile.disableClassIconSwipe = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 info.handler["arena" .. i]:UpdateClassIconSwipeSettings()
                                             end
                                         end,
@@ -5056,7 +5057,7 @@ else
                                         get = function(info) return info.handler.db.profile.disableTrinketRacialSwipe end,
                                         set = function(info, val)
                                             info.handler.db.profile.disableTrinketRacialSwipe = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 info.handler["arena" .. i]:UpdateTrinketRacialSwipeSettings()
                                             end
                                         end,
@@ -5071,7 +5072,7 @@ else
                                         get = function(info) return info.handler.db.profile.invertClassIconCooldown end,
                                         set = function(info, val)
                                             info.handler.db.profile.invertClassIconCooldown = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 info.handler["arena" .. i]:UpdateClassIconCooldownReverse()
                                             end
                                         end,
@@ -5103,7 +5104,7 @@ else
                                         get = function(info) return info.handler.db.profile.invertTrinketRacialCooldown end,
                                         set = function(info, val)
                                             info.handler.db.profile.invertTrinketRacialCooldown = val
-                                            for i = 1, sArenaMixin.maxArenaOpponents do
+                                            for i = 1, info.handler.maxArenaOpponents do
                                                 info.handler["arena" .. i]:UpdateTrinketRacialCooldownReverse()
                                             end
                                         end,
@@ -5316,7 +5317,7 @@ else
                                         set = function(info, val)
                                             info.handler.db.profile.colorDRCooldownText = val
                                             if not val then
-                                                for i = 1, sArenaMixin.maxArenaOpponents do
+                                                for i = 1, info.handler.maxArenaOpponents do
                                                     local frame = info.handler["arena" .. i]
                                                     frame:ResetDRCooldownTextColors()
                                                 end
@@ -5382,7 +5383,7 @@ else
                                             if db.profile.drCategoriesPerSpec then
                                                 local className = select(1, UnitClass("player")) or L["Unknown"]
                                                 local classKey = select(2, UnitClass("player"))
-                                                local specName = sArenaMixin.playerSpecName or L["Unknown"]
+                                                local specName = info.handler.playerSpecName or L["Unknown"]
                                                 local classColor = RAID_CLASS_COLORS[classKey]
                                                 local coloredText = specName .. " " .. className
                                                 if classColor then
@@ -5406,7 +5407,7 @@ else
                                         get = function(info, key) 
                                             local db = info.handler.db
                                             if db.profile.drCategoriesPerSpec then
-                                                local specKey = sArenaMixin.playerSpecID or 0
+                                                local specKey = info.handler.playerSpecID or 0
                                                 local perSpec = db.profile.drCategoriesSpec or {}
                                                 local specCategories = perSpec[specKey] or {}
                                                 if specCategories[key] ~= nil then
@@ -5415,7 +5416,7 @@ else
                                                     return db.profile.drCategories[key]
                                                 end
                                             elseif db.profile.drCategoriesPerClass then
-                                                local classKey = sArenaMixin.playerClass
+                                                local classKey = info.handler.playerClass
                                                 local perClass = db.profile.drCategoriesClass or {}
                                                 local classCategories = perClass[classKey] or {}
                                                 if classCategories[key] ~= nil then
@@ -5431,12 +5432,12 @@ else
                                             local db = info.handler.db
                                             if db.profile.drCategoriesPerSpec then
                                                 db.profile.drCategoriesSpec = db.profile.drCategoriesSpec or {}
-                                                local specKey = sArenaMixin.playerSpecID or 0
+                                                local specKey = info.handler.playerSpecID or 0
                                                 db.profile.drCategoriesSpec[specKey] = db.profile.drCategoriesSpec[specKey] or {}
                                                 db.profile.drCategoriesSpec[specKey][key] = val
                                             elseif db.profile.drCategoriesPerClass then
                                                 db.profile.drCategoriesClass = db.profile.drCategoriesClass or {}
-                                                local classKey = sArenaMixin.playerClass
+                                                local classKey = info.handler.playerClass
                                                 db.profile.drCategoriesClass[classKey] = db.profile.drCategoriesClass[classKey] or {}
                                                 db.profile.drCategoriesClass[classKey][key] = val
                                             else
@@ -5510,12 +5511,12 @@ else
                                     local key = info[#info]
                                     local db = info.handler.db
                                     if db.profile.drStaticIconsPerSpec then
-                                        local specKey = sArenaMixin.playerSpecID or 0
+                                        local specKey = info.handler.playerSpecID or 0
                                         local perSpec = db.profile.drIconsPerSpec or {}
                                         local specIcons = perSpec[specKey] or {}
                                         return tostring(specIcons[key] or "")
                                     elseif db.profile.drStaticIconsPerClass then
-                                        local classKey = sArenaMixin.playerClass
+                                        local classKey = info.handler.playerClass
                                         local perClass = db.profile.drIconsPerClass or {}
                                         local classIcons = perClass[classKey] or {}
                                         return tostring(classIcons[key] or "")
@@ -5529,12 +5530,12 @@ else
                                     local num = tonumber(value)
                                     if db.profile.drStaticIconsPerSpec then
                                         db.profile.drIconsPerSpec = db.profile.drIconsPerSpec or {}
-                                        local specKey = sArenaMixin.playerSpecID or 0
+                                        local specKey = info.handler.playerSpecID or 0
                                         db.profile.drIconsPerSpec[specKey] = db.profile.drIconsPerSpec[specKey] or {}
                                         db.profile.drIconsPerSpec[specKey][key] = num or value
                                     elseif db.profile.drStaticIconsPerClass then
                                         db.profile.drIconsPerClass = db.profile.drIconsPerClass or {}
-                                        local classKey = sArenaMixin.playerClass
+                                        local classKey = info.handler.playerClass
                                         db.profile.drIconsPerClass[classKey] = db.profile.drIconsPerClass[classKey] or {}
                                         db.profile.drIconsPerClass[classKey][key] = num or value
                                     else
@@ -5827,16 +5828,16 @@ else
                         type = "execute",
                         name = L["Option_ImportSettings"],
                         desc = L["Option_ImportSettings_Desc"],
-                        func = sArenaMixin.ImportOtherForkSettings,
+                        func = "ImportOtherForkSettings",
                         width = "normal",
-                        disabled = function() return sArenaMixin.conversionInProgress end,
+                        disabled = function(info) return info.handler.conversionInProgress end,
                     },
                     conversionStatus = {
                         order = 2.5,
                         type = "description",
-                        name = function() return sArenaMixin.conversionStatusText or "" end,
+                        name = function(info) return info.handler.conversionStatusText or "" end,
                         fontSize = "medium",
-                        hidden = function() return not sArenaMixin.conversionStatusText or sArenaMixin.conversionStatusText == "" end,
+                        hidden = function(info) return not info.handler.conversionStatusText or info.handler.conversionStatusText == "" end,
                     },
                 },
             },
@@ -5895,10 +5896,10 @@ else
                         name = L["Option_ExportCurrentProfile"],
                         type = "execute",
                         func = function(info)
-                            local exportString, err = sArenaMixin:ExportProfile()
+                            local exportString, err = info.handler:ExportProfile()
                             if not err then
-                                sArenaMixin.exportString = exportString
-                                sArenaMixin.importInputText = ""
+                                info.handler.exportString = exportString
+                                info.handler.importInputText = ""
                                 LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
                                 C_Timer.After(0.1, function()
                                     local AceGUI = LibStub("AceGUI-3.0")
@@ -5915,7 +5916,7 @@ else
                                     end
                                 end)
                             else
-                                sArenaMixin:Print(L["Message_ExportFailed"] .. " " .. err)
+                                info.handler:Print(L["Message_ExportFailed"] .. " " .. err)
                             end
                         end,
                         width = "normal",
@@ -5927,8 +5928,8 @@ else
                         desc = L["Option_ExportString_Desc"],
                         width = "full",
                         multiline = 5,
-                        get = function()
-                            return sArenaMixin.exportString or ""
+                        get = function(info)
+                            return info.handler.exportString or ""
                         end,
                         set = function() end,
                     },
@@ -5950,15 +5951,15 @@ else
                         type = "input",
                         width = "full",
                         multiline = 5,
-                        get = function()
-                            return sArenaMixin.importInputText or ""
+                        get = function(info)
+                            return info.handler.importInputText or ""
                         end,
                         set = function(info, val)
-                            sArenaMixin.importInputText = val
-                            local str = sArenaMixin.importInputText
-                            local success, err = sArenaMixin:ImportProfile(str)
+                            info.handler.importInputText = val
+                            local str = info.handler.importInputText
+                            local success, err = info.handler:ImportProfile(str)
                             if not success then
-                                sArenaMixin:Print(L["Message_ImportFailed"] .. " " .. err)
+                                info.handler:Print(L["Message_ImportFailed"] .. " " .. err)
                             else
                                 sArena_ReloadedDB.reOpenOptions = true
                             end

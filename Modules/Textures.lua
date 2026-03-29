@@ -55,11 +55,11 @@ function sArenaMixin:UpdateTextures()
     local classStacking = self:CheckClassStacking()
     local reverseBarsFill = db.profile.reverseBarsFill or false
 
-    sArenaMixin.castTexture = castTexture
-    sArenaMixin.castUninterruptibleTexture = castUninterruptibleTexture
-    sArenaMixin.keepDefaultModernTextures = keepDefaultModernTextures
-    sArenaMixin.modernCastbars = modernCastbars
-    sArenaMixin.interruptStatusColorOn = interruptStatusColorOn
+    self.castTexture = castTexture
+    self.castUninterruptibleTexture = castUninterruptibleTexture
+    self.keepDefaultModernTextures = keepDefaultModernTextures
+    self.modernCastbars = modernCastbars
+    self.interruptStatusColorOn = interruptStatusColorOn
     if sArenaCastingBarExtensionMixin then
         sArenaCastingBarExtensionMixin.typeInfo = {
             filling = castTexture,

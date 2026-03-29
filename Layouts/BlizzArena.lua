@@ -119,11 +119,11 @@ end
 local function setSetting(info, val)
     layout.db[info[#info]] = val
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, info.handler.maxArenaOpponents do
         local frame = info.handler["arena" .. i]
         layout:UpdateOrientation(frame)
     end
-    sArenaMixin:RefreshConfig()
+    info.handler:RefreshConfig()
 end
 
 local function setupOptionsTable(self)
@@ -156,7 +156,7 @@ function layout:Initialize(frame)
         setupOptionsTable(frame.parent)
     end
 
-    if (frame:GetID() == sArenaMixin.maxArenaOpponents) then
+    if (frame:GetID() == frame.parent.maxArenaOpponents) then
         frame.parent:UpdateCastBarSettings(self.db.castBar)
         frame.parent:UpdateDRSettings(self.db.dr)
         frame.parent:UpdateFrameSettings(self.db)
@@ -198,7 +198,7 @@ function layout:Initialize(frame)
 
 
     if self.db.trinketCircleBorder then
-        sArenaMixin.showTrinketCircleBorder = true
+        frame.parent.showTrinketCircleBorder = true
         if not trinket.Mask then
             trinket.Mask = trinket:CreateMaskTexture()
         end
@@ -223,7 +223,7 @@ function layout:Initialize(frame)
 
         if not trinket.TrinketCircleBorderHook then
             hooksecurefunc(trinket.Texture, "SetTexture", function(self, t)
-                if not t or not sArenaMixin.showTrinketCircleBorder then
+                if not t or not frame.parent.showTrinketCircleBorder then
                     trinketCircleBorder:Hide()
                 else
                     trinketCircleBorder:Show()

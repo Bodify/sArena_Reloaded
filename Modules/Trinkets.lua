@@ -84,7 +84,7 @@ function sArenaFrameMixin:UpdateTrinket()
             -- end
         else
             if (startTime ~= 0 and duration ~= 0 and self.Trinket.spellID) then
-                if self.Trinket.spellID and (self.Trinket.Texture:GetTexture() ~= sArenaMixin.noTrinketTexture)then
+                if self.Trinket.spellID and (self.Trinket.Texture:GetTexture() ~= self.parent.noTrinketTexture)then
                     if self.updateRacialOnTrinketSlot then
                         local racialDuration = self:GetRacialDuration()
                         self.Trinket.Cooldown:SetCooldown(startTime / 1000.0, racialDuration)

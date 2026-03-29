@@ -267,7 +267,7 @@ function sArenaFrameMixin:AddPixelBorderToFrame()
 end
 
 function sArenaMixin:RemovePixelBorders()
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         if not frame.PixelBorders then
             return
@@ -333,7 +333,7 @@ end
 local function setSetting(info, val)
     layout.db[info[#info]] = val
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, info.handler.maxArenaOpponents do
         local frame = info.handler["arena" .. i]
         frame:SetSize(layout.db.width, layout.db.height)
         local baseSize = layout.db.height - 4
@@ -349,7 +349,7 @@ end
 local function setPixelBorderSetting(info, val)
     layout.db[info[#info]] = val
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, info.handler.maxArenaOpponents do
         local frame = info.handler["arena" .. i]
         frame:AddPixelBorderToFrame()
     end
@@ -357,7 +357,7 @@ end
 
 local function setToggleSetting(info, val)
     layout.db[info[#info]] = val
-    sArenaMixin:RefreshConfig()
+    info.handler:RefreshConfig()
 end
 
 local function setupOptionsTable(self)
@@ -454,12 +454,12 @@ local function setupOptionsTable(self)
         set = function(info, val)
             layout.db.classIcon[info[#info]] = val
             
-            for i = 1, sArenaMixin.maxArenaOpponents do
+            for i = 1, info.handler.maxArenaOpponents do
                 local frame = info.handler["arena" .. i]
                 layout:UpdateOrientation(frame)
             end
             
-            --sArenaMixin:RefreshConfig()
+            --info.handler:RefreshConfig()
         end,
         args = {
             positioning = {
@@ -518,7 +518,7 @@ end
 
 function layout:Initialize(frame)
     self.db = frame.parent.db.profile.layoutSettings[layoutName]
-    sArenaMixin.useSpecClassIcon = true
+    frame.parent.useSpecClassIcon = true
 
     if (not self.optionsTable) then
         setupOptionsTable(frame.parent)
@@ -526,7 +526,7 @@ function layout:Initialize(frame)
 
     frame:AddPixelBorderToFrame()
 
-    if (frame:GetID() == sArenaMixin.maxArenaOpponents) then
+    if (frame:GetID() == frame.parent.maxArenaOpponents) then
         frame.parent:UpdateCastBarSettings(self.db.castBar)
         frame.parent:UpdateDRSettings(self.db.dr)
         frame.parent:UpdateFrameSettings(self.db)
@@ -536,8 +536,8 @@ function layout:Initialize(frame)
         frame.parent:UpdateDispelSettings(self.db.dispel)
         frame.parent:UpdateWidgetSettings(self.db.widgets)
 
-        for n = 1, #sArenaMixin.drCategories do
-            local drFrame = frame[sArenaMixin.drCategories[n]]
+        for n = 1, #frame.parent.drCategories do
+            local drFrame = frame[frame.parent.drCategories[n]]
             if drFrame and not drFrame.PixelBorder then
                 if not drFrame.Border:GetTexture() then
                     drFrame.Border:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress", true)
@@ -569,7 +569,7 @@ function layout:Initialize(frame)
 
     if not frame.Trinket.TrinketPixelBorderHook then
         hooksecurefunc(frame.Trinket.Texture, "SetTexture", function(self, t)
-            if not sArenaMixin.showPixelBorder then
+            if not frame.parent.showPixelBorder then
                 frame.PixelBorders.trinket:Hide()
                 return
             end
@@ -590,7 +590,7 @@ function layout:Initialize(frame)
         end)
 
         hooksecurefunc(frame.Trinket.Texture, "SetColorTexture", function(self, r, g, b, a)
-            if not sArenaMixin.showPixelBorder then
+            if not frame.parent.showPixelBorder then
                 frame.PixelBorders.trinket:Hide()
                 return
             end
@@ -611,7 +611,7 @@ function layout:Initialize(frame)
 
     if not frame.Racial.RacialPixelBorderHook then
         hooksecurefunc(frame.Racial.Texture, "SetTexture", function(self, t)
-            if not t or not sArenaMixin.showPixelBorder then
+            if not t or not frame.parent.showPixelBorder then
                 frame.PixelBorders.racial:Hide()
             else
                 frame.PixelBorders.racial:Show()
@@ -622,7 +622,7 @@ function layout:Initialize(frame)
 
     if not frame.Dispel.DispelPixelBorderHook then
         hooksecurefunc(frame.Dispel.Texture, "SetTexture", function(self, t)
-            if not frame.parent.db.profile.showDispels or not t or not sArenaMixin.showPixelBorder then
+            if not frame.parent.db.profile.showDispels or not t or not frame.parent.showPixelBorder then
                 frame.PixelBorders.dispel:Hide()
             else
                 frame.PixelBorders.dispel:Show()
@@ -640,7 +640,7 @@ function layout:Initialize(frame)
 
     if not frame.ClassIcon.ClassIconPixelBorderHook then
         hooksecurefunc(frame.ClassIcon.Texture, "SetTexture", function(self, t)
-            if not t or not sArenaMixin.showPixelBorder then
+            if not t or not frame.parent.showPixelBorder then
                 frame.PixelBorders.classIcon:Hide()
             else
                 frame.PixelBorders.classIcon:Show()

@@ -106,7 +106,7 @@ local function AuraTooltipExtractPercent(unit, index, filter)
 end
 
 function sArenaFrameMixin:FindAura()
-    if (self.parent.db and self.parent.db.profile.disableAurasOnClassIcon) or sArenaMixin.isMidnight then
+    if (self.parent.db and self.parent.db.profile.disableAurasOnClassIcon) or self.parent.isMidnight then
         self:UpdateClassIcon()
         return
     end
@@ -164,11 +164,11 @@ function sArenaFrameMixin:FindAura()
                 end
 
                 -- Check for manual override of duration
-                if sArenaMixin.activeNonDurationAuras[spellID] then
-                    local tracked = sArenaMixin.nonDurationAuras[spellID]
+                if self.parent.activeNonDurationAuras[spellID] then
+                    local tracked = self.parent.nonDurationAuras[spellID]
                     if tracked then
                         duration = tracked.duration
-                        expirationTime = sArenaMixin.activeNonDurationAuras[spellID] + duration
+                        expirationTime = self.parent.activeNonDurationAuras[spellID] + duration
                         texture = tracked.texture or texture
                     end
                 end

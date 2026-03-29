@@ -38,9 +38,9 @@ function sArenaMixin:UpdateFonts()
     local db = self.db
     local fontCfg  = db.profile.layoutSettings[db.profile.currentLayout]
     if not fontCfg.changeFont then
-        local og = sArenaMixin.ogFonts
+        local og = self.ogFonts
         if og then
-            for i = 1, sArenaMixin.maxArenaOpponents do
+            for i = 1, self.maxArenaOpponents do
                 local f = _G["sArenaEnemyFrame"..i]
                 if f then
                     applyFont(f.Name,        og.Name)
@@ -55,9 +55,9 @@ function sArenaMixin:UpdateFonts()
                     end
                 end
             end
-            sArenaMixin.ogFonts = nil
+            self.ogFonts = nil
         else
-            for i = 1, sArenaMixin.maxArenaOpponents do
+            for i = 1, self.maxArenaOpponents do
                 local f = _G["sArenaEnemyFrame"..i]
                 if f then
                     local fontName, s, o = f.CastBar.Text:GetFont()
@@ -103,13 +103,13 @@ function sArenaMixin:UpdateFonts()
         end
     end
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena"..i]
         if not frame or not frame.HealthBar then return end
 
         if frameFontPath then
-            if not sArenaMixin.ogFonts then
-                sArenaMixin.ogFonts = {
+            if not self.ogFonts then
+                self.ogFonts = {
                     Name        = captureFont(frame.Name),
                     HealthText  = captureFont(frame.HealthText),
                     SpecNameText = captureFont(frame.SpecNameText),
@@ -155,7 +155,7 @@ function sArenaFrameMixin:ApplyPrototypeFont()
                 self.changedFonts[obj] = { currentFont, currentSize, currentFlags }
             end
 
-            obj:SetFont(sArenaMixin.pFont, newSize or currentSize, newFlags or currentFlags)
+            obj:SetFont(self.parent.pFont, newSize or currentSize, newFlags or currentFlags)
         else
             local original = self.changedFonts[obj]
             if original then

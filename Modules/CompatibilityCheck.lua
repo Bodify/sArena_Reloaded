@@ -36,9 +36,17 @@ function sArenaMixin:CompatibilityIssueExists()
     -- Check each known version to see if it's loaded
     for _, addonName in ipairs(otherSArenaVersions) do
         if C_AddOns.IsAddOnLoaded(addonName) then
-            return true, addonName  -- Return true and the name of the first conflicting addon found
+            return true
         end
     end
 
-    return false, nil  -- No conflicts found
+    return false -- No conflicts found
+end
+
+function sArenaMixin:IsElvUIActive()
+    -- Check if ElvUI is loaded and if it hides default arena frames which causes issues.
+    if C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].private.unitframe.disabledBlizzardFrames.arena then
+        return true
+    end
+    return false
 end

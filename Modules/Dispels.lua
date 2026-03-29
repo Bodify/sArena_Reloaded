@@ -248,14 +248,14 @@ local function updateDispelStacksForFrame(frame)
 end
 
 function sArenaFrameMixin:FindDispel(spellID)
-	if not sArenaMixin.dispelData[spellID] then return end
+	if not self.parent.dispelData[spellID] then return end
 
 	if not detectedDispels[self.unit] then
 		detectedDispels[self.unit] = {}
 	end
 	detectedDispels[self.unit][spellID] = true
 
-	local dispelInfo = sArenaMixin.dispelData[spellID]
+	local dispelInfo = self.parent.dispelData[spellID]
 	local cooldown = dispelInfo and dispelInfo.cooldown or 8
 	local now = GetTime()
 
@@ -322,19 +322,19 @@ function sArenaFrameMixin:GetDispelData()
 	local specID = self.specID
 	if not specID then return end
 
-	local spellData = sArenaMixin.specToDispel[specID]
+	local spellData = self.parent.specToDispel[specID]
 	if not spellData then return end
 
 	local spellIDs = type(spellData) == "table" and spellData or {spellData}
 
 	for _, spellID in ipairs(spellIDs) do
-		if sArenaMixin.dispelData[spellID] then
-			local dispelInfo = sArenaMixin.dispelData[spellID]
+		if self.parent.dispelData[spellID] then
+			local dispelInfo = self.parent.dispelData[spellID]
 			local isValid = true
 
 			-- For MoP shared spells, DPS specs need to have used the spell first
 			if not isRetail and dispelInfo.sharedSpecSpellID then
-				local isHealer = sArenaMixin.healerSpecIDs[specID]
+				local isHealer = self.parent.healerSpecIDs[specID]
 				if not isHealer then
 					-- DPS specs need to use the spell first
 					if not detectedDispels[self.unit] or not detectedDispels[self.unit][spellID] then
@@ -356,7 +356,7 @@ function sArenaFrameMixin:GetDispelData()
 					isEnabled = self.parent.db.profile.dispelCategories[spellID]
 				else
 					-- MoP: check if this spell is available for this spec type
-					local isHealer = sArenaMixin.healerSpecIDs[specID]
+					local isHealer = self.parent.healerSpecIDs[specID]
 
 					-- For shared spells, use separate settings
 					if dispelInfo.sharedSpecSpellID then
@@ -426,7 +426,7 @@ function sArenaFrameMixin:GetTestModeDispelData()
 	local testSpecID = classToTestSpec[class]
 	if not spellID or not testSpecID then return nil end
 
-	local dispelInfo = sArenaMixin.dispelData[spellID]
+	local dispelInfo = self.parent.dispelData[spellID]
 	if not dispelInfo then return nil end
 
 	if self.parent and self.parent.db then
@@ -437,7 +437,7 @@ function sArenaFrameMixin:GetTestModeDispelData()
 			isEnabled = self.parent.db.profile.dispelCategories[spellID]
 		else
 			-- MoP: check if this spell is available for this spec type
-			local isHealer = sArenaMixin.healerSpecIDs[testSpecID]
+			local isHealer = self.parent.healerSpecIDs[testSpecID]
 
 			-- For shared spells, use separate settings
 			if dispelInfo.sharedSpecSpellID then

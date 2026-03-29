@@ -133,15 +133,31 @@ function sArenaMixin:UpdateBlizzArenaFrameVisibility(instanceType)
     end
 end
 
-function sArenaMixin:CheckMatchStatus()
-    if not isMidnight then return end
-
+function sArenaMixin:CheckMatchStatus(event)
     local state = C_PvP.GetActiveMatchState()
 
-    if state == Enum.PvPMatchState.StartUp then
-        sArenaMixin.waitingForMatch = true
+    if state == Enum.PvPMatchState.Engaged then
+        self.waitingForMatch = nil
+        -- Small delay on UpdatePlayer because UnitExists return false for all immediately if not
+        C_Timer.After(0.3, function()
+            for i = 1, self.maxArenaOpponents do
+                local frame = self["arena" .. i]
+                frame:UpdatePlayer(UnitExists(frame.unit) and "seen" or "unseen")
+            end
+         end)
+
+         -- Delay reset of this flag so Blizzards SetCooldown doesnt put a CD on Trinket on round start when there isn't a cooldown
+         -- from equip swapping in spawn, or potentially accidentally trinketing I suppose.
+         C_Timer.After(1, function() self.waitingForMatchDelayedReset = nil end)
     else
-        sArenaMixin.waitingForMatch = nil
+        self.waitingForMatch = true
+        self.waitingForMatchDelayedReset = true
+        if event == "PVP_MATCH_ACTIVE" then
+            for i = 1, self.maxArenaOpponents do
+                local frame = self["arena" .. i]
+                frame:UpdatePlayer(UnitExists(frame.unit) and "seen" or "unseen")
+            end
+        end
     end
 end
 
@@ -154,7 +170,7 @@ function sArenaMixin:UpdateCDTextVisibility()
     local hideTrinket = db.profile.disableCDTextTrinket
     local hideRacial = db.profile.disableCDTextRacial
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         if not frame then break end
 
@@ -191,7 +207,7 @@ function sArenaMixin:UpdateCDTextVisibility()
 
         -- DRs
         local useDrFrames = frame.drFrames ~= nil
-        local drList = frame.drFrames or sArenaMixin.drCategories
+        local drList = frame.drFrames or self.drCategories
         if drList then
             for j = 1, #drList do
                 local drFrame = useDrFrames and drList[j] or frame[drList[j]]
@@ -430,7 +446,7 @@ function sArenaMixin:InitializeMidnightDRFrames()
         end
     end
 
-    for i = 1, sArenaMixin.maxArenaOpponents do
+    for i = 1, self.maxArenaOpponents do
         local blizzArenaFrame = _G["CompactArenaFrameMember" .. i]
         local arenaFrame = self["arena" .. i]
 
@@ -493,6 +509,7 @@ function sArenaMixin:InitializeMidnightDRFrames()
                     hooksecurefunc(blizzDRFrame.Cooldown, "SetCooldown", function(_, start, duration)
                         sArenaDRFrame.Cooldown:SetCooldown(GetTime(), 16.1)
                         sArenaDRFrame.Cooldown.trueCD = true
+                        --print(i, " DR CD Start")
                         C_Timer.After(16.1, function() sArenaDRFrame.Cooldown.trueCD = nil end)
                     end)
 
@@ -503,6 +520,8 @@ function sArenaMixin:InitializeMidnightDRFrames()
                         local layout = self.db.profile.layoutSettings[self.db.profile.currentLayout]
                         local blackBorder = layout and layout.dr and layout.dr.blackDRBorder
                         local borderHidden = layout and layout.dr and layout.dr.disableDRBorder
+
+                        --print(i, " DR Immune Show:", shown, "IsCDOnDR: ", sArenaDRFrame.Cooldown:IsShown())
 
                         if not sArenaDRFrame.Cooldown.trueCD and not self.db.profile.disableInstantDRCooldown then
                             sArenaDRFrame.Cooldown:SetCooldown(GetTime(), 20)
@@ -556,6 +575,7 @@ function sArenaFrameMixin:HookMidnightTrinket()
         trinketFrame:SetAlpha(0)
 
         hooksecurefunc(trinketFrame.Cooldown, "SetCooldown", function()
+            if self.parent.waitingForMatchDelayedReset then return end
             local db = self.parent and self.parent.db
             local colors = db.profile.trinketColors
             local durationObj = C_PvP.GetArenaCrowdControlDuration(self.unit)
@@ -621,7 +641,7 @@ end
 function sArenaMixin:ReloadRequiredUI()
     self.optionsTable = {
         type = "group",
-        name = sArenaMixin.addonTitle,
+        name = self.addonTitle,
         childGroups = "tab",
         args = {
             reloadRequired = {
