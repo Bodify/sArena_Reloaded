@@ -2025,10 +2025,10 @@ function sArenaFrameMixin:OnLeave()
     self:UpdateStatusTextVisible()
 end
 
-local function GetNumArenaOpponentsFallback(parent)
+function sArenaMixin:GetNumArenaOpponentsFallback()
     local count = 0
-    for i = 1, parent.maxArenaOpponents do
-        if UnitExists("arena" .. i) or (noEarlyFrames and parent.seenArenaUnits[i]) then
+    for i = 1, self.maxArenaOpponents do
+        if UnitExists("arena" .. i) or (noEarlyFrames and self.seenArenaUnits[i]) then
             count = count + 1
         end
     end
@@ -2036,7 +2036,7 @@ local function GetNumArenaOpponentsFallback(parent)
     -- TBC: Use party size as fallback, but only after the match has started or we're not in the starting room
     if noEarlyFrames and count < GetNumGroupMembers() then
         local inPreparation = C_UnitAuras.GetPlayerAuraBySpellID(32727)
-        if not inPreparation and not parent.justEnteredArena and parent.arenaMatchStarted then
+        if not inPreparation and not self.justEnteredArena and self.arenaMatchStarted then
             count = GetNumGroupMembers() or count
         end
     end
@@ -2058,7 +2058,7 @@ function sArenaFrameMixin:UpdateVisible()
 
     local id = self:GetID()
     local numSpecs = GetNumArenaOpponentSpecs()
-    local numOpponents = (numSpecs == 0) and GetNumArenaOpponentsFallback(self.parent) or numSpecs
+    local numOpponents = (numSpecs == 0) and self.parent:GetNumArenaOpponentsFallback() or numSpecs
 
     if numOpponents >= id or (noEarlyFrames and self.parent.seenArenaUnits[id]) then
         self:Show()
