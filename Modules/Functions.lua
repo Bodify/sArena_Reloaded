@@ -629,7 +629,12 @@ function sArenaMixin:EnsureArenaFramesEnabled(attempt)
         return
     end
 
-    self:IsElvUIActive()
+    local fixedElvUI = self:IsElvUIActive()
+    if fixedElvUI then
+        C_Timer.After(3, function()
+            self:Print(L["ElvUI_ArenaFrames_Fix"])
+        end)
+    end
 
     local arenaFramesEnabled = EditModeManagerFrame:GetAccountSettingValueBool(Enum.EditModeAccountSetting.ShowArenaFrames)
     if not arenaFramesEnabled then
