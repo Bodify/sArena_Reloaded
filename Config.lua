@@ -87,6 +87,14 @@ local function StatusbarValues()
     return t
 end
 
+local function SoundValues()
+    local t, keys = {}, {}
+    for k in pairs(LSM:HashTable(LSM.MediaType.SOUND)) do keys[#keys+1] = k end
+    table.sort(keys)
+    for _, k in ipairs(keys) do t[k] = k end
+    return t
+end
+
 function sArenaMixin:GetLayoutOptionsTable(layoutName)
         local function LDB(info)
         return info.handler.db.profile.layoutSettings[layoutName]
@@ -275,6 +283,45 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             get   = getSetting,
                             set   = setSetting,
                         },
+                        manabarVisibility = {
+                            order = 4,
+                            name = L["Option_ManabarVisibility"],
+                            type = "group",
+                            inline = true,
+                            hidden = function()
+                                return layoutName == "BlizzArena" or layoutName == "BlizzTourney"
+                            end,
+                            args = {
+                                hideManabars = {
+                                    order = 1,
+                                    type  = "toggle",
+                                    name  = L["Option_HideManabars"],
+                                    get   = getSetting,
+                                    set   = setSetting,
+                                },
+                                keepHealerManabar = {
+                                    order = 2,
+                                    type  = "toggle",
+                                    name  = L["Option_KeepHealerManabar"],
+                                    disabled = function(info)
+                                        return not LDB(info).hideManabars
+                                    end,
+                                    get   = getSetting,
+                                    set   = setSetting,
+                                },
+                                moveStatusbarText = {
+                                    order = 3,
+                                    type  = "toggle",
+                                    name  = L["Option_MoveStatusbarText"],
+                                    desc  = L["Option_MoveStatusbarText_Desc"],
+                                    disabled = function(info)
+                                        return not LDB(info).hideManabars
+                                    end,
+                                    get   = getSetting,
+                                    set   = setSetting,
+                                },
+                            },
+                        },
                     },
                 },
                 positioning = {
@@ -308,7 +355,6 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             type = "range",
                             min = -10,
                             max = 100,
-                            softMin = 0,
                             step = 1,
                         },
                         growthDirection = {
@@ -765,6 +811,38 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                 info.handler.db.profile.showCastbarID = val
                                 info.handler:CreateCastbarIDText()
                                 info.handler:UpdateCastbarIDText()
+                            end,
+                        },
+
+                        showCastbarTarget = {
+                            order = 2.85,
+                            name = isMidnight and L["Castbar_ShowTarget"] or ("|A:services-icon-warning:20:20|a " .. L["Castbar_ShowTarget"] .. " |A:services-icon-warning:20:20|a"),
+                            desc = isMidnight and L["Castbar_ShowTarget_Desc_Midnight"] or L["Castbar_ShowTarget_Desc"],
+                            type = "toggle",
+                            get = function(info)
+                                return info.handler.db.profile.showCastbarTarget
+                            end,
+                            set = function(info, val)
+                                info.handler.db.profile.showCastbarTarget = val
+                                info.handler:CreateCastbarTargetText()
+                                info.handler:UpdateCastbarTargetText()
+                                info.handler:RefreshTestModeCastbars()
+                            end,
+                        },
+
+                        hideCastbars = {
+                            order = 2.86,
+                            name = L["Option_HideCastbars"],
+                            desc = L["Option_HideCastbars_Desc"],
+                            type = "toggle",
+                            get = function(info)
+                                local layoutName = info.handler.db.profile.currentLayout
+                                return info.handler.db.profile.layoutSettings[layoutName].castBar.hideCastbars
+                            end,
+                            set = function(info, val)
+                                local layoutName = info.handler.db.profile.currentLayout
+                                info.handler.db.profile.layoutSettings[layoutName].castBar.hideCastbars = val
+                                info.handler:UpdateCastbarVisibility()
                             end,
                         },
 
@@ -1303,9 +1381,32 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             softMax = 16,
                             step = 0.1,
                             bigStep = 1,
+                            hidden = function(info)
+                                local drSettings = info.handler.db.profile.layoutSettings[layoutName].dr
+                                return drSettings.thickPixelBorder
+                            end,
                             disabled = function(info)
                                 local drSettings = info.handler.db.profile.layoutSettings[layoutName].dr
-                                return drSettings.brightDRBorder or drSettings.drBorderGlowOff or drSettings.thickPixelBorder or drSettings.thinPixelBorder
+                                return drSettings.brightDRBorder or drSettings.drBorderGlowOff or drSettings.thinPixelBorder
+                            end,
+                        },
+                        drPixelBorderSize = {
+                            order = 2,
+                            name = L["Option_DRPixelBorderSize"],
+                            type = "range",
+                            min = 0.5,
+                            max = 3,
+                            step = 0.5,
+                            hidden = function(info)
+                                local drSettings = info.handler.db.profile.layoutSettings[layoutName].dr
+                                return not drSettings.thickPixelBorder
+                            end,
+                            get = function(info)
+                                return info.handler.db.profile.layoutSettings[layoutName].drPixelBorderSize or 2
+                            end,
+                            set = function(info, val)
+                                info.handler.db.profile.layoutSettings[layoutName].drPixelBorderSize = val
+                                self:UpdateDRSettings(info.handler.db.profile.layoutSettings[layoutName].dr, info, val)
                             end,
                         },
                         fontSize = {
@@ -3045,6 +3146,24 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 type = "group",
                 inline = true,
                 args = {
+                    forceCastbarTextWidth = {
+                        order = 0.5,
+                        type  = "toggle",
+                        name  = L["Text_ForceCastbarTextWidth"],
+                        desc  = L["Text_ForceCastbarTextWidth_Desc"],
+                        width = "full",
+                        get   = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            return layout.textSettings.forceCastbarTextWidth or false
+                        end,
+                        set   = function(info, val)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.forceCastbarTextWidth = val
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
+                        end,
+                    },
                     castbarAnchor = {
                         order = 1,
                         name = L["Text_AnchorPoint"],
@@ -3261,6 +3380,223 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             info.handler:CreateCastbarIDText()
                             info.handler:UpdateCastbarIDText()
                             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                        end,
+                    },
+                },
+            },
+            castbarTargetText = {
+                order = 4.6,
+                name = L["Text_CastbarTargetText"],
+                type = "group",
+                inline = true,
+                hidden = function(info)
+                    return not info.handler.db.profile.showCastbarTarget
+                end,
+                args = {
+                    castbarTargetAnchorInside = {
+                        order = 0,
+                        name = L["Castbar_AnchorTargetInside"],
+                        type = "toggle",
+                        width = "full",
+                        get = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            return layout.textSettings.castbarTargetAnchorInside
+                        end,
+                        set = function(info, val)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.castbarTargetAnchorInside = val
+                            info.handler:CreateCastbarTargetText()
+                            info.handler:UpdateCastbarTargetText()
+                            info.handler:RefreshTestModeCastbars()
+                        end,
+                    },
+                    castbarTargetAnchorToCastbar = {
+                        order = 0.5,
+                        name = L["Castbar_AnchorToCastbar"],
+                        type = "toggle",
+                        width = "full",
+                        disabled = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
+                        end,
+                        get = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            local val = layout.textSettings.castbarTargetAnchorToCastbar
+                            if val == nil then return true end
+                            return val
+                        end,
+                        set = function(info, val)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.castbarTargetAnchorToCastbar = val
+                            info.handler:CreateCastbarTargetText()
+                            info.handler:UpdateCastbarTargetText()
+                            info.handler:RefreshTestModeCastbars()
+                        end,
+                    },
+                    castbarTargetAnchor = {
+                        order = 1,
+                        name = L["Text_AnchorPoint"],
+                        type = "select",
+                        style = "dropdown",
+                        width = 0.5,
+                        disabled = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
+                        end,
+                        values = {
+                            ["LEFT"] = L["Direction_Left"],
+                            ["TOP"] = L["Direction_Top"],
+                            ["BOTTOM"] = L["Direction_Bottom"],
+                            ["RIGHT"] = L["Direction_Right"],
+                        },
+                        get = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            return layout.textSettings.castbarTargetAnchor or "BOTTOM"
+                        end,
+                        set = function(info, val)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.castbarTargetAnchor = val
+                            info.handler:CreateCastbarTargetText()
+                            info.handler:UpdateCastbarTargetText()
+                            info.handler:RefreshTestModeCastbars()
+                        end,
+                    },
+                    castbarTargetSize = {
+                        order = 2,
+                        name = L["Size"],
+                        type = "range",
+                        min = 0.05,
+                        max = 5,
+                        step = 0.01,
+                        width = 0.8,
+                        isPercent = true,
+                        disabled = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
+                        end,
+                        get = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            return layout.textSettings.castbarTargetSize or 1.0
+                        end,
+                        set = function(info, val)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.castbarTargetSize = val
+                            info.handler:CreateCastbarTargetText()
+                            info.handler:UpdateCastbarTargetText()
+                            info.handler:RefreshTestModeCastbars()
+                        end,
+                    },
+                    castbarTargetOffsetX = {
+                        order = 3,
+                        name = L["Horizontal"],
+                        type = "range",
+                        softMin = -200,
+                        softMax = 200,
+                        step = 0.5,
+                        width = 0.8,
+                        disabled = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
+                        end,
+                        get = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            return layout.textSettings.castbarTargetOffsetX or 0
+                        end,
+                        set = function(info, val)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.castbarTargetOffsetX = val
+                            info.handler:CreateCastbarTargetText()
+                            info.handler:UpdateCastbarTargetText()
+                            info.handler:RefreshTestModeCastbars()
+                        end,
+                    },
+                    castbarTargetOffsetY = {
+                        order = 4,
+                        name = L["Vertical"],
+                        type = "range",
+                        softMin = -200,
+                        softMax = 200,
+                        step = 0.5,
+                        width = 0.8,
+                        disabled = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
+                        end,
+                        get = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            return layout.textSettings.castbarTargetOffsetY or 0
+                        end,
+                        set = function(info, val)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.castbarTargetOffsetY = val
+                            info.handler:CreateCastbarTargetText()
+                            info.handler:UpdateCastbarTargetText()
+                            info.handler:RefreshTestModeCastbars()
+                        end,
+                    },
+                    resetCastbarTargetText = {
+                        order = 5,
+                        name = L["Reset"],
+                        width = 0.4,
+                        type = "execute",
+                        disabled = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
+                        end,
+                        func = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.castbarTargetAnchor = "BOTTOM"
+                            layout.textSettings.castbarTargetSize = 1.0
+                            layout.textSettings.castbarTargetOffsetX = 0
+                            layout.textSettings.castbarTargetOffsetY = 0
+                            layout.textSettings.castbarTargetAnchorToCastbar = true
+                            layout.textSettings.castbarTargetJustifyH = "CENTER"
+                            info.handler:CreateCastbarTargetText()
+                            info.handler:UpdateCastbarTargetText()
+                            info.handler:RefreshTestModeCastbars()
+                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                        end,
+                    },
+                    castbarTargetJustifyH = {
+                        order = 6,
+                        name = L["Text_TextAlignment"],
+                        type = "select",
+                        style = "dropdown",
+                        width = 0.6,
+                        disabled = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
+                        end,
+                        values = {
+                            ["LEFT"] = L["Direction_Left"],
+                            ["CENTER"] = L["Direction_Center"],
+                            ["RIGHT"] = L["Direction_Right"],
+                        },
+                        get = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            return layout.textSettings.castbarTargetJustifyH or "CENTER"
+                        end,
+                        set = function(info, val)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.castbarTargetJustifyH = val
+                            info.handler:CreateCastbarTargetText()
+                            info.handler:UpdateCastbarTargetText()
+                            info.handler:RefreshTestModeCastbars()
                         end,
                     },
                 },
@@ -3501,12 +3837,14 @@ function sArenaMixin:UpdateCastBarPixelBorders()
     local layoutSettings = self.db and self.db.profile and self.db.profile.layoutSettings and self.db.profile.layoutSettings[currentLayout]
     local cropIcons = layoutSettings and layoutSettings.cropIcons or false
     local useModernCastbars = layoutSettings and layoutSettings.castBar and layoutSettings.castBar.useModernCastbars or false
+    local pixelBorderSize = layoutSettings and layoutSettings.pixelBorderSize or 1.5
+    local bordersHidden = pixelBorderSize == 0
 
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
 
         if frame.CastBar.castBar then
-            if isPixelBorderLayout and not useModernCastbars then
+            if isPixelBorderLayout and not useModernCastbars and not bordersHidden then
                 frame.CastBar.castBar:Show()
             else
                 frame.CastBar.castBar:Hide()
@@ -3515,7 +3853,7 @@ function sArenaMixin:UpdateCastBarPixelBorders()
 
         if frame.CastBar.castBarIcon then
             local hideCastbarIcon = layoutSettings and layoutSettings.castBar and layoutSettings.castBar.hideCastbarIcon
-            if isPixelBorderLayout and not useModernCastbars and not hideCastbarIcon then
+            if isPixelBorderLayout and not useModernCastbars and not hideCastbarIcon and not bordersHidden then
                 frame.CastBar.castBarIcon:Show()
             else
                 frame.CastBar.castBarIcon:Hide()
@@ -3625,69 +3963,47 @@ function sArenaMixin:RefreshTestModeCastbars()
                     end
                 end
             end
-        end
-    end
-end
 
-local function CreatePixelTextureBorder(parent, target, key, size, offset)
-    offset = offset or 0
-    size = size or 1
+            if db.profile.showCastbarTarget and frame.tempCastName then
+                local textSettings = layout and layout.textSettings
+                local anchorInside = textSettings and textSettings.castbarTargetAnchorInside
+                local playerName = UnitName("player")
+                local _, playerClass = UnitClass("player")
 
-    if not parent[key] then
-        local holder = CreateFrame("Frame", nil, parent)
-        holder:SetIgnoreParentScale(true)
-        parent[key] = holder
+                local coloredName = playerName
+                if playerClass then
+                    local color = C_ClassColor and C_ClassColor.GetClassColor(playerClass) or RAID_CLASS_COLORS[playerClass]
+                    if color then
+                        if color.WrapTextInColorCode then
+                            coloredName = color:WrapTextInColorCode(playerName)
+                        elseif color.colorStr then
+                            coloredName = "|c" .. color.colorStr .. playerName .. "|r"
+                        end
+                    end
+                end
 
-        local edges = {}
-        for i = 1, 4 do
-            local tex = holder:CreateTexture(nil, "BORDER", nil, 7)
-            tex:SetColorTexture(0,0,0,1)
-            tex:SetIgnoreParentScale(true)
-            edges[i] = tex
-        end
-        holder.edges = edges
-
-        function holder:SetVertexColor(r, g, b, a)
-            for _, tex in ipairs(self.edges) do
-                tex:SetColorTexture(r, g, b, a or 1)
+                if anchorInside then
+                    frame.CastBar.Text:SetText(frame.tempCastName .. ": " .. coloredName)
+                    if frame.CastBar.ArenaTargetText then
+                        frame.CastBar.ArenaTargetText:Hide()
+                        frame.CastBar.ArenaTargetText:SetText("")
+                    end
+                else
+                    frame.CastBar.Text:SetText(frame.tempCastName)
+                    if frame.CastBar.ArenaTargetText then
+                        frame.CastBar.ArenaTargetText:SetText(coloredName)
+                        frame.CastBar.ArenaTargetText:Show()
+                    end
+                end
+            elseif frame.tempCastName then
+                frame.CastBar.Text:SetText(frame.tempCastName)
+                if frame.CastBar.ArenaTargetText then
+                    frame.CastBar.ArenaTargetText:Hide()
+                    frame.CastBar.ArenaTargetText:SetText("")
+                end
             end
         end
     end
-
-    local holder = parent[key]
-    local edges = holder.edges
-
-    local spacing = offset
-
-    holder:ClearAllPoints()
-    holder:SetPoint("TOPLEFT", target, "TOPLEFT", -spacing - size, spacing + size)
-    holder:SetPoint("BOTTOMRIGHT", target, "BOTTOMRIGHT", spacing + size, -spacing - size)
-
-    -- Top
-    edges[1]:ClearAllPoints()
-    edges[1]:SetPoint("TOPLEFT", holder, "TOPLEFT")
-    edges[1]:SetPoint("TOPRIGHT", holder, "TOPRIGHT")
-    edges[1]:SetHeight(size)
-
-    -- Right
-    edges[2]:ClearAllPoints()
-    edges[2]:SetPoint("TOPRIGHT", holder, "TOPRIGHT")
-    edges[2]:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT")
-    edges[2]:SetWidth(size)
-
-    -- Bottom
-    edges[3]:ClearAllPoints()
-    edges[3]:SetPoint("BOTTOMLEFT", holder, "BOTTOMLEFT")
-    edges[3]:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT")
-    edges[3]:SetHeight(size)
-
-    -- Left
-    edges[4]:ClearAllPoints()
-    edges[4]:SetPoint("TOPLEFT", holder, "TOPLEFT")
-    edges[4]:SetPoint("BOTTOMLEFT", holder, "BOTTOMLEFT")
-    edges[4]:SetWidth(size)
-
-    holder:Show()
 end
 
 function sArenaMixin:UpdateDRSettings(db, info, val)
@@ -3806,8 +4122,8 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
 
                 elseif db.thickPixelBorder then
                     dr.Border:Hide()
-                    local drSize = 2
-                    CreatePixelTextureBorder(dr, dr, "PixelBorder", drSize, 0)
+                    local drSize = layoutSettings and layoutSettings.drPixelBorderSize or 2
+                    frame:CreatePixelTextureBorder(dr, dr, "PixelBorder", drSize, 0, false)
                     dr.PixelBorder:Show()
 
                     if db.blackDRBorder then
@@ -4870,79 +5186,6 @@ else
                                             info.handler.db.profile.shadowSightTimer = val
                                         end,
                                     },
-                                    colorTrinket = {
-                                        order = 8,
-                                        name = L["Option_ColorTrinket"],
-                                        type = "toggle",
-                                        width = 0.6,
-                                        desc = L["Trinket_MinimalistDesign_Desc"],
-                                        get = function(info) return info.handler.db.profile.colorTrinket end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.colorTrinket = val
-                                            local colors = info.handler.db.profile.trinketColors
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                if val then
-                                                    if i <= 2 then
-                                                        frame.Trinket.Texture:SetColorTexture(unpack(colors.available))
-                                                        frame.Trinket.Cooldown:Clear()
-                                                    else
-                                                        frame.Trinket.Texture:SetColorTexture(unpack(colors.used))
-                                                    end
-                                                else
-                                                    frame.Trinket.Texture:SetTexture(info.handler.trinketTexture)
-                                                end
-                                            end
-                                        end,
-                                    },
-                                    trinketColorAvailable = {
-                                        order = 8.1,
-                                        type = "color",
-                                        name = L["Option_TrinketColorAvailable"],
-                                        width = 0.5,
-                                        disabled = function(info) return not info.handler.db.profile.colorTrinket end,
-                                        get = function(info)
-                                            return unpack(info.handler.db.profile.trinketColors.available)
-                                        end,
-                                        set = function(info, r, g, b)
-                                            info.handler.db.profile.trinketColors.available = {r, g, b}
-                                            local used = info.handler.db.profile.trinketColors.used
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                if frame and info.handler.db.profile.colorTrinket then
-                                                    if i <= 2 then
-                                                        frame.Trinket.Texture:SetColorTexture(r, g, b)
-                                                    else
-                                                        frame.Trinket.Texture:SetColorTexture(unpack(used))
-                                                    end
-                                                end
-                                            end
-                                        end,
-                                    },
-                                    trinketColorUsed = {
-                                        order = 8.2,
-                                        type = "color",
-                                        name = L["Option_TrinketColorUsed"],
-                                        width = 0.6,
-                                        disabled = function(info) return not info.handler.db.profile.colorTrinket end,
-                                        get = function(info)
-                                            return unpack(info.handler.db.profile.trinketColors.used)
-                                        end,
-                                        set = function(info, r, g, b)
-                                            info.handler.db.profile.trinketColors.used = {r, g, b}
-                                            local available = info.handler.db.profile.trinketColors.available
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                if frame and info.handler.db.profile.colorTrinket then
-                                                    if i <= 2 then
-                                                        frame.Trinket.Texture:SetColorTexture(unpack(available))
-                                                    else
-                                                        frame.Trinket.Texture:SetColorTexture(r, g, b)
-                                                    end
-                                                end
-                                            end
-                                        end,
-                                    },
                                     colorMysteryGray = {
                                         order = 9,
                                         name = L["Option_ColorNonVisibleFramesGray"],
@@ -5227,6 +5470,222 @@ else
                             },
                         },
                     },
+                    trinketsGroup = {
+                        order = 1.5,
+                        name = L["Category_Trinkets"],
+                        type = "group",
+                        args = {
+                            trinketSound = {
+                                order = 1,
+                                name = L["Option_TrinketSound"],
+                                type = "group",
+                                inline = true,
+                                args = {
+                                    playTrinketSound = {
+                                        order = 1,
+                                        name = L["Option_PlayTrinketSound"],
+                                        desc = L["Option_PlayTrinketSound_Desc"],
+                                        type = "toggle",
+                                        width = 0.9,
+                                        get = function(info) return info.handler.db.profile.playTrinketSound end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.playTrinketSound = val
+                                            if val then
+                                                local channel = info.handler.db.profile.trinketSoundChannel or "Master"
+                                                local fileID = info.handler.db.profile.trinketSoundFileID
+                                                if fileID and fileID ~= 0 then
+                                                    PlaySound(fileID, channel)
+                                                else
+                                                    local path = LSM:Fetch(LSM.MediaType.SOUND, info.handler.db.profile.trinketSoundName)
+                                                    if path then PlaySoundFile(path, channel) end
+                                                end
+                                            end
+                                        end,
+                                    },
+                                    trinketSoundChannel = {
+                                        order = 1.5,
+                                        name = L["Option_TrinketSoundChannel"],
+                                        desc = L["Option_TrinketSoundChannel_Desc"],
+                                        type = "select",
+                                        width = 0.5,
+                                        values = {
+                                            ["Master"] = "Master",
+                                            ["SFX"] = "SFX",
+                                            ["Music"] = "Music",
+                                            ["Ambience"] = "Ambience",
+                                            ["Dialog"] = "Dialog",
+                                        },
+                                        disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
+                                        get = function(info) return info.handler.db.profile.trinketSoundChannel or "Master" end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.trinketSoundChannel = val
+                                        end,
+                                    },
+                                    trinketSoundChannelSpacer = {
+                                        order = 1.6,
+                                        name = "",
+                                        type = "description",
+                                        width = "full",
+                                    },
+                                    trinketSoundName = {
+                                        order = 2,
+                                        width = 1.3,
+                                        name = L["Option_TrinketSoundName"],
+                                        desc = L["Option_TrinketSoundName_Desc"],
+                                        type = "select",
+                                        dialogControl = "LSM30_Sound",
+                                        values = SoundValues,
+                                        disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
+                                        get = function(info) return info.handler.db.profile.trinketSoundName end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.trinketSoundName = val
+                                            local channel = info.handler.db.profile.trinketSoundChannel or "Master"
+                                            local path = LSM:Fetch(LSM.MediaType.SOUND, val)
+                                            if path then PlaySoundFile(path, channel) end
+                                        end,
+                                    },
+                                    trinketSoundFileID = {
+                                        order = 3,
+                                        name = L["Option_TrinketSoundFileID"],
+                                        desc = L["Option_TrinketSoundFileID_Desc"],
+                                        type = "input",
+                                        width = 1.3,
+                                        disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
+                                        get = function(info)
+                                            local val = info.handler.db.profile.trinketSoundFileID
+                                            return (val and val ~= 0) and tostring(val) or ""
+                                        end,
+                                        set = function(info, val)
+                                            local id = tonumber(val) or 0
+                                            info.handler.db.profile.trinketSoundFileID = id
+                                            if id ~= 0 then PlaySound(id, info.handler.db.profile.trinketSoundChannel or "Master") end
+                                        end,
+                                    },
+                                    trinketSoundFileIDSpacer = {
+                                        order = 3.5,
+                                        name = "",
+                                        type = "description",
+                                        width = "full",
+                                    },
+                                    healerTrinketSoundName = {
+                                        order = 4,
+                                        width = 1.3,
+                                        name = L["Option_HealerTrinketSoundName"],
+                                        desc = L["Option_HealerTrinketSoundName_Desc"],
+                                        type = "select",
+                                        dialogControl = "LSM30_Sound",
+                                        values = SoundValues,
+                                        disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
+                                        get = function(info) return info.handler.db.profile.healerTrinketSoundName end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.healerTrinketSoundName = val
+                                            local channel = info.handler.db.profile.trinketSoundChannel or "Master"
+                                            local path = LSM:Fetch(LSM.MediaType.SOUND, val)
+                                            if path then PlaySoundFile(path, channel) end
+                                        end,
+                                    },
+                                    healerTrinketSoundFileID = {
+                                        order = 5,
+                                        name = L["Option_HealerTrinketSoundFileID"],
+                                        desc = L["Option_HealerTrinketSoundFileID_Desc"],
+                                        type = "input",
+                                        width = 1.3,
+                                        disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
+                                        get = function(info)
+                                            local val = info.handler.db.profile.healerTrinketSoundFileID
+                                            return (val and val ~= 0) and tostring(val) or ""
+                                        end,
+                                        set = function(info, val)
+                                            local id = tonumber(val) or 0
+                                            info.handler.db.profile.healerTrinketSoundFileID = id
+                                            if id ~= 0 then PlaySound(id, info.handler.db.profile.trinketSoundChannel or "Master") end
+                                        end,
+                                    },
+                                },
+                            },
+                            trinketColors = {
+                                order = 2,
+                                name = L["Option_ColorTrinket"],
+                                type = "group",
+                                inline = true,
+                                args = {
+                                    colorTrinket = {
+                                        order = 1,
+                                        name = L["Option_ColorTrinket"],
+                                        type = "toggle",
+                                        width = 0.6,
+                                        desc = L["Trinket_MinimalistDesign_Desc"],
+                                        get = function(info) return info.handler.db.profile.colorTrinket end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.colorTrinket = val
+                                            local colors = info.handler.db.profile.trinketColors
+                                            for i = 1, info.handler.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                if val then
+                                                    if i <= 2 then
+                                                        frame.Trinket.Texture:SetColorTexture(unpack(colors.available))
+                                                        frame.Trinket.Cooldown:Clear()
+                                                    else
+                                                        frame.Trinket.Texture:SetColorTexture(unpack(colors.used))
+                                                    end
+                                                else
+                                                    frame.Trinket.Texture:SetTexture(info.handler.trinketTexture)
+                                                end
+                                            end
+                                        end,
+                                    },
+                                    trinketColorAvailable = {
+                                        order = 2,
+                                        type = "color",
+                                        name = L["Option_TrinketColorAvailable"],
+                                        width = 0.5,
+                                        disabled = function(info) return not info.handler.db.profile.colorTrinket end,
+                                        get = function(info)
+                                            return unpack(info.handler.db.profile.trinketColors.available)
+                                        end,
+                                        set = function(info, r, g, b)
+                                            info.handler.db.profile.trinketColors.available = {r, g, b}
+                                            local used = info.handler.db.profile.trinketColors.used
+                                            for i = 1, info.handler.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                if frame and info.handler.db.profile.colorTrinket then
+                                                    if i <= 2 then
+                                                        frame.Trinket.Texture:SetColorTexture(r, g, b)
+                                                    else
+                                                        frame.Trinket.Texture:SetColorTexture(unpack(used))
+                                                    end
+                                                end
+                                            end
+                                        end,
+                                    },
+                                    trinketColorUsed = {
+                                        order = 3,
+                                        type = "color",
+                                        name = L["Option_TrinketColorUsed"],
+                                        width = 0.6,
+                                        disabled = function(info) return not info.handler.db.profile.colorTrinket end,
+                                        get = function(info)
+                                            return unpack(info.handler.db.profile.trinketColors.used)
+                                        end,
+                                        set = function(info, r, g, b)
+                                            info.handler.db.profile.trinketColors.used = {r, g, b}
+                                            local available = info.handler.db.profile.trinketColors.available
+                                            for i = 1, info.handler.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                if frame and info.handler.db.profile.colorTrinket then
+                                                    if i <= 2 then
+                                                        frame.Trinket.Texture:SetColorTexture(unpack(available))
+                                                    else
+                                                        frame.Trinket.Texture:SetColorTexture(r, g, b)
+                                                    end
+                                                end
+                                            end
+                                        end,
+                                    },
+                                },
+                            },
+                        },
+                    },
                     drGroup = {
                         order = 2,
                         name = L["Category_DiminishingReturns"],
@@ -5344,14 +5803,52 @@ else
                                 order = 2,
                                 name = L["Option_DRCategories"],
                                 type = "group",
-                                disabled = function() return isMidnight end,
                                 inline = true,
                                 args = {
+                                    hideMidnightDRs = {
+                                        order = 0.1,
+                                        name = L["Option_HideDRs"],
+                                        desc = L["Option_HideDRs_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        hidden = function() return not isMidnight end,
+                                        confirm = function(info, val) info.handler.db.profile.hideMidnightDRs = val;return L["Option_HideDRs_Reload_Desc"] end,
+                                        get = function(info) return info.handler.db.profile.hideMidnightDRs end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.hideMidnightDRs = val
+                                            sArena_ReloadedDB.reOpenOptions = true
+                                            ReloadUI()
+                                        end,
+                                    },
+                                    onlyTriggerableDRs = {
+                                        order = 0.2,
+                                        name = L["Option_OnlyTriggerableDRs"],
+                                        desc = L["Option_OnlyTriggerableDRs_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        hidden = function() return not isMidnight end,
+                                        disabled = function(info) return info.handler.db.profile.hideMidnightDRs end,
+                                        get = function(info)
+                                            return C_CVar.GetCVarBool("spellDiminishPVPOnlyTriggerableByMe")
+                                        end,
+                                        set = function(info, val)
+                                            if InCombatLockdown() then return end
+                                            C_CVar.SetCVar("spellDiminishPVPOnlyTriggerableByMe", val and "1" or "0")
+                                        end,
+                                    },
+                                    midnightDRSpacer = {
+                                        order = 0.3,
+                                        type = "description",
+                                        name = " ",
+                                        width = "full",
+                                        hidden = function() return not isMidnight end,
+                                    },
                                     drCategoriesPerClass = {
                                         order = 1,
                                         name = L["Option_PerClass"],
                                         desc = L["DR_ClassSpecific_Desc"],
                                         type = "toggle",
+                                        disabled = function() return isMidnight end,
                                         get = function(info) return info.handler.db.profile.drCategoriesPerClass end,
                                         set = function(info, val)
                                             info.handler.db.profile.drCategoriesPerClass = val
@@ -5366,6 +5863,7 @@ else
                                         name = L["Option_PerSpec"],
                                         desc = L["DR_SpecSpecific_Desc"],
                                         type = "toggle",
+                                        disabled = function() return isMidnight end,
                                         get = function(info) return info.handler.db.profile.drCategoriesPerSpec end,
                                         set = function(info, val)
                                             info.handler.db.profile.drCategoriesPerSpec = val
@@ -5378,6 +5876,7 @@ else
 
                                     categoriesMultiselect = {
                                         order = 4,
+                                        disabled = function() return isMidnight end,
                                         name = function(info)
                                             local db = info.handler.db
                                             if db.profile.drCategoriesPerSpec then
@@ -5563,6 +6062,19 @@ else
                         type = "group",
                         args = (function()
                             local args = {
+                                midnightDisclaimer = {
+                                    order = 0,
+                                    type = "description",
+                                    name = isMidnight and L["Racial_MidnightDisclaimer"] or "",
+                                    fontSize = "medium",
+                                    hidden = function() return not isMidnight end,
+                                },
+                                midnightDisclaimerSpacer = {
+                                    order = 0.1,
+                                    type = "description",
+                                    name = " ",
+                                    hidden = function() return not isMidnight end,
+                                },
                                 categories = {
                                     order = 1,
                                     name = L["Option_Categories"],
@@ -5570,6 +6082,28 @@ else
                                     get = function(info, key) return info.handler.db.profile.racialCategories[key] end,
                                     set = function(info, key, val) info.handler.db.profile.racialCategories[key] = val end,
                                     values = racialCategories,
+                                },
+                                enableAll = {
+                                    order = 1.1,
+                                    name = L["Racial_EnableAll"],
+                                    type = "execute",
+                                    width = 1.2,
+                                    func = function(info)
+                                        for key in pairs(racialCategories) do
+                                            info.handler.db.profile.racialCategories[key] = true
+                                        end
+                                    end,
+                                },
+                                disableAll = {
+                                    order = 1.2,
+                                    name = L["Racial_DisableAll"],
+                                    type = "execute",
+                                    width = 1.2,
+                                    func = function(info)
+                                        for key in pairs(racialCategories) do
+                                            info.handler.db.profile.racialCategories[key] = false
+                                        end
+                                    end,
                                 },
                             }
                             args.racialOptions = {
@@ -5875,6 +6409,40 @@ else
                         order = 4,
                         type = "description",
                         name = L["Option_StreamerProfiles_Missing"],
+                        fontSize = "medium",
+                    },
+                    discordSpacer = {
+                        order = 5,
+                        type = "description",
+                        name = "\n\n\n\n\n\n\n\n\n\n\n\n",
+                    },
+                    discordTitle = {
+                        order = 5.5,
+                        type = "description",
+                        name = L["Option_DiscordLink"],
+                        fontSize = "large",
+                    },
+                    discordLink = {
+                        order = 6,
+                        name = "",
+                        type = "input",
+                        width = 1.5,
+                        dialogControl = "EditBox",
+                        get = function()
+                            return "https://discord.gg/cjqVaEMm25"
+                        end,
+                        set = function() end,
+                    },
+                    discordTitleTip = {
+                        order = 6.5,
+                        type = "description",
+                        name = L["Option_DiscordLink_Desc"],
+                        fontSize = "medium",
+                    },
+                    discordTitleAddons = {
+                        order = 6.6,
+                        type = "description",
+                        name = L["Option_DiscordLink_Addons"],
                         fontSize = "medium",
                     },
                 },

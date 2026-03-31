@@ -36,5 +36,12 @@ function sArenaFrameMixin:CheckForSpecSpell(spellID)
     self:UpdateFrameColors()
     self.parent:UpdateTextures()
 
+    if db then
+        local currentLayout = self.parent.layouts[db.profile.currentLayout]
+        if currentLayout and currentLayout.UpdateHealthbarOrientation then
+            currentLayout:UpdateHealthbarOrientation(self)
+        end
+    end
+
     return true
 end

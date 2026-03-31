@@ -18,6 +18,8 @@ LSM:Register("statusbar", "Blizzard RetailBar", [[Interface\AddOns\sArena_Reload
 LSM:Register("statusbar", "sArena Default", [[Interface\AddOns\sArena_Reloaded\Textures\sArenaDefault]])
 LSM:Register("statusbar", "sArena Stripes", [[Interface\AddOns\sArena_Reloaded\Textures\sArenaHealer]])
 LSM:Register("statusbar", "sArena Stripes 2", [[Interface\AddOns\sArena_Reloaded\Textures\sArenaRetailHealer]])
+LSM:Register("sound", "Lossa Trinket", [[Interface\AddOns\sArena_Reloaded\Textures\LossaTrinket.ogg]])
+LSM:Register("sound", "Lossa Healer Trinket", [[Interface\AddOns\sArena_Reloaded\Textures\LossaHealerTrinket.ogg]])
 -- Prototype font only supports western languages and Russian, so LSM will automatically reject registration on unsupported locales
 LSM:Register("font", "Prototype", "Interface\\Addons\\sArena_Reloaded\\Textures\\Prototype.ttf", LSM.LOCALE_BIT_western + LSM.LOCALE_BIT_ruRU)
 LSM:Register("font", "PT Sans Narrow Bold", "Interface\\Addons\\sArena_Reloaded\\Textures\\PTSansNarrow-Bold.ttf", LSM.LOCALE_BIT_western + LSM.LOCALE_BIT_ruRU)
@@ -438,6 +440,7 @@ function sArenaFrameMixin:UpdateAbsorb()
 end
 
 function sArenaMixin:HandleArenaStart()
+    self.arenaMatchStarted = true
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         if frame:IsShown() then break end
@@ -627,6 +630,7 @@ function sArenaMixin:OnEvent(event, ...)
         if isMidnight then
             C_CVar.SetCVar("spellDiminishPVPEnemiesEnabled", "1")
             self:EnsureArenaFramesEnabled()
+            self:RegisterCVarListener()
         end
         self:Initialize()
         if self:CompatibilityIssueExists() then return end
@@ -648,6 +652,7 @@ function sArenaMixin:OnEvent(event, ...)
         self:UpdateBlizzArenaFrameVisibility(instanceType)
         self:SetMouseState(instanceType ~= "arena")
         self.testMode = nil
+        self.arenaMatchStarted = nil
 
         if noEarlyFrames then
             self.seenArenaUnits = {}
@@ -732,16 +737,16 @@ function sArenaMixin:OnEvent(event, ...)
     end
 end
 
-local function ChatCommand(input)
+function sArenaMixin:ChatCommand(input)
     local cmd = (input or ""):trim():lower()
     if cmd == "" then
         LibStub("AceConfigDialog-3.0"):Open("sArena")
     elseif cmd == "convert" then
-        sArenaMixin:ImportOtherForkSettings()
+        self:ImportOtherForkSettings()
     elseif cmd == "ver" or cmd == "version" then
-        sArenaMixin:Print(string.format(L["Print_CurrentVersion"], C_AddOns.GetAddOnMetadata("sArena_Reloaded", "Version")))
+        self:Print(string.format(L["Print_CurrentVersion"], C_AddOns.GetAddOnMetadata("sArena_Reloaded", "Version")))
     elseif cmd:match("^test%s*[1-5]$") then
-        sArenaMixin.testUnits = tonumber(cmd:match("(%d)"))
+        self.testUnits = tonumber(cmd:match("(%d)"))
         input = "test"
         LibStub("AceConfigCmd-3.0").HandleCommand("sArena", "sarena", "sArena", input)
     else
@@ -791,7 +796,7 @@ function sArenaMixin:Initialize()
     self.optionsTable.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(db)
     LibStub("AceConfig-3.0"):RegisterOptionsTable("sArena", self.optionsTable)
     LibStub("AceConfigDialog-3.0"):SetDefaultSize("sArena", compatIssue and 520 or 860, compatIssue and 300 or 690)
-    LibStub("AceConsole-3.0"):RegisterChatCommand("sarena", ChatCommand)
+    LibStub("AceConsole-3.0"):RegisterChatCommand("sarena", function(input) self:ChatCommand(input) end)
     self:InterruptTracker()
     if not compatIssue then
         self:DatabaseCleanup(db)
@@ -1439,7 +1444,10 @@ function sArenaMixin:SetLayout(_, layout)
     self:UpdateCastBarSettings(self.layoutdb.castBar)
     self:CreateCastbarIDText()
     self:UpdateCastbarIDText()
+    self:CreateCastbarTargetText()
+    self:UpdateCastbarTargetText()
     self:UpdateCDTextVisibility()
+    self:UpdateCastbarVisibility()
 
     self.optionsTable.args.layoutSettingsGroup.args = self.layouts[layout].optionsTable and self.layouts[layout].optionsTable or emptyLayoutOptionsTable
     LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
@@ -1717,6 +1725,7 @@ function sArenaFrameMixin:OnLoad()
             end
         end
         self.parent:CastbarOnEvent(self.CastBar, event)
+        self.parent:UpdateCastbarTargetOnEvent(self.CastBar, event)
     end)
 
     self.healthbar = self.HealthBar
@@ -1952,6 +1961,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
             self:SetAlpha(0)
         end
 
+        self:StopStealthHealthTicker()
         self.Name:SetText("")
         self.CastBar:Hide()
         self.specTexture = nil
@@ -2023,6 +2033,16 @@ function sArenaFrameMixin:OnLeave()
     UnitFrame_OnLeave(self)
 
     self:UpdateStatusTextVisible()
+end
+
+function sArenaMixin:IsWaitingForMatch()
+    if isMidnight then
+        local state = C_PvP.GetActiveMatchState()
+        return state ~= state == Enum.PvPMatchState.Engaged
+    else
+        local inPreparation = C_UnitAuras.GetPlayerAuraBySpellID(32727)
+        return inPreparation
+    end
 end
 
 function sArenaMixin:GetNumArenaOpponentsFallback()
@@ -2143,7 +2163,7 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
         self:SetMysteryPlayer()
         return
     end
-
+    self:StopStealthHealthTicker()
     C_PvP.RequestCrowdControlSpell(unit)
 
     self:UpdateRacial()
@@ -2218,12 +2238,18 @@ end
 
 function sArenaFrameMixin:SetMysteryPlayer()
     local hp = self.HealthBar
-    hp:SetMinMaxValues(0, 100)
-    hp:SetValue(100)
-
     local pp = self.PowerBar
-    pp:SetMinMaxValues(0, 100)
-    pp:SetValue(100)
+
+    local matchActive = self.parent.engagedInMatch or self.parent.arenaMatchStarted
+
+    if matchActive then
+        self:StartStealthHealthTicker()
+    else
+        hp:SetMinMaxValues(0, 100)
+        hp:SetValue(100)
+        pp:SetMinMaxValues(0, 100)
+        pp:SetValue(100)
+    end
 
     if self.parent.db and self.parent.db.profile.colorMysteryGray then -- TODO: Figure out cleaner fix, why db is nil here.
         hp:SetStatusBarColor(0.5, 0.5, 0.5)
@@ -2308,6 +2334,11 @@ function sArenaFrameMixin:GetClass()
                     self:UpdateSpecIcon()
                     self:UpdateFrameColors()
                     self.parent:UpdateTextures()
+
+                    local currentLayout = self.parent.layouts[db.profile.currentLayout]
+                    if currentLayout and currentLayout.UpdateHealthbarOrientation then
+                        currentLayout:UpdateHealthbarOrientation(self)
+                    end
                 end
             end
         end

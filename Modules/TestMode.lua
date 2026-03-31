@@ -571,6 +571,11 @@ function sArenaMixin:Test()
         frame.replaceClassIcon = replaceClassIcon
         frame.isHealer = self.healerSpecNames[data.specName] or false
 
+        local currentLayout = self.layouts[self.db.profile.currentLayout]
+        if currentLayout and currentLayout.UpdateHealthbarOrientation then
+            currentLayout:UpdateHealthbarOrientation(frame)
+        end
+
         frame:Show()
         frame:SetAlpha(1)
         frame.HealthBar:SetAlpha(1)
@@ -984,6 +989,7 @@ function sArenaMixin:Test()
             local useCustomColors = layout.castBar and layout.castBar.recolorCastbar
 
             frame.tempCast = true
+            frame.tempCastName = data.castName
             frame.tempChannel = data.channel or false
             frame.tempUninterruptible = data.unint or false
 
@@ -992,6 +998,47 @@ function sArenaMixin:Test()
             frame.CastBar:SetAlpha(1)
             frame.CastBar.Icon:SetTexture(data.castIcon)
             frame.CastBar.Text:SetText(data.castName)
+
+            if db.profile.showCastbarTarget then
+                local playerName = UnitName("player")
+                local _, playerClass = UnitClass("player")
+                local textSettings = layout.textSettings
+                local anchorInside = textSettings and textSettings.castbarTargetAnchorInside
+
+                if anchorInside then
+                    local coloredName = playerName
+                    if playerClass then
+                        local color = C_ClassColor and C_ClassColor.GetClassColor(playerClass) or RAID_CLASS_COLORS[playerClass]
+                        if color then
+                            if color.WrapTextInColorCode then
+                                coloredName = color:WrapTextInColorCode(playerName)
+                            elseif color.colorStr then
+                                coloredName = "|c" .. color.colorStr .. playerName .. "|r"
+                            end
+                        end
+                    end
+                    frame.CastBar.Text:SetText(data.castName .. ": " .. coloredName)
+                else
+                    if frame.CastBar.ArenaTargetText then
+                        local coloredName = playerName
+                        if playerClass then
+                            local color = C_ClassColor and C_ClassColor.GetClassColor(playerClass) or RAID_CLASS_COLORS[playerClass]
+                            if color then
+                                if color.WrapTextInColorCode then
+                                    coloredName = color:WrapTextInColorCode(playerName)
+                                elseif color.colorStr then
+                                    coloredName = "|c" .. color.colorStr .. playerName .. "|r"
+                                end
+                            end
+                        end
+                        local justify = (textSettings and textSettings.castbarTargetJustifyH) or "CENTER"
+                        frame.CastBar.ArenaTargetText:SetText("")
+                        frame.CastBar.ArenaTargetText:SetJustifyH(justify)
+                        frame.CastBar.ArenaTargetText:SetText(coloredName)
+                        frame.CastBar.ArenaTargetText:Show()
+                    end
+                end
+            end
 
             if data.unint then
                 frame.CastBar.BorderShield:Show()
@@ -1058,6 +1105,10 @@ function sArenaMixin:Test()
             frame.CastBar.fadeOut = nil
             frame.CastBar:Hide()
             frame.CastBar:SetAlpha(0)
+            if frame.CastBar.ArenaTargetText then
+                frame.CastBar.ArenaTargetText:Hide()
+                frame.CastBar.ArenaTargetText:SetText("")
+            end
         end
 
         if isTBC then

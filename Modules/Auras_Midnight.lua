@@ -56,6 +56,14 @@ function sArenaMixin:UpdateAuraPrioImportant()
 end
 
 function sArenaFrameMixin:FindAura(updateInfo)
+    if not UnitExists(self.unit) then
+        self.currentAuraSpellID = nil
+        self.currentAuraDurationObj = nil
+        self.currentAuraTexture = nil
+        self.currentAuraApplications = nil
+        self:UpdateClassIcon(true)
+        return
+    end
     if updateInfo and not AurasChanged(updateInfo) then return end
 
     local unit = self.unit

@@ -53,6 +53,14 @@ function sArenaMixin:UpdateFonts()
                     if f.CastBar and f.CastBar.ArenaIDText then
                         applyFont(f.CastBar.ArenaIDText, og.CastBarIDText)
                     end
+                    if f.CastBar and f.CastBar.ArenaTargetText then
+                        applyFont(f.CastBar.ArenaTargetText, og.CastBarTargetText)
+                        local _, cbSize = f.CastBar.Text:GetFont()
+                        local tPath, _, tFlags = f.CastBar.ArenaTargetText:GetFont()
+                        if tPath and cbSize then
+                            f.CastBar.ArenaTargetText:SetFont(tPath, cbSize - 2, tFlags)
+                        end
+                    end
                 end
             end
             self.ogFonts = nil
@@ -116,6 +124,7 @@ function sArenaMixin:UpdateFonts()
                     PowerText   = captureFont(frame.PowerText),
                     CastBarText = captureFont(frame.CastBar and frame.CastBar.Text),
                     CastBarIDText = captureFont(frame.CastBar and frame.CastBar.ArenaIDText),
+                    CastBarTargetText = captureFont(frame.CastBar and frame.CastBar.ArenaTargetText),
                 }
             end
             setFont(frame.Name, frameFontPath)
@@ -125,6 +134,14 @@ function sArenaMixin:UpdateFonts()
             setFont(frame.CastBar.Text, frameFontPath, true)
             if frame.CastBar and frame.CastBar.ArenaIDText then
                 setFont(frame.CastBar.ArenaIDText, frameFontPath, true)
+            end
+            if frame.CastBar and frame.CastBar.ArenaTargetText then
+                setFont(frame.CastBar.ArenaTargetText, frameFontPath, true)
+                local _, cbSize = frame.CastBar.Text:GetFont()
+                local tPath, _, tFlags = frame.CastBar.ArenaTargetText:GetFont()
+                if tPath and cbSize then
+                    frame.CastBar.ArenaTargetText:SetFont(tPath, cbSize - 2, tFlags)
+                end
             end
         end
     end
@@ -172,5 +189,9 @@ function sArenaFrameMixin:ApplyPrototypeFont()
     updateFont(self.CastBar and self.CastBar.Text)
     if self.CastBar and self.CastBar.ArenaIDText then
         updateFont(self.CastBar.ArenaIDText)
+    end
+    if self.CastBar and self.CastBar.ArenaTargetText then
+        local _, cbSize = self.CastBar.Text:GetFont()
+        updateFont(self.CastBar.ArenaTargetText, cbSize and (cbSize - 2) or nil)
     end
 end

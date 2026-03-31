@@ -106,6 +106,7 @@ layout.defaultSettings = {
     cdFont  = "Prototype",
     mirrored = false,
     bigHealthbar = true,
+    keepHealerManabar = true,
 
     textSettings = {
     },
@@ -277,6 +278,70 @@ function layout:Initialize(frame)
     self:UpdateOrientation(frame)
 end
 
+function layout:UpdateHealthbarOrientation(frame)
+    local healthBar = frame.HealthBar
+    local shouldHide = self.db.hideManabars and not (self.db.keepHealerManabar and frame.isHealer)
+    local normalHeight = self.db.bigHealthbar and 29 or 9
+    local hiddenHeight = normalHeight + 1.5 + 9
+    local extra = hiddenHeight - normalHeight
+
+    healthBar:ClearAllPoints()
+    healthBar:SetSize(118, shouldHide and hiddenHeight or normalHeight)
+
+    if self.db.bigHealthbar then
+        if shouldHide then
+            frame.frameTexture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-TargetingFrame-NoLevel-Large-ManaOff")
+        else
+            frame.frameTexture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-TargetingFrame-NoLevel-Large")
+        end
+    end
+
+    local yBase = self.db.bigHealthbar and 7 or -2
+    if self.db.mirrored then
+        healthBar:SetPoint("RIGHT", -5, yBase - (shouldHide and extra / 2 or 0))
+    else
+        healthBar:SetPoint("LEFT", 5, yBase - (shouldHide and extra / 2 or 0))
+    end
+
+    frame.PowerBar:SetAlpha(shouldHide and 0 or 1)
+    frame.PowerText:SetAlpha((shouldHide or frame.parent.db.profile.hidePowerText) and 0 or 1)
+
+    if not self.db.textSettings then return end
+    local txt = self.db.textSettings
+    local hideOffset = (shouldHide and not self.db.moveStatusbarText) and extra / 2 or 0
+    local name = frame.Name
+    local healthText = frame.HealthText
+
+    name:ClearAllPoints()
+    if (txt.nameAnchor or "CENTER") == "LEFT" then
+        name:SetPoint("BOTTOMLEFT", healthBar, "TOPLEFT", 3 + (txt.nameOffsetX or 0), 4 + (txt.nameOffsetY or 0))
+    elseif (txt.nameAnchor or "CENTER") == "RIGHT" then
+        name:SetPoint("BOTTOMRIGHT", healthBar, "TOPRIGHT", -3 + (txt.nameOffsetX or 0), 4 + (txt.nameOffsetY or 0))
+    else
+        name:SetPoint("BOTTOM", healthBar, "TOP", (txt.nameOffsetX or 0), 4 + (txt.nameOffsetY or 0))
+    end
+
+    healthText:ClearAllPoints()
+    if (txt.healthAnchor or "CENTER") == "LEFT" then
+        healthText:SetPoint("LEFT", healthBar, "LEFT", (txt.healthOffsetX or 0), (txt.healthOffsetY or 0) + hideOffset)
+    elseif (txt.healthAnchor or "CENTER") == "RIGHT" then
+        healthText:SetPoint("RIGHT", healthBar, "RIGHT", (txt.healthOffsetX or 0), (txt.healthOffsetY or 0) + hideOffset)
+    else
+        healthText:SetPoint("CENTER", healthBar, "CENTER", (txt.healthOffsetX or 0), (txt.healthOffsetY or 0) + hideOffset)
+    end
+
+    local specName = frame.SpecNameText
+    local specY = -(normalHeight + 6)
+    specName:ClearAllPoints()
+    if (txt.specNameAnchor or "CENTER") == "LEFT" then
+        specName:SetPoint("LEFT", healthBar, "TOPLEFT", (txt.specNameOffsetX or 0), specY + (txt.specNameOffsetY or 0))
+    elseif (txt.specNameAnchor or "CENTER") == "RIGHT" then
+        specName:SetPoint("RIGHT", healthBar, "TOPRIGHT", (txt.specNameOffsetX or 0), specY + (txt.specNameOffsetY or 0))
+    else
+        specName:SetPoint("CENTER", healthBar, "TOP", (txt.specNameOffsetX or 0), specY + (txt.specNameOffsetY or 0))
+    end
+end
+
 function layout:UpdateOrientation(frame)
     local frameTexture = frame.frameTexture
     local healthBar = frame.HealthBar
@@ -338,32 +403,13 @@ function layout:UpdateOrientation(frame)
     if self.db.textSettings then
         local txt = self.db.textSettings
         local modernCastbar = self.db.castBar.useModernCastbars
-
         name:SetScale(txt.nameSize or 1)
         healthText:SetScale(txt.healthSize or 1)
         specName:SetScale(txt.specNameSize or 1)
         castbarText:SetScale(txt.castbarSize or 1)
         powerText:SetScale(txt.powerSize or 1)
 
-        -- Name
-        name:ClearAllPoints()
-        if (txt.nameAnchor or "CENTER") == "LEFT" then
-            name:SetPoint("BOTTOMLEFT", frame.HealthBar, "TOPLEFT", 3 + (txt.nameOffsetX or 0), 4 + (txt.nameOffsetY or 0))
-        elseif (txt.nameAnchor or "CENTER") == "RIGHT" then
-            name:SetPoint("BOTTOMRIGHT", frame.HealthBar, "TOPRIGHT", -3 + (txt.nameOffsetX or 0), 4 + (txt.nameOffsetY or 0))
-        else
-            name:SetPoint("BOTTOM", frame.HealthBar, "TOP", (txt.nameOffsetX or 0), 4 + (txt.nameOffsetY or 0))
-        end
-
-        -- Health Text
-        healthText:ClearAllPoints()
-        if (txt.healthAnchor or "CENTER") == "LEFT" then
-            healthText:SetPoint("LEFT", healthBar, "LEFT", (txt.healthOffsetX or 0), (txt.healthOffsetY or 0))
-        elseif (txt.healthAnchor or "CENTER") == "RIGHT" then
-            healthText:SetPoint("RIGHT", healthBar, "RIGHT", (txt.healthOffsetX or 0), (txt.healthOffsetY or 0))
-        else
-            healthText:SetPoint("CENTER", healthBar, "CENTER", (txt.healthOffsetX or 0), (txt.healthOffsetY or 0))
-        end
+        self:UpdateHealthbarOrientation(frame)
 
         -- Power Text
         powerText:ClearAllPoints()
@@ -375,16 +421,6 @@ function layout:UpdateOrientation(frame)
             powerText:SetPoint("CENTER", frame.PowerBar, "CENTER", (txt.powerOffsetX or 0), (txt.powerOffsetY or 0))
         end
 
-        -- Spec Text
-        specName:ClearAllPoints()
-        if (txt.specNameAnchor or "CENTER") == "LEFT" then
-            specName:SetPoint("LEFT", frame.PowerBar, "LEFT", (txt.specNameOffsetX or 0), (txt.specNameOffsetY or 0))
-        elseif (txt.specNameAnchor or "CENTER") == "RIGHT" then
-            specName:SetPoint("RIGHT", frame.PowerBar, "RIGHT", (txt.specNameOffsetX or 0), (txt.specNameOffsetY or 0))
-        else
-            specName:SetPoint("CENTER", frame.PowerBar, "CENTER", (txt.specNameOffsetX or 0), (txt.specNameOffsetY or 0))
-        end
-
         -- Castbar Text
         castbarText:ClearAllPoints()
         local simpleCastbar = self.db.castBar.simpleCastbar and modernCastbar
@@ -394,6 +430,12 @@ function layout:UpdateOrientation(frame)
             castbarText:SetPoint("RIGHT", frame.CastBar, "RIGHT", -3 + (txt.castbarOffsetX or 0), (modernCastbar and (simpleCastbar and 0 or -11) or 0) + (txt.castbarOffsetY or 0))
         else
             castbarText:SetPoint("CENTER", frame.CastBar, "CENTER", (txt.castbarOffsetX or 0), (modernCastbar and (simpleCastbar and 0 or -11) or 0) + (txt.castbarOffsetY or 0))
+        end
+
+        if txt.forceCastbarTextWidth then
+            castbarText:SetWidth(self.db.castBar.width or frame.CastBar:GetWidth())
+        else
+            castbarText:SetWidth(0)
         end
     end
 
@@ -409,6 +451,8 @@ function layout:UpdateOrientation(frame)
         healthBar:SetPoint("LEFT", 5, self.db.bigHealthbar and 7 or -2)
         frame.ClassIcon:SetPoint("RIGHT", -5, 0)
     end
+
+    self:UpdateHealthbarOrientation(frame)
 end
 
 sArenaMixin.layouts[layoutName] = layout

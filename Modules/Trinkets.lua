@@ -5,11 +5,7 @@
 
 local isRetail = sArenaMixin.isRetail
 local isMidnight = sArenaMixin.isMidnight
-
-function sArenaFrameMixin:FindTrinket()
-    local trinket = self.Trinket
-    trinket.Cooldown:SetCooldown(GetTime(), 120);
-end
+local LSM = LibStub("LibSharedMedia-3.0")
 
 function sArenaFrameMixin:GetFactionTrinketIcon()
     local faction, _ = UnitFactionGroup(self.unit)
@@ -84,7 +80,24 @@ function sArenaFrameMixin:UpdateTrinket()
             -- end
         else
             if (startTime ~= 0 and duration ~= 0 and self.Trinket.spellID) then
-                if self.Trinket.spellID and (self.Trinket.Texture:GetTexture() ~= self.parent.noTrinketTexture)then
+                if self.Trinket.spellID and (self.Trinket.Texture:GetTexture() ~= self.parent.noTrinketTexture) then
+                    if not self.Trinket.Cooldown:IsShown() then
+                        local db = self.parent and self.parent.db
+                        if db and db.profile.playTrinketSound then
+                            local isHealer = self.isHealer
+                            local fileID = isHealer and db.profile.healerTrinketSoundFileID or db.profile.trinketSoundFileID
+                            local soundName = isHealer and (db.profile.healerTrinketSoundName or "Lossa Trinket") or (db.profile.trinketSoundName or "Lossa Trinket")
+                            local channel = db.profile.trinketSoundChannel or "Master"
+                            if fileID and fileID ~= 0 then
+                                PlaySound(fileID, channel)
+                            else
+                                local soundPath = LSM:Fetch(LSM.MediaType.SOUND, soundName)
+                                if soundPath then
+                                    PlaySoundFile(soundPath, channel)
+                                end
+                            end
+                        end
+                    end
                     if self.updateRacialOnTrinketSlot then
                         local racialDuration = self:GetRacialDuration()
                         self.Trinket.Cooldown:SetCooldown(startTime / 1000.0, racialDuration)

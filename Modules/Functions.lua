@@ -7,6 +7,7 @@ local isRetail = sArenaMixin.isRetail
 local isMidnight = sArenaMixin.isMidnight
 local isTBC = sArenaMixin.isTBC
 local L = sArenaMixin.L
+local LSM = LibStub("LibSharedMedia-3.0")
 local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
 
 function sArenaMixin:GetPartyFrame(i)
@@ -138,6 +139,7 @@ function sArenaMixin:CheckMatchStatus(event)
 
     if state == Enum.PvPMatchState.Engaged then
         self.waitingForMatch = nil
+        self.engagedInMatch = true
         -- Small delay on UpdatePlayer because UnitExists return false for all immediately if not
         C_Timer.After(0.3, function()
             for i = 1, self.maxArenaOpponents do
@@ -148,8 +150,9 @@ function sArenaMixin:CheckMatchStatus(event)
 
          -- Delay reset of this flag so Blizzards SetCooldown doesnt put a CD on Trinket on round start when there isn't a cooldown
          -- from equip swapping in spawn, or potentially accidentally trinketing I suppose.
-         C_Timer.After(1, function() self.waitingForMatchDelayedReset = nil end)
+         C_Timer.After(0.5, function() self.waitingForMatchDelayedReset = nil end)
     else
+        self.engagedInMatch = nil
         self.waitingForMatch = true
         self.waitingForMatchDelayedReset = true
         if event == "PVP_MATCH_ACTIVE" then
@@ -424,6 +427,38 @@ end
 --     end
 -- end
 
+function sArenaFrameMixin:StopStealthHealthTicker()
+    if self.stealthHealthTicker then
+        self.stealthHealthTicker:Cancel()
+        self.stealthHealthTicker = nil
+    end
+end
+
+function sArenaFrameMixin:StartStealthHealthTicker()
+    self:StopStealthHealthTicker()
+
+    local hp = self.HealthBar
+
+    if isMidnight then
+        self.stealthHealthTicker = C_Timer.NewTimer(16, function()
+            hp:SetMinMaxValues(0, 100)
+            hp:SetValue(100)
+            self.stealthHealthTicker = nil
+        end)
+    else
+        local _, maxHealth = hp:GetMinMaxValues()
+        if maxHealth <= 0 then return end
+
+        local totalTicks = 30
+        local currentValue = hp:GetValue()
+        local incrementPerTick = (maxHealth - currentValue) / totalTicks
+
+        self.stealthHealthTicker = C_Timer.NewTicker(1, function()
+            hp:SetValue(hp:GetValue() + incrementPerTick)
+        end, totalTicks)
+    end
+end
+
 function sArenaFrameMixin:SetupTrinketCooldownDone()
     self.Trinket.Cooldown:HookScript("OnCooldownDone", function()
         local db = self.parent and self.parent.db
@@ -434,11 +469,226 @@ function sArenaFrameMixin:SetupTrinketCooldownDone()
     end)
 end
 
+function sArenaFrameMixin:CreatePixelTextureBorder(parent, target, key, size, offset, setFrameLevel)
+    offset = offset or 0
+    size = size or 1
+    if setFrameLevel == nil then setFrameLevel = true end
+
+    if not parent[key] then
+        local holder = CreateFrame("Frame", nil, parent)
+        if setFrameLevel then
+            holder:SetFrameLevel(parent:GetFrameLevel() + 5)
+        end
+        holder:SetIgnoreParentScale(true)
+        parent[key] = holder
+
+        local edges = {}
+        for i = 1, 4 do
+            local tex = holder:CreateTexture(nil, "BORDER", nil, 7)
+            tex:SetColorTexture(0,0,0,1)
+            tex:SetIgnoreParentScale(true)
+            edges[i] = tex
+        end
+        holder.edges = edges
+
+        function holder:SetVertexColor(r, g, b, a)
+            for _, tex in ipairs(self.edges) do
+                tex:SetColorTexture(r, g, b, a or 1)
+            end
+        end
+    end
+
+    local holder = parent[key]
+    local edges = holder.edges
+
+    local spacing = offset
+
+    holder:ClearAllPoints()
+    holder:SetPoint("TOPLEFT", target, "TOPLEFT", -spacing - size, spacing + size)
+    holder:SetPoint("BOTTOMRIGHT", target, "BOTTOMRIGHT", spacing + size, -spacing - size)
+
+    -- Top
+    edges[1]:ClearAllPoints()
+    edges[1]:SetPoint("TOPLEFT", holder, "TOPLEFT")
+    edges[1]:SetPoint("TOPRIGHT", holder, "TOPRIGHT")
+    edges[1]:SetHeight(size)
+
+    -- Right
+    edges[2]:ClearAllPoints()
+    edges[2]:SetPoint("TOPRIGHT", holder, "TOPRIGHT")
+    edges[2]:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT")
+    edges[2]:SetWidth(size)
+
+    -- Bottom
+    edges[3]:ClearAllPoints()
+    edges[3]:SetPoint("BOTTOMLEFT", holder, "BOTTOMLEFT")
+    edges[3]:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT")
+    edges[3]:SetHeight(size)
+
+    -- Left
+    edges[4]:ClearAllPoints()
+    edges[4]:SetPoint("TOPLEFT", holder, "TOPLEFT")
+    edges[4]:SetPoint("BOTTOMLEFT", holder, "BOTTOMLEFT")
+    edges[4]:SetWidth(size)
+
+    holder:Show()
+end
+
+function sArenaFrameMixin:AddPixelBorderToFrame()
+    local currentLayout = self.parent.db.profile.currentLayout
+    local size = self.parent.db.profile.layoutSettings[currentLayout].pixelBorderSize or 1.5
+    local drSize = self.parent.db.profile.layoutSettings[currentLayout].drPixelBorderSize or 1.5
+    local offset = self.parent.db.profile.layoutSettings[currentLayout].pixelBorderOffset or 0
+
+    if not self.PixelBorders then
+        self.PixelBorders = CreateFrame("Frame", nil, self)
+        self.PixelBorders:SetAllPoints()
+        self.PixelBorders:SetFrameLevel(self:GetFrameLevel() - 1)
+    end
+
+    local borders = self.PixelBorders
+    self.PixelBorders.hide = nil
+
+    if self.HealthBar and self.PowerBar then
+        local wrapper = borders.mainWrapper
+        if not wrapper then
+            wrapper = CreateFrame("Frame", nil, borders)
+            borders.mainWrapper = wrapper
+        end
+        wrapper:ClearAllPoints()
+        wrapper:SetPoint("TOPLEFT", self.HealthBar, "TOPLEFT")
+        wrapper:SetPoint("BOTTOMRIGHT", self.PowerBar, "BOTTOMRIGHT")
+        self:CreatePixelTextureBorder(borders, wrapper, "main", size, offset)
+    end
+
+    self:CreatePixelTextureBorder(borders, self.ClassIcon, "classIcon", size, offset)
+    self:CreatePixelTextureBorder(borders, self.Trinket, "trinket", size, offset)
+    self:CreatePixelTextureBorder(borders, self.Racial, "racial", size, offset)
+    self:CreatePixelTextureBorder(borders, self.Dispel, "dispel", size, offset)
+
+    if not self.parent.db.profile.showDispels then
+        borders.dispel:Hide()
+    end
+
+    self:CreatePixelTextureBorder(self.SpecIcon, self.SpecIcon, "specIcon", size, offset)
+    self:CreatePixelTextureBorder(self.CastBar, self.CastBar, "castBar", size, offset)
+    self:CreatePixelTextureBorder(self.CastBar, self.CastBar.Icon, "castBarIcon", size, offset)
+    self:SetTextureCrop(self.CastBar.Icon, true)
+
+    if size == 0 then
+        borders:Hide()
+        self.PixelBorders.hide = true
+        if self.CastBar.castBar then self.CastBar.castBar:Hide() end
+        if self.CastBar.castBarIcon then self.CastBar.castBarIcon:Hide() end
+        if self.SpecIcon.specIcon then self.SpecIcon.specIcon:Hide() end
+        return
+    end
+
+    borders:Show()
+end
+
+function sArenaMixin:RemovePixelBorders()
+    for i = 1, self.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        if not frame.PixelBorders then
+            return
+        end
+
+        if frame.PixelBorders then
+            frame.PixelBorders:Hide()
+            frame.PixelBorders.hide = true
+        end
+
+        local function hideBorder(parent, key)
+            if parent and parent[key] then
+                parent[key]:Hide()
+            end
+        end
+
+        local borders = frame.PixelBorders
+        if borders and borders.mainWrapper then
+            hideBorder(borders, "main")
+        end
+
+        hideBorder(borders, "classIcon")
+        hideBorder(borders, "trinket")
+        hideBorder(borders, "dispel")
+        hideBorder(borders, "racial")
+        hideBorder(frame.SpecIcon, "specIcon")
+        hideBorder(frame.CastBar, "castBar")
+        hideBorder(frame.CastBar, "castBarIcon")
+
+        frame.ClassIcon:SetScale(1)
+        frame.CastBar.Icon:ClearAllPoints()
+        frame.CastBar.Icon:SetPoint("RIGHT", frame.CastBar, "LEFT", -5, 0)
+        local newLayout = self.db and self.db.profile and self.db.profile.currentLayout
+        local newLayoutSettings = self.db and self.db.profile and self.db.profile.layoutSettings and self.db.profile.layoutSettings[newLayout]
+        local newCropIcons = newLayoutSettings and newLayoutSettings.cropIcons or false
+        frame:SetTextureCrop(frame.CastBar.Icon, newCropIcons)
+
+        for n = 1, #self.drCategories do
+            local drFrame = frame[self.drCategories[n]]
+            if drFrame and drFrame.PixelBorder then
+                drFrame.PixelBorder:Hide()
+                if drFrame.Border then
+                    drFrame.Border:Show()
+                end
+            end
+        end
+    end
+
+    if self.UpdateCastBarPixelBorders then
+        self:UpdateCastBarPixelBorders()
+    end
+end
+
+function sArenaMixin:UpdateCastbarVisibility()
+    local hide = self.layoutdb.castBar.hideCastbars
+    if hide then
+        self.hiddenCastbars = true
+        for i = 1, self.maxArenaOpponents do
+            local frame = isMidnight and _G["sArenaEnemyFrame" .. i] or self["arena" .. i]
+            if frame and frame.CastBar then
+                frame.CastBar:SetParent(self.hiddenFrame)
+                if isMidnight and frame.midnightCastBarMoveFrame then
+                    frame.midnightCastBarMoveFrame:Hide()
+                end
+            end
+        end
+    else
+        if not self.hiddenCastbars then return end
+        self.hiddenCastbars = nil
+        for i = 1, self.maxArenaOpponents do
+            local frame = isMidnight and _G["sArenaEnemyFrame" .. i] or self["arena" .. i]
+            if frame and frame.CastBar then
+                frame.CastBar:SetParent(frame)
+                if isMidnight and frame.midnightCastBarMoveFrame then
+                    frame.midnightCastBarMoveFrame:Show()
+                end
+            end
+        end
+    end
+end
+
 -- Midnight only
 if not isMidnight then return end
 
+function sArenaMixin:RegisterCVarListener()
+    if self.cvarListenerRegistered then return end
+    self.cvarListenerRegistered = true
+
+    local frame = CreateFrame("Frame")
+    frame:RegisterEvent("CVAR_UPDATE")
+    frame:SetScript("OnEvent", function(_, _, cvarName)
+        if cvarName == "spellDiminishPVPOnlyTriggerableByMe" then
+            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+        end
+    end)
+end
+
 function sArenaMixin:InitializeMidnightDRFrames()
     if self.drFramesInitialized then return end
+    if self.db and self.db.profile.hideMidnightDRs then return end
 
     if not sArena_ReloadedDB.skipEMDR then
         if EditModeManagerFrame and EditModeManagerFrame.AccountSettings then
@@ -575,26 +825,49 @@ function sArenaFrameMixin:HookMidnightTrinket()
         trinketFrame:SetAlpha(0)
 
         hooksecurefunc(trinketFrame.Cooldown, "SetCooldown", function()
+            if not self.Trinket.Texture:GetTexture() then return end
             if self.parent.waitingForMatchDelayedReset then return end
+
             local db = self.parent and self.parent.db
             local colors = db.profile.trinketColors
+
+            if not self.Trinket.Cooldown:IsShown() then
+
+                if db and db.profile.playTrinketSound then
+                    local isHealer = self.isHealer
+                    local fileID = isHealer and db.profile.healerTrinketSoundFileID or db.profile.trinketSoundFileID
+                    local soundName = isHealer and (db.profile.healerTrinketSoundName or "Lossa Trinket") or (db.profile.trinketSoundName or "Lossa Trinket")
+                    local channel = db.profile.trinketSoundChannel or "Master"
+                    if fileID and fileID ~= 0 then
+                        PlaySound(fileID, channel)
+                    else
+                        local soundPath = LSM:Fetch(LSM.MediaType.SOUND, soundName)
+                        if soundPath then
+                            PlaySoundFile(soundPath, channel)
+                        end
+                    end
+                end
+
+                -- Update shared Racial CD
+                if self.Racial.Texture:GetTexture() then
+                    local sharedCD = self:GetSharedCD()
+                    if sharedCD and sharedCD ~= 0 then
+                        self.sharedRacialCDActive = true
+                        self.Racial.Cooldown:SetCooldown(GetTime(), sharedCD)
+                        C_Timer.After(sharedCD, function() self.sharedRacialCDActive = nil end)
+                    elseif not self.sharedRacialCDActive then
+                        self.Racial.Cooldown:Clear()
+                    end
+                end
+
+            end
+
             local durationObj = C_PvP.GetArenaCrowdControlDuration(self.unit)
             self.Trinket.Cooldown:SetCooldownFromDurationObject(durationObj)
             self.Trinket.Texture:SetDesaturated(db and db.profile.desaturateTrinketCD and not db.profile.colorTrinket)
+
             if db and db.profile.colorTrinket then
                 self.Trinket.Texture:SetColorTexture(unpack(colors.used))
-            end
-
-            -- Update shared Racial CD
-            if self.Racial.Texture:GetTexture() then
-                local sharedCD = self:GetSharedCD()
-                if sharedCD and sharedCD ~= 0 then
-                    self.sharedRacialCDActive = true
-                    self.Racial.Cooldown:SetCooldown(GetTime(), sharedCD)
-                    C_Timer.After(sharedCD, function() self.sharedRacialCDActive = nil end)
-                elseif not self.sharedRacialCDActive then
-                    self.Racial.Cooldown:Clear()
-                end
             end
         end)
 

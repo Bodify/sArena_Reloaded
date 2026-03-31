@@ -145,6 +145,7 @@ layout.defaultSettings = {
     mirrored = true,
     classicBars = false,
     showSpecManaText = true,
+    keepHealerManabar = true,
     cropIcons = true,
 
     textSettings = {
@@ -159,171 +160,6 @@ layout.defaultSettings = {
         castbarSize = 1.02,
     },
 }
-
-local function CreatePixelTextureBorder(parent, target, key, size, offset)
-    offset = offset or 0
-    size = size or 1
-
-    if not parent[key] then
-        local holder = CreateFrame("Frame", nil, parent)
-        holder:SetFrameLevel(parent:GetFrameLevel() + 5)
-        holder:SetIgnoreParentScale(true)
-        parent[key] = holder
-
-        local edges = {}
-        for i = 1, 4 do
-            local tex = holder:CreateTexture(nil, "BORDER", nil, 7)
-            tex:SetColorTexture(0,0,0,1)
-            tex:SetIgnoreParentScale(true)
-            edges[i] = tex
-        end
-        holder.edges = edges
-
-        function holder:SetVertexColor(r, g, b, a)
-            for _, tex in ipairs(self.edges) do
-                tex:SetColorTexture(r, g, b, a or 1)
-            end
-        end
-    end
-
-    local holder = parent[key]
-    local edges = holder.edges
-
-    local spacing = offset
-
-    holder:ClearAllPoints()
-    holder:SetPoint("TOPLEFT", target, "TOPLEFT", -spacing - size, spacing + size)
-    holder:SetPoint("BOTTOMRIGHT", target, "BOTTOMRIGHT", spacing + size, -spacing - size)
-
-    -- Top
-    edges[1]:ClearAllPoints()
-    edges[1]:SetPoint("TOPLEFT", holder, "TOPLEFT")
-    edges[1]:SetPoint("TOPRIGHT", holder, "TOPRIGHT")
-    edges[1]:SetHeight(size)
-
-    -- Right
-    edges[2]:ClearAllPoints()
-    edges[2]:SetPoint("TOPRIGHT", holder, "TOPRIGHT")
-    edges[2]:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT")
-    edges[2]:SetWidth(size)
-
-    -- Bottom
-    edges[3]:ClearAllPoints()
-    edges[3]:SetPoint("BOTTOMLEFT", holder, "BOTTOMLEFT")
-    edges[3]:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT")
-    edges[3]:SetHeight(size)
-
-    -- Left
-    edges[4]:ClearAllPoints()
-    edges[4]:SetPoint("TOPLEFT", holder, "TOPLEFT")
-    edges[4]:SetPoint("BOTTOMLEFT", holder, "BOTTOMLEFT")
-    edges[4]:SetWidth(size)
-
-    holder:Show()
-end
-
-
-function sArenaFrameMixin:AddPixelBorderToFrame()
-    local size = self.parent.db.profile.layoutSettings[layoutName].pixelBorderSize or 1.5
-    local drSize = self.parent.db.profile.layoutSettings[layoutName].drPixelBorderSize or 1.5
-    local offset = self.parent.db.profile.layoutSettings[layoutName].pixelBorderOffset or 0
-
-    if not self.PixelBorders then
-        self.PixelBorders = CreateFrame("Frame", nil, self)
-        self.PixelBorders:SetAllPoints()
-        self.PixelBorders:SetFrameLevel(self:GetFrameLevel() - 1)
-    end
-
-    local borders = self.PixelBorders
-    self.PixelBorders.hide = nil
-
-    if self.HealthBar and self.PowerBar then
-        local wrapper = borders.mainWrapper
-        if not wrapper then
-            wrapper = CreateFrame("Frame", nil, borders)
-            borders.mainWrapper = wrapper
-        end
-        wrapper:ClearAllPoints()
-        wrapper:SetPoint("TOPLEFT", self.HealthBar, "TOPLEFT")
-        wrapper:SetPoint("BOTTOMRIGHT", self.PowerBar, "BOTTOMRIGHT")
-        CreatePixelTextureBorder(borders, wrapper, "main", size, offset)
-    end
-
-    CreatePixelTextureBorder(borders, self.ClassIcon, "classIcon", size, offset)
-    CreatePixelTextureBorder(borders, self.Trinket, "trinket", size, offset)
-    CreatePixelTextureBorder(borders, self.Racial, "racial", size, offset)
-    CreatePixelTextureBorder(borders, self.Dispel, "dispel", size, offset)
-
-    if not self.parent.db.profile.showDispels then
-        borders.dispel:Hide()
-    end
-
-    CreatePixelTextureBorder(self.SpecIcon, self.SpecIcon, "specIcon", size, offset)
-    CreatePixelTextureBorder(self.CastBar, self.CastBar, "castBar", size, offset)
-    CreatePixelTextureBorder(self.CastBar, self.CastBar.Icon, "castBarIcon", size, offset)
-    self:SetTextureCrop(self.CastBar.Icon, true)
-
-    borders:Show()
-end
-
-function sArenaMixin:RemovePixelBorders()
-    for i = 1, self.maxArenaOpponents do
-        local frame = self["arena" .. i]
-        if not frame.PixelBorders then
-            return
-        end
-
-        if frame.PixelBorders then
-            frame.PixelBorders:Hide()
-            frame.PixelBorders.hide = true
-        end
-
-        -- Hide individual borders
-        local function hideBorder(parent, key)
-            if parent and parent[key] then
-                parent[key]:Hide()
-            end
-        end
-
-        local borders = frame.PixelBorders
-        if borders and borders.mainWrapper then
-            hideBorder(borders, "main")
-        end
-
-        hideBorder(borders, "classIcon")
-        hideBorder(borders, "trinket")
-        hideBorder(borders, "dispel")
-        hideBorder(borders, "racial")
-        hideBorder(frame.SpecIcon, "specIcon")
-        hideBorder(frame.CastBar, "castBar")
-        hideBorder(frame.CastBar, "castBarIcon")
-
-        -- Reset ClassIcon scale
-        frame.ClassIcon:SetScale(1)
-
-        -- Reset cast bar icon position
-        frame.CastBar.Icon:ClearAllPoints()
-        frame.CastBar.Icon:SetPoint("RIGHT", frame.CastBar, "LEFT", -5, 0)
-        local newLayout = self.db and self.db.profile and self.db.profile.currentLayout
-        local newLayoutSettings = self.db and self.db.profile and self.db.profile.layoutSettings and self.db.profile.layoutSettings[newLayout]
-        local newCropIcons = newLayoutSettings and newLayoutSettings.cropIcons or false
-        frame:SetTextureCrop(frame.CastBar.Icon, newCropIcons)
-
-        for n = 1, #self.drCategories do
-            local drFrame = frame[self.drCategories[n]]
-            if drFrame and drFrame.PixelBorder then
-                drFrame.PixelBorder:Hide()
-                if drFrame.Border then
-                    drFrame.Border:Show()
-                end
-            end
-        end
-    end
-
-    if self.UpdateCastBarPixelBorders then
-        self:UpdateCastBarPixelBorders()
-    end
-end
 
 
 local function getSetting(info)
@@ -416,7 +252,7 @@ local function setupOptionsTable(self)
         order = 6,
         name = L["Option_PixelBorderSize"],
         type = "range",
-        min = 0.5,
+        min = 0,
         max = 3,
         step = 0.5,
         get = getSetting,
@@ -432,16 +268,7 @@ local function setupOptionsTable(self)
         get = getSetting,
         set = setPixelBorderSetting,
     }
-    layout.optionsTable.arenaFrames.args.other.args.drPixelBorderSize = {
-        order = 8,
-        name = L["Option_DRPixelBorderSize"],
-        type = "range",
-        min = 0.5,
-        max = 3,
-        step = 0.5,
-        get = getSetting,
-        set = setPixelBorderSetting,
-    }
+
 
     -- Add classIcon settings specific to BlizzRaid layout
     layout.optionsTable.classIcon = {
@@ -676,6 +503,49 @@ function layout:Initialize(frame)
     self:UpdateOrientation(frame)
 end
 
+function layout:UpdateHealthbarOrientation(frame)
+    local healthBar = frame.HealthBar
+    local powerBar = frame.PowerBar
+    local shouldHide = self.db.hideManabars and not (self.db.keepHealerManabar and frame.isHealer)
+
+    healthBar:ClearAllPoints()
+    if (self.db.mirrored) then
+        healthBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, -2)
+        healthBar:SetPoint("BOTTOMLEFT", powerBar, shouldHide and "BOTTOMLEFT" or "TOPLEFT")
+    else
+        healthBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -2)
+        healthBar:SetPoint("BOTTOMRIGHT", powerBar, shouldHide and "BOTTOMRIGHT" or "TOPRIGHT")
+    end
+
+    powerBar:SetAlpha(shouldHide and 0 or 1)
+    frame.PowerText:SetAlpha((shouldHide or frame.parent.db.profile.hidePowerText) and 0 or 1)
+
+    if not self.db.textSettings then return end
+    local txt = self.db.textSettings
+    local hideOffset = (shouldHide and not self.db.moveStatusbarText) and (self.db.powerBarHeight / 2) or 0
+    local name = frame.Name
+    local healthText = frame.HealthText
+
+    name:ClearAllPoints()
+    if (txt.nameAnchor or "CENTER") == "LEFT" then
+        name:SetPoint("LEFT", healthBar, "LEFT", 3 + (txt.nameOffsetX or 0), -1 + (txt.nameOffsetY or 0) + hideOffset)
+    elseif (txt.nameAnchor or "CENTER") == "RIGHT" then
+        name:SetPoint("RIGHT", healthBar, "RIGHT", -3 + (txt.nameOffsetX or 0), -1 + (txt.nameOffsetY or 0) + hideOffset)
+    else
+        name:SetPoint("CENTER", healthBar, "CENTER", (txt.nameOffsetX or 0), -1 + (txt.nameOffsetY or 0) + hideOffset)
+    end
+
+    hideOffset = (shouldHide and not self.db.moveStatusbarText) and hideOffset-1.5 or 0
+    healthText:ClearAllPoints()
+    if (txt.healthAnchor or "CENTER") == "LEFT" then
+        healthText:SetPoint("LEFT", healthBar, "LEFT", 0 + (txt.healthOffsetX or 0), 1 + (txt.healthOffsetY or 0) + hideOffset)
+    elseif (txt.healthAnchor or "CENTER") == "RIGHT" then
+        healthText:SetPoint("RIGHT", healthBar, "RIGHT", 0 + (txt.healthOffsetX or 0), -1 + (txt.healthOffsetY or 0) + hideOffset)
+    else
+        healthText:SetPoint("CENTER", healthBar, "CENTER", (txt.healthOffsetX or 0), -1 + (txt.healthOffsetY or 0) + hideOffset)
+    end
+end
+
 function layout:UpdateOrientation(frame)
     local healthBar = frame.HealthBar
     local powerBar = frame.PowerBar
@@ -738,32 +608,13 @@ function layout:UpdateOrientation(frame)
     if self.db.textSettings then
         local txt = self.db.textSettings
         local modernCastbar = self.db.castBar.useModernCastbars
-
         name:SetScale(txt.nameSize or 1)
         healthText:SetScale(txt.healthSize or 1)
         specName:SetScale(txt.specNameSize or 1)
         castbarText:SetScale(txt.castbarSize or 1)
         powerText:SetScale(txt.powerSize or 1)
 
-        -- Name
-        name:ClearAllPoints()
-        if (txt.nameAnchor or "CENTER") == "LEFT" then
-            name:SetPoint("LEFT", frame.HealthBar, "LEFT", 3 + (txt.nameOffsetX or 0), -1 + (txt.nameOffsetY or 0))
-        elseif (txt.nameAnchor or "CENTER") == "RIGHT" then
-            name:SetPoint("RIGHT", frame.HealthBar, "RIGHT", -3 + (txt.nameOffsetX or 0), -1 + (txt.nameOffsetY or 0))
-        else
-            name:SetPoint("CENTER", frame.HealthBar, "CENTER", (txt.nameOffsetX or 0), -1 + (txt.nameOffsetY or 0))
-        end
-
-        -- Health Text
-        healthText:ClearAllPoints()
-        if (txt.healthAnchor or "CENTER") == "LEFT" then
-            healthText:SetPoint("LEFT", healthBar, "LEFT", 0 + (txt.healthOffsetX or 0), 1 + (txt.healthOffsetY or 0))
-        elseif (txt.healthAnchor or "CENTER") == "RIGHT" then
-            healthText:SetPoint("RIGHT", healthBar, "RIGHT", 0 + (txt.healthOffsetX or 0), -1 + (txt.healthOffsetY or 0))
-        else
-            healthText:SetPoint("CENTER", healthBar, "CENTER", (txt.healthOffsetX or 0), -1 + (txt.healthOffsetY or 0))
-        end
+        self:UpdateHealthbarOrientation(frame)
 
         -- Power Text
         powerText:ClearAllPoints()
@@ -795,9 +646,14 @@ function layout:UpdateOrientation(frame)
         else
             castbarText:SetPoint("CENTER", frame.CastBar, "CENTER", (txt.castbarOffsetX or 0), (modernCastbar and (simpleCastbar and 0 or -11) or 0) + (txt.castbarOffsetY or 0))
         end
+
+        if txt.forceCastbarTextWidth then
+            castbarText:SetWidth(self.db.castBar.width or frame.CastBar:GetWidth())
+        else
+            castbarText:SetWidth(0)
+        end
     end
 
-    healthBar:ClearAllPoints()
     powerBar:ClearAllPoints()
     frame.ClassIcon:ClearAllPoints()
 
@@ -808,21 +664,18 @@ function layout:UpdateOrientation(frame)
     frame.ClassIcon:SetScale(classIconSettings.scale or 1)
 
     if (self.db.mirrored) then
-        healthBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, -2)
-        healthBar:SetPoint("BOTTOMLEFT", powerBar, "TOPLEFT")
         powerBar:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 2)
         powerBar:SetPoint("LEFT", frame, "LEFT", baseSize, 0)
 
         classIcon:SetPoint("TOPLEFT", frame, "TOPLEFT", (classIconSettings.posX or 0), -2 + (classIconSettings.posY or 0))
     else
-        healthBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -2)
-        healthBar:SetPoint("BOTTOMRIGHT", powerBar, "TOPRIGHT")
-
         powerBar:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 2)
         powerBar:SetPoint("RIGHT", frame, "RIGHT", -baseSize, 0)
 
         classIcon:SetPoint("TOPRIGHT", frame, "TOPRIGHT", (classIconSettings.posX or 0), -2 + (classIconSettings.posY or 0))
     end
+
+    self:UpdateHealthbarOrientation(frame)
 end
 
 sArenaMixin.layouts[layoutName] = layout

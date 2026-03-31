@@ -245,6 +245,157 @@ function sArenaMixin:UpdateCastbarIDText()
     end
 end
 
+function sArenaMixin:CreateCastbarTargetText()
+    for i = 1, self.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        local castBar = frame.CastBar
+        if castBar and not castBar.ArenaTargetText then
+            if not castBar.ArenaTargetTextFrame then
+                castBar.ArenaTargetTextFrame = CreateFrame("Frame", nil, castBar)
+                castBar.ArenaTargetTextFrame:SetAllPoints(castBar)
+                castBar.ArenaTargetTextFrame:SetFrameLevel(castBar:GetFrameLevel() + 6)
+            end
+            local targetText = castBar.ArenaTargetTextFrame:CreateFontString(nil, "OVERLAY")
+
+            local fontFile, fontSize, fontFlags = castBar.Text:GetFont()
+            targetText:SetFont(fontFile, fontSize-2, fontFlags)
+            local sr, sg, sb, sa = castBar.Text:GetShadowColor()
+            targetText:SetShadowColor(sr, sg, sb, sa)
+            local sx, sy = castBar.Text:GetShadowOffset()
+            targetText:SetShadowOffset(sx, sy)
+            targetText:SetJustifyH(castBar.Text:GetJustifyH())
+            targetText:SetJustifyV(castBar.Text:GetJustifyV())
+            targetText:SetWidth(castBar:GetWidth())
+            targetText:Hide()
+            castBar.ArenaTargetText = targetText
+        end
+    end
+end
+
+function sArenaMixin:UpdateCastbarTargetText()
+    local db = self.db
+    if not db then return end
+
+    local showTarget = db.profile.showCastbarTarget
+    local layoutSettings = db.profile.layoutSettings[db.profile.currentLayout]
+    local textSettings = layoutSettings and layoutSettings.textSettings
+
+    local anchorInside = textSettings and textSettings.castbarTargetAnchorInside
+    local anchorToCastbar = not textSettings or textSettings.castbarTargetAnchorToCastbar ~= false
+    local targetAnchor = textSettings and textSettings.castbarTargetAnchor or "BOTTOM"
+    local targetOffsetX = textSettings and textSettings.castbarTargetOffsetX or 0
+    local targetOffsetY = textSettings and textSettings.castbarTargetOffsetY or 0
+    local targetSize = textSettings and textSettings.castbarTargetSize or 1.0
+    local targetJustifyH = textSettings and textSettings.castbarTargetJustifyH or "CENTER"
+    local useModern = layoutSettings and layoutSettings.castBar and layoutSettings.castBar.useModernCastbars
+    local bottomExtra = useModern and 10 or 3
+
+    for i = 1, self.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        local castBar = frame.CastBar
+        if castBar and castBar.ArenaTargetText then
+            local targetText = castBar.ArenaTargetText
+
+            if not showTarget or anchorInside then
+                targetText:Hide()
+                targetText:SetText("")
+            else
+                targetText:ClearAllPoints()
+                targetText:SetScale(targetSize)
+                targetText:SetWidth(castBar:GetWidth())
+                targetText:SetText("")
+                targetText:SetJustifyH(targetJustifyH)
+                targetText:SetText(targetText:GetText())
+
+                local anchorParent = anchorToCastbar and castBar or castBar.Text
+
+                if targetAnchor == "LEFT" then
+                    targetText:SetPoint("RIGHT", anchorParent, "LEFT", -2 + targetOffsetX, targetOffsetY)
+                elseif targetAnchor == "RIGHT" then
+                    targetText:SetPoint("LEFT", anchorParent, "RIGHT", 2 + targetOffsetX, targetOffsetY)
+                elseif targetAnchor == "TOP" then
+                    targetText:SetPoint("BOTTOM", anchorParent, "TOP", targetOffsetX, 2 + targetOffsetY)
+                elseif targetAnchor == "BOTTOM" then
+                    targetText:SetPoint("TOP", anchorParent, "BOTTOM", targetOffsetX, -2 + targetOffsetY + bottomExtra)
+                end
+            end
+        end
+    end
+end
+
+local function GetCastbarTargetName(unit)
+    if isMidnight then
+        local name = UnitSpellTargetName(unit)
+        if not name then
+            name = UnitName(unit .. "target")
+        end
+        if not name then return nil, nil end
+
+        local class = UnitSpellTargetClass(unit)
+        if not class then
+            _, class = UnitClass(unit .. "target")
+        end
+        return name, class
+    else
+        local name = UnitName(unit .. "target")
+        if not name then return nil, nil end
+        local _, class = UnitClass(unit .. "target")
+        return name, class
+    end
+end
+
+local function GetColoredTargetString(name, class)
+    if not name then return nil end
+    if class then
+        local color = C_ClassColor and C_ClassColor.GetClassColor(class) or RAID_CLASS_COLORS[class]
+        if color then
+            if color.WrapTextInColorCode then
+                return color:WrapTextInColorCode(name)
+            elseif color.colorStr then
+                return "|c" .. color.colorStr .. name .. "|r"
+            end
+        end
+    end
+    return name
+end
+
+local CastStartEvents = {
+    UNIT_SPELLCAST_START          = true,
+    UNIT_SPELLCAST_CHANNEL_START  = true,
+    UNIT_SPELLCAST_EMPOWER_START  = true,
+}
+
+function sArenaMixin:UpdateCastbarTargetOnEvent(castBar, event)
+    local db = self.db
+    if not db or not db.profile.showCastbarTarget then return end
+
+    local unitToken = castBar.unit
+    if not unitToken then return end
+
+    local layoutSettings = db.profile.layoutSettings[db.profile.currentLayout]
+    local textSettings = layoutSettings and layoutSettings.textSettings
+    local anchorInside = textSettings and textSettings.castbarTargetAnchorInside
+
+    if CastStartEvents[event] then
+        local spell = UnitCastingInfo(unitToken) or UnitChannelInfo(unitToken)
+        if not spell then return end
+
+        local name, class = GetCastbarTargetName(unitToken)
+        local coloredName = GetColoredTargetString(name, class)
+
+        if anchorInside then
+            if coloredName then
+                castBar.Text:SetText(spell .. ": " .. coloredName)
+            end
+        else
+            if castBar.ArenaTargetText and coloredName then
+                castBar.ArenaTargetText:SetText(coloredName)
+                castBar.ArenaTargetText:Show()
+            end
+        end
+    end
+end
+
 if isMidnight then return end
 
 local CastStopEvents = {
@@ -373,6 +524,7 @@ local function ApplyModern(bar, simpleCastbar, frame, unit)
                 end
             end
             sArenaMixin:CastbarOnEvent(bar)
+            sArenaMixin:UpdateCastbarTargetOnEvent(bar, event)
         end)
         bar.__modernHooked = true
     end
