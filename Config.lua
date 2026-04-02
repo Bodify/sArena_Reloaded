@@ -5623,10 +5623,12 @@ else
                                                 local frame = info.handler["arena" .. i]
                                                 if val then
                                                     if i <= 2 then
-                                                        frame.Trinket.Texture:SetColorTexture(unpack(colors.available))
+                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                        frame.Trinket.Texture:SetVertexColor(unpack(colors.available))
                                                         frame.Trinket.Cooldown:Clear()
                                                     else
-                                                        frame.Trinket.Texture:SetColorTexture(unpack(colors.used))
+                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                        frame.Trinket.Texture:SetVertexColor(unpack(colors.used))
                                                     end
                                                 else
                                                     frame.Trinket.Texture:SetTexture(info.handler.trinketTexture)
@@ -5650,9 +5652,11 @@ else
                                                 local frame = info.handler["arena" .. i]
                                                 if frame and info.handler.db.profile.colorTrinket then
                                                     if i <= 2 then
-                                                        frame.Trinket.Texture:SetColorTexture(r, g, b)
+                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                        frame.Trinket.Texture:SetVertexColor(r, g, b)
                                                     else
-                                                        frame.Trinket.Texture:SetColorTexture(unpack(used))
+                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                        frame.Trinket.Texture:SetVertexColor(unpack(used))
                                                     end
                                                 end
                                             end
@@ -5674,9 +5678,11 @@ else
                                                 local frame = info.handler["arena" .. i]
                                                 if frame and info.handler.db.profile.colorTrinket then
                                                     if i <= 2 then
-                                                        frame.Trinket.Texture:SetColorTexture(unpack(available))
+                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                        frame.Trinket.Texture:SetVertexColor(unpack(available))
                                                     else
-                                                        frame.Trinket.Texture:SetColorTexture(r, g, b)
+                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                        frame.Trinket.Texture:SetVertexColor(r, g, b)
                                                     end
                                                 end
                                             end

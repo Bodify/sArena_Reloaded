@@ -251,7 +251,8 @@ function sArenaFrameMixin:FindRacial(spellID)
 				end
 				if self.parent.db.profile.colorTrinket then
 					local colors = self.parent.db.profile.trinketColors
-					self.Trinket.Texture:SetColorTexture(unpack(colors.used))
+					self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+					self.Trinket.Texture:SetVertexColor(unpack(colors.used))
 				else
 					self.Trinket.Texture:SetDesaturated(self.parent.db.profile.desaturateTrinketCD)
 				end
@@ -306,9 +307,11 @@ function sArenaFrameMixin:UpdateRacial()
 								local colors = self.parent.db.profile.trinketColors
 								local start, duration = self.Racial.Cooldown:GetCooldownTimes()
 								if duration and duration > 0 and (start > 0) then
-									self.Trinket.Texture:SetColorTexture(unpack(colors.used))
+									self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+									self.Trinket.Texture:SetVertexColor(unpack(colors.used))
 								else
-									self.Trinket.Texture:SetColorTexture(unpack(colors.available))
+									self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+									self.Trinket.Texture:SetVertexColor(unpack(colors.available))
 								end
 							end
 						else

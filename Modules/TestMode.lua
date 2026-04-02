@@ -736,12 +736,15 @@ function sArenaMixin:Test()
         if colorTrinket then
             local colors = db.profile.trinketColors
             if i <= 2 then
-                frame.Trinket.Texture:SetColorTexture(unpack(colors.available))
+                frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                frame.Trinket.Texture:SetVertexColor(unpack(colors.available))
                 frame.Trinket.Cooldown:Clear()
             else
-                frame.Trinket.Texture:SetColorTexture(unpack(colors.used))
+                frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                frame.Trinket.Texture:SetVertexColor(unpack(colors.used))
             end
         else
+            frame.Trinket.Texture:SetVertexColor(1, 1, 1)
             if shouldSwapRacialToTrinket then
                 frame.Trinket.Texture:SetTexture(data.racial or 132089)
             elseif shouldForceHumanTrinket then

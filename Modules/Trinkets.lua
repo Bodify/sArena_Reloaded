@@ -25,7 +25,8 @@ function sArenaFrameMixin:UpdateTrinketIcon(available)
     local colors = self.parent.db.profile.trinketColors
     if available then
         if self.parent.db.profile.colorTrinket then
-            self.Trinket.Texture:SetColorTexture(unpack(colors.available))
+            self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+            self.Trinket.Texture:SetVertexColor(unpack(colors.available))
         else
             self.Trinket.Texture:SetDesaturated(false)
         end
@@ -34,7 +35,8 @@ function sArenaFrameMixin:UpdateTrinketIcon(available)
             if not self.Trinket.spellID then
                 self.Trinket.Texture:SetTexture(nil)
             else
-                self.Trinket.Texture:SetColorTexture(unpack(colors.used))
+                self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                self.Trinket.Texture:SetVertexColor(unpack(colors.used))
             end
         else
             local desaturate
@@ -106,7 +108,8 @@ function sArenaFrameMixin:UpdateTrinket()
                     end
                 end
                 if self.parent.db.profile.colorTrinket then
-                    self.Trinket.Texture:SetColorTexture(unpack(colors.used))
+                    self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                    self.Trinket.Texture:SetVertexColor(unpack(colors.used))
                 else
                     if not self.updateRacialOnTrinketSlot then
                         self.Trinket.Texture:SetDesaturated(self.parent.db.profile.desaturateTrinketCD)
@@ -115,7 +118,8 @@ function sArenaFrameMixin:UpdateTrinket()
             else
                 self.Trinket.Cooldown:Clear()
                 if self.parent.db.profile.colorTrinket then
-                    self.Trinket.Texture:SetColorTexture(unpack(colors.available))
+                    self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                    self.Trinket.Texture:SetVertexColor(unpack(colors.available))
                 else
                     self.Trinket.Texture:SetDesaturated(false)
                 end
@@ -133,6 +137,7 @@ function sArenaFrameMixin:ResetTrinket()
 
     self.Trinket.spellID = nil
     self.Trinket.Texture:SetTexture(nil)
-    self.Trinket.Cooldown:Clear()
+    self.Trinket.Texture:SetVertexColor(1, 1, 1)
     self.Trinket.Texture:SetDesaturated(false)
+    self.Trinket.Cooldown:Clear()
 end

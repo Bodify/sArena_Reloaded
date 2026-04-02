@@ -464,7 +464,8 @@ function sArenaFrameMixin:SetupTrinketCooldownDone()
         local db = self.parent and self.parent.db
         if db and db.profile.colorTrinket then
             local colors = db.profile.trinketColors
-            self.Trinket.Texture:SetColorTexture(unpack(colors.available))
+            self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+            self.Trinket.Texture:SetVertexColor(unpack(colors.available))
         end
     end)
 end
@@ -867,20 +868,27 @@ function sArenaFrameMixin:HookMidnightTrinket()
             self.Trinket.Texture:SetDesaturated(db and db.profile.desaturateTrinketCD and not db.profile.colorTrinket)
 
             if db and db.profile.colorTrinket then
-                self.Trinket.Texture:SetColorTexture(unpack(colors.used))
+                self.Trinket.Texture:SetVertexColor(unpack(colors.used))
             end
         end)
 
         hooksecurefunc(trinketFrame.Icon, "SetTexture", function(_, texture)
             local db = self.parent and self.parent.db
-            if db and db.profile.colorTrinket then
-                local colors = db.profile.trinketColors
-                self.Trinket.Texture:SetColorTexture(unpack(colors.available))
-            else
-                if not issecretvalue(texture) then
-                    if texture ~= "INTERFACE\\ICONS\\INV_MISC_QUESTIONMARK.BLP" then
+            if not issecretvalue(texture) then
+                if texture ~= "INTERFACE\\ICONS\\INV_MISC_QUESTIONMARK.BLP" then
+                    if db and db.profile.colorTrinket then
+                        local colors = db.profile.trinketColors
+                        self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                        self.Trinket.Texture:SetVertexColor(unpack(colors.available))
+                    else
                         self.Trinket.Texture:SetTexture(texture)
                     end
+                end
+            else
+                if db and db.profile.colorTrinket then
+                    local colors = db.profile.trinketColors
+                    self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                    self.Trinket.Texture:SetVertexColor(unpack(colors.available))
                 else
                     self.Trinket.Texture:SetTexture(texture)
                 end
