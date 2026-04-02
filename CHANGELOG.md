@@ -1,3 +1,9 @@
+# sArena Reloaded 2.4.3b
+## New
+- Color Trinket: Keep Original Texture; Instead of replacing the texture entirely with a solid color keep the original texture but tinted in a color.
+## Bugfix
+- Midnight: Fix Color Trinket setting not working due to a last minute change and mistake in the logic for it.
+
 # sArena Reloaded 2.4.3
 ## New
 - Show Target Text on Castbar setting (Layout -> Castbars). On Midnight this shows True Target with new API, on older classic versions this will just show the units target and not neccesarily where the spell is going due to macros etc so I would only use this on Midnight tbh but the option is there anyway.
