@@ -3273,7 +3273,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 name = L["Text_CastbarIDText"],
                 type = "group",
                 inline = true,
-                hidden = function(info)
+                disabled = function(info)
                     return not info.handler.db.profile.showCastbarID
                 end,
                 args = {
@@ -3389,7 +3389,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                 name = L["Text_CastbarTargetText"],
                 type = "group",
                 inline = true,
-                hidden = function(info)
+                disabled = function(info)
                     return not info.handler.db.profile.showCastbarTarget
                 end,
                 args = {
