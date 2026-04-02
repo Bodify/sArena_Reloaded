@@ -251,7 +251,11 @@ function sArenaFrameMixin:FindRacial(spellID)
 				end
 				if self.parent.db.profile.colorTrinket then
 					local colors = self.parent.db.profile.trinketColors
-					self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+					if self.parent.db.profile.colorTrinketKeepTexture then
+						self.Trinket.Texture:SetDesaturated(true)
+					else
+						self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+					end
 					self.Trinket.Texture:SetVertexColor(unpack(colors.used))
 				else
 					self.Trinket.Texture:SetDesaturated(self.parent.db.profile.desaturateTrinketCD)
@@ -306,11 +310,14 @@ function sArenaFrameMixin:UpdateRacial()
 							else
 								local colors = self.parent.db.profile.trinketColors
 								local start, duration = self.Racial.Cooldown:GetCooldownTimes()
-								if duration and duration > 0 and (start > 0) then
-									self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
-									self.Trinket.Texture:SetVertexColor(unpack(colors.used))
-								else
-									self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+							if self.parent.db.profile.colorTrinketKeepTexture then
+								self.Trinket.Texture:SetDesaturated(true)
+							else
+								self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+							end
+							if duration and duration > 0 and (start > 0) then
+								self.Trinket.Texture:SetVertexColor(unpack(colors.used))
+							else
 									self.Trinket.Texture:SetVertexColor(unpack(colors.available))
 								end
 							end

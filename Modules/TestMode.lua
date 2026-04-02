@@ -735,12 +735,16 @@ function sArenaMixin:Test()
         frame.Trinket.Cooldown:SetCooldown(currTime, math.random(5, 35))
         if colorTrinket then
             local colors = db.profile.trinketColors
-            if i <= 2 then
+            local keepTexture = db.profile.colorTrinketKeepTexture
+            if keepTexture then
+                frame.Trinket.Texture:SetDesaturated(true)
+            else
                 frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+            end
+            if i <= 2 then
                 frame.Trinket.Texture:SetVertexColor(unpack(colors.available))
                 frame.Trinket.Cooldown:Clear()
             else
-                frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
                 frame.Trinket.Texture:SetVertexColor(unpack(colors.used))
             end
         else

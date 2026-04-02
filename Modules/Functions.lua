@@ -464,7 +464,11 @@ function sArenaFrameMixin:SetupTrinketCooldownDone()
         local db = self.parent and self.parent.db
         if db and db.profile.colorTrinket then
             local colors = db.profile.trinketColors
-            self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+            if db.profile.colorTrinketKeepTexture then
+                self.Trinket.Texture:SetDesaturated(true)
+            else
+                self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+            end
             self.Trinket.Texture:SetVertexColor(unpack(colors.available))
         end
     end)
@@ -865,7 +869,11 @@ function sArenaFrameMixin:HookMidnightTrinket()
 
             local durationObj = C_PvP.GetArenaCrowdControlDuration(self.unit)
             self.Trinket.Cooldown:SetCooldownFromDurationObject(durationObj)
-            self.Trinket.Texture:SetDesaturated(db and db.profile.desaturateTrinketCD and not db.profile.colorTrinket)
+            if db and db.profile.colorTrinket and db.profile.colorTrinketKeepTexture then
+                self.Trinket.Texture:SetDesaturated(true)
+            else
+                self.Trinket.Texture:SetDesaturated(db and db.profile.desaturateTrinketCD and not db.profile.colorTrinket)
+            end
 
             if db and db.profile.colorTrinket then
                 self.Trinket.Texture:SetVertexColor(unpack(colors.used))
@@ -878,7 +886,12 @@ function sArenaFrameMixin:HookMidnightTrinket()
                 if texture ~= "INTERFACE\\ICONS\\INV_MISC_QUESTIONMARK.BLP" then
                     if db and db.profile.colorTrinket then
                         local colors = db.profile.trinketColors
-                        self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                        if db.profile.colorTrinketKeepTexture then
+                            self.Trinket.Texture:SetTexture(texture)
+                            self.Trinket.Texture:SetDesaturated(true)
+                        else
+                            self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                        end
                         self.Trinket.Texture:SetVertexColor(unpack(colors.available))
                     else
                         self.Trinket.Texture:SetTexture(texture)
@@ -887,7 +900,12 @@ function sArenaFrameMixin:HookMidnightTrinket()
             else
                 if db and db.profile.colorTrinket then
                     local colors = db.profile.trinketColors
-                    self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                    if db.profile.colorTrinketKeepTexture then
+                        self.Trinket.Texture:SetTexture(texture)
+                        self.Trinket.Texture:SetDesaturated(true)
+                    else
+                        self.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                    end
                     self.Trinket.Texture:SetVertexColor(unpack(colors.available))
                 else
                     self.Trinket.Texture:SetTexture(texture)

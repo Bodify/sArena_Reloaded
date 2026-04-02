@@ -5619,19 +5619,25 @@ else
                                         set = function(info, val)
                                             info.handler.db.profile.colorTrinket = val
                                             local colors = info.handler.db.profile.trinketColors
+                                            local keepTexture = info.handler.db.profile.colorTrinketKeepTexture
                                             for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 if val then
-                                                    if i <= 2 then
+                                                    if keepTexture then
+                                                        frame.Trinket.Texture:SetDesaturated(true)
+                                                    else
                                                         frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                    end
+                                                    if i <= 2 then
                                                         frame.Trinket.Texture:SetVertexColor(unpack(colors.available))
                                                         frame.Trinket.Cooldown:Clear()
                                                     else
-                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
                                                         frame.Trinket.Texture:SetVertexColor(unpack(colors.used))
                                                     end
                                                 else
                                                     frame.Trinket.Texture:SetTexture(info.handler.trinketTexture)
+                                                    frame.Trinket.Texture:SetDesaturated(false)
+                                                    frame.Trinket.Texture:SetVertexColor(1, 1, 1)
                                                 end
                                             end
                                         end,
@@ -5648,14 +5654,16 @@ else
                                         set = function(info, r, g, b)
                                             info.handler.db.profile.trinketColors.available = {r, g, b}
                                             local used = info.handler.db.profile.trinketColors.used
+                                            local keepTexture = info.handler.db.profile.colorTrinketKeepTexture
                                             for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 if frame and info.handler.db.profile.colorTrinket then
-                                                    if i <= 2 then
+                                                    if not keepTexture then
                                                         frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                    end
+                                                    if i <= 2 then
                                                         frame.Trinket.Texture:SetVertexColor(r, g, b)
                                                     else
-                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
                                                         frame.Trinket.Texture:SetVertexColor(unpack(used))
                                                     end
                                                 end
@@ -5674,15 +5682,52 @@ else
                                         set = function(info, r, g, b)
                                             info.handler.db.profile.trinketColors.used = {r, g, b}
                                             local available = info.handler.db.profile.trinketColors.available
+                                            local keepTexture = info.handler.db.profile.colorTrinketKeepTexture
                                             for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 if frame and info.handler.db.profile.colorTrinket then
-                                                    if i <= 2 then
+                                                    if not keepTexture then
                                                         frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                    end
+                                                    if i <= 2 then
                                                         frame.Trinket.Texture:SetVertexColor(unpack(available))
                                                     else
-                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
                                                         frame.Trinket.Texture:SetVertexColor(r, g, b)
+                                                    end
+                                                end
+                                            end
+                                        end,
+                                    },
+                                    colorTrinketKeepTextureSpacer = {
+                                        order = 4,
+                                        type = "description",
+                                        name = "",
+                                    },
+                                    colorTrinketKeepTexture = {
+                                        order = 5,
+                                        name = L["Option_ColorTrinketKeepTexture"],
+                                        type = "toggle",
+                                        width = "full",
+                                        desc = L["Option_ColorTrinketKeepTexture_Desc"],
+                                        disabled = function(info) return not info.handler.db.profile.colorTrinket end,
+                                        get = function(info) return info.handler.db.profile.colorTrinketKeepTexture end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.colorTrinketKeepTexture = val
+                                            local colors = info.handler.db.profile.trinketColors
+                                            for i = 1, info.handler.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                if info.handler.db.profile.colorTrinket then
+                                                    if val then
+                                                        frame.Trinket.Texture:SetTexture(info.handler.trinketTexture)
+                                                        frame.Trinket.Texture:SetDesaturated(true)
+                                                    else
+                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                        frame.Trinket.Texture:SetDesaturated(false)
+                                                    end
+                                                    if i <= 2 then
+                                                        frame.Trinket.Texture:SetVertexColor(unpack(colors.available))
+                                                    else
+                                                        frame.Trinket.Texture:SetVertexColor(unpack(colors.used))
                                                     end
                                                 end
                                             end
