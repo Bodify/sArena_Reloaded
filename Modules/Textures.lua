@@ -60,6 +60,7 @@ function sArenaMixin:UpdateTextures()
     self.keepDefaultModernTextures = keepDefaultModernTextures
     self.modernCastbars = modernCastbars
     self.interruptStatusColorOn = interruptStatusColorOn
+    self.highlightCastsOnMe = db.profile.highlightCastsOnMe
     if sArenaCastingBarExtensionMixin then
         sArenaCastingBarExtensionMixin.typeInfo = {
             filling = castTexture,

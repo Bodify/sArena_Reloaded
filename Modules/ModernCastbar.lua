@@ -52,6 +52,11 @@ function sArenaMixin:ModernOrClassicCastbar()
                 newBar.Background:SetAtlas("UI-CastingBar-Background")
                 newBar:SetHeight(9)
                 newBar.Icon:SetSize(20,20)
+                if newBar.ArenaTargetHighlight then
+                    newBar.ArenaTargetHighlight:ClearAllPoints()
+                    newBar.ArenaTargetHighlight:SetPoint("TOPLEFT", -3, 4)
+                    newBar.ArenaTargetHighlight:SetPoint("BOTTOMRIGHT", 3, -4)
+                end
             else
                 newBar.Text:ClearAllPoints()
                 newBar.Text:SetPoint("CENTER", newBar, "CENTER", 0, 0)
@@ -62,6 +67,11 @@ function sArenaMixin:ModernOrClassicCastbar()
                 newBar.Background:SetColorTexture(0,0,0,0.5)
                 if newBar.MaskTexture then
                     newBar.MaskTexture:Hide()
+                end
+                if newBar.ArenaTargetHighlight then
+                    newBar.ArenaTargetHighlight:ClearAllPoints()
+                    newBar.ArenaTargetHighlight:SetPoint("TOPLEFT", -2, 2)
+                    newBar.ArenaTargetHighlight:SetPoint("BOTTOMRIGHT", 2, -2)
                 end
             end
             newBar.Spark:SetSize(3, 20)
@@ -241,6 +251,21 @@ function sArenaMixin:UpdateCastbarIDText()
 
                 idText:Show()
             end
+        end
+    end
+end
+
+function sArenaMixin:CreateCastbarHighlight()
+    if not isMidnight then return end
+    for i = 1, self.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        local castBar = frame.CastBar
+        if castBar and not castBar.ArenaTargetHighlight then
+            castBar.ArenaTargetHighlight = castBar:CreateTexture(nil, "OVERLAY", nil, 7)
+            castBar.ArenaTargetHighlight:SetAtlas("ui-hud-nameplates-targetedbyenemy")
+            castBar.ArenaTargetHighlight:SetPoint("TOPLEFT", -2.5, 2)
+            castBar.ArenaTargetHighlight:SetPoint("BOTTOMRIGHT", 2.5, -2)
+            castBar.ArenaTargetHighlight:SetAlpha(0)
         end
     end
 end

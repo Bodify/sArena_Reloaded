@@ -782,10 +782,17 @@ function sArenaMixin:InitializeMidnightDRFrames()
                             sArenaDRFrame.Cooldown:SetCooldown(GetTime(), 20)
                         end
 
-                        if not blackBorder and not borderHidden then
-                            sArenaDRFrame.Border:SetVertexColorFromBoolean(shown, red, green)
-                            if sArenaDRFrame.PixelBorder then
-                                sArenaDRFrame.PixelBorder:SetVertexColor(sArenaDRFrame.Border:GetVertexColor())
+                        if not borderHidden then
+                            if blackBorder then
+                                sArenaDRFrame.Border:SetVertexColor(0, 0, 0)
+                                if sArenaDRFrame.PixelBorder then
+                                    sArenaDRFrame.PixelBorder:SetVertexColor(sArenaDRFrame.Border:GetVertexColor())
+                                end
+                            else
+                                sArenaDRFrame.Border:SetVertexColorFromBoolean(shown, red, green)
+                                if sArenaDRFrame.PixelBorder then
+                                    sArenaDRFrame.PixelBorder:SetVertexColor(sArenaDRFrame.Border:GetVertexColor())
+                                end
                             end
                         end
 

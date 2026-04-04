@@ -18,6 +18,7 @@
     <Script file="Data\Profiles.lua"/>
     <!-- <Script file="Data\Auras\AuraList_Retail.lua"/> -->
     <Script file="Modules\Functions.lua"/>
+    <Script file="Modules\Clicks.lua"/>
     <Script file="Modules\Interrupt.lua"/>
     <Script file="Modules\CompatibilityCheck.lua"/>
     <Script file="sArena.lua"/>
@@ -136,6 +137,12 @@
                     <Size x="1.5" y="21"/>
                     <Anchors>
                         <Anchor point="CENTER"/>
+                    </Anchors>
+                </Texture>
+                <Texture parentKey="ArenaTargetHighlight" atlas="ui-hud-nameplates-targetedbyenemy" alpha="0">
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="-2.5" y="2"/>
+                        <Anchor point="BOTTOMRIGHT" x="2.5" y="-2"/>
                     </Anchors>
                 </Texture>
                 <Texture parentKey="Flash" alphaMode="ADD"> 

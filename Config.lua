@@ -824,6 +824,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             end,
                             set = function(info, val)
                                 info.handler.db.profile.showCastbarTarget = val
+                                info.handler:CreateCastbarHighlight()
                                 info.handler:CreateCastbarTargetText()
                                 info.handler:UpdateCastbarTargetText()
                                 info.handler:RefreshTestModeCastbars()
@@ -843,6 +844,22 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                 local layoutName = info.handler.db.profile.currentLayout
                                 info.handler.db.profile.layoutSettings[layoutName].castBar.hideCastbars = val
                                 info.handler:UpdateCastbarVisibility()
+                            end,
+                        },
+
+                        highlightCastsOnMe = {
+                            order = 2.87,
+                            name = L["Castbar_HighlightCastsOnMe"],
+                            desc = L["Castbar_HighlightCastsOnMe_Desc"],
+                            type = "toggle",
+                            hidden = function() return not isMidnight end,
+                            get = function(info)
+                                return info.handler.db.profile.highlightCastsOnMe
+                            end,
+                            set = function(info, val)
+                                info.handler.db.profile.highlightCastsOnMe = val
+                                info.handler:UpdateTextures()
+                                info.handler:RefreshTestModeCastbars()
                             end,
                         },
 
@@ -3397,7 +3414,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         order = 0,
                         name = L["Castbar_AnchorTargetInside"],
                         type = "toggle",
-                        width = "full",
+                        width = 1.2,
                         get = function(info)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
@@ -3407,9 +3424,33 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.castbarTargetAnchorInside = val
+                            info.handler:CreateCastbarHighlight()
                             info.handler:CreateCastbarTargetText()
                             info.handler:UpdateCastbarTargetText()
                             info.handler:RefreshTestModeCastbars()
+                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                        end,
+                    },
+                    forceCastbarTextWidth = {
+                        order = 0.1,
+                        type  = "toggle",
+                        name  = L["Text_ForceCastbarTextWidth"],
+                        desc  = L["Text_ForceCastbarTextWidth_Desc"],
+                        width = 1.2,
+                        hidden = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            return not (layout.textSettings and layout.textSettings.castbarTargetAnchorInside)
+                        end,
+                        get   = function(info)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            return layout.textSettings.forceCastbarTextWidth or false
+                        end,
+                        set   = function(info, val)
+                            local layout = info.handler.db.profile.layoutSettings[layoutName]
+                            layout.textSettings = layout.textSettings or {}
+                            layout.textSettings.forceCastbarTextWidth = val
+                            info.handler:UpdateTextPositions(layout.textSettings, info, val)
                         end,
                     },
                     castbarTargetAnchorToCastbar = {
@@ -3432,6 +3473,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.castbarTargetAnchorToCastbar = val
+                            info.handler:CreateCastbarHighlight()
                             info.handler:CreateCastbarTargetText()
                             info.handler:UpdateCastbarTargetText()
                             info.handler:RefreshTestModeCastbars()
@@ -3462,6 +3504,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.castbarTargetAnchor = val
+                            info.handler:CreateCastbarHighlight()
                             info.handler:CreateCastbarTargetText()
                             info.handler:UpdateCastbarTargetText()
                             info.handler:RefreshTestModeCastbars()
@@ -3489,6 +3532,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.castbarTargetSize = val
+                            info.handler:CreateCastbarHighlight()
                             info.handler:CreateCastbarTargetText()
                             info.handler:UpdateCastbarTargetText()
                             info.handler:RefreshTestModeCastbars()
@@ -3515,6 +3559,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.castbarTargetOffsetX = val
+                            info.handler:CreateCastbarHighlight()
                             info.handler:CreateCastbarTargetText()
                             info.handler:UpdateCastbarTargetText()
                             info.handler:RefreshTestModeCastbars()
@@ -3541,6 +3586,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.castbarTargetOffsetY = val
+                            info.handler:CreateCastbarHighlight()
                             info.handler:CreateCastbarTargetText()
                             info.handler:UpdateCastbarTargetText()
                             info.handler:RefreshTestModeCastbars()
@@ -3564,6 +3610,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             layout.textSettings.castbarTargetOffsetY = 0
                             layout.textSettings.castbarTargetAnchorToCastbar = true
                             layout.textSettings.castbarTargetJustifyH = "CENTER"
+                            info.handler:CreateCastbarHighlight()
                             info.handler:CreateCastbarTargetText()
                             info.handler:UpdateCastbarTargetText()
                             info.handler:RefreshTestModeCastbars()
@@ -3594,6 +3641,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             local layout = info.handler.db.profile.layoutSettings[layoutName]
                             layout.textSettings = layout.textSettings or {}
                             layout.textSettings.castbarTargetJustifyH = val
+                            info.handler:CreateCastbarHighlight()
                             info.handler:CreateCastbarTargetText()
                             info.handler:UpdateCastbarTargetText()
                             info.handler:RefreshTestModeCastbars()
@@ -4000,6 +4048,14 @@ function sArenaMixin:RefreshTestModeCastbars()
                 if frame.CastBar.ArenaTargetText then
                     frame.CastBar.ArenaTargetText:Hide()
                     frame.CastBar.ArenaTargetText:SetText("")
+                end
+            end
+
+            if frame.CastBar.ArenaTargetHighlight then
+                if db.profile.highlightCastsOnMe and i == 2 then
+                    frame.CastBar.ArenaTargetHighlight:SetAlpha(1)
+                else
+                    frame.CastBar.ArenaTargetHighlight:SetAlpha(0)
                 end
             end
         end
@@ -5068,8 +5124,8 @@ else
                                             for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 local id = i
-                                                if FrameSort then
-                                                    id = FrameSort.Api.v3.Frame:FrameNumberForUnit(frame.unit or ("arena"..i)) or i
+                                                if FrameSortApi then
+                                                    id = FrameSortApi.v3.Frame:FrameNumberForUnit(frame.unit or ("arena"..i)) or i
                                                 end
                                                 frame.Name:SetShown(val)
                                                 if info.handler.db.profile.arenaNumberIdOnly then
@@ -5093,8 +5149,8 @@ else
                                                 for i = 1, info.handler.maxArenaOpponents do
                                                     local frame = info.handler["arena" .. i]
                                                     local id = i
-                                                    if FrameSort then
-                                                        id = FrameSort.Api.v3.Frame:FrameNumberForUnit(frame.unit or ("arena"..i)) or i
+                                                    if FrameSortApi then
+                                                        id = FrameSortApi.v3.Frame:FrameNumberForUnit(frame.unit or ("arena"..i)) or i
                                                     end
                                                     if val then
                                                         frame.Name:SetText(id)
@@ -5471,7 +5527,7 @@ else
                         },
                     },
                     trinketsGroup = {
-                        order = 1.5,
+                        order = 5,
                         name = L["Category_Trinkets"],
                         type = "group",
                         args = {
@@ -5738,7 +5794,7 @@ else
                         },
                     },
                     drGroup = {
-                        order = 2,
+                        order = 3,
                         name = L["Category_DiminishingReturns"],
                         type = "group",
                         args = {
@@ -6108,7 +6164,7 @@ else
                         },
                     },
                     racialGroup = {
-                        order = 3,
+                        order = 4,
                         name = L["Category_Racials"],
                         type = "group",
                         args = (function()
@@ -6211,7 +6267,7 @@ else
                         end)(),
                     },
                     dispelGroup = {
-                        order = 4,
+                        order = 6,
                         name = L["Category_Dispels"],
                         hidden = function() return isMidnight end,
                         type = "group",
@@ -6394,6 +6450,226 @@ else
                             return args
                         end)(),
                     },
+                    clickActionsGroup = {
+                        order = 2,
+                        name = L["Category_ClickActions"],
+                        type = "group",
+                        args = (function()
+                            local CLICK_BUTTONS = {
+                                ["1"] = L["ClickAction_Left"],
+                                ["2"] = L["ClickAction_Right"],
+                                ["3"] = L["ClickAction_Middle"],
+                                ["4"] = L["ClickAction_Button4"],
+                                ["5"] = L["ClickAction_Button5"],
+                            }
+                            local CLICK_MODIFIERS = {
+                                [""] = L["ClickAction_ModNone"],
+                                ["ctrl-"] = L["ClickAction_ModCtrl"],
+                                ["shift-"] = L["ClickAction_ModShift"],
+                                ["alt-"] = L["ClickAction_ModAlt"],
+                            }
+                            local CLICK_ACTIONS = {
+                                ["target"] = L["ClickAction_Target"],
+                                ["focus"] = L["ClickAction_Focus"],
+                                ["macro"] = L["ClickAction_Macro"],
+                                ["spell"] = L["ClickAction_Spell"],
+                            }
+
+                            local addAttrButton = "1"
+                            local addAttrMod = ""
+
+                            local function GetAttrDisplayName(modifier, button)
+                                local modName = CLICK_MODIFIERS[modifier] or ""
+                                local btnName = CLICK_BUTTONS[button] or button
+                                if modifier ~= "" then
+                                    return modName .. "-" .. btnName
+                                end
+                                return btnName
+                            end
+
+                            function sArenaMixin:BuildClickActionOption(key, orderStart)
+                                return {
+                                    type = "group",
+                                    name = key,
+                                    inline = true,
+                                    order = orderStart,
+                                    args = {
+                                        action = {
+                                            order = 1,
+                                            name = L["ClickAction_Action"],
+                                            type = "select",
+                                            width = 0.7,
+                                            values = CLICK_ACTIONS,
+                                            get = function(info)
+                                                local attrs = info.handler.db.profile.clickAttributes
+                                                return attrs[key] and attrs[key].action or "target"
+                                            end,
+                                            set = function(info, value)
+                                                local attrs = info.handler.db.profile.clickAttributes
+                                                if attrs[key] then
+                                                    attrs[key].action = value
+                                                    info.handler:ApplyAllClickActions()
+                                                end
+                                            end,
+                                        },
+                                        macrotext = {
+                                            order = 2,
+                                            name = L["ClickAction_MacroText"],
+                                            desc = L["ClickAction_MacroText_Desc"],
+                                            type = "input",
+                                            width = "full",
+                                            multiline = 4,
+                                            hidden = function(info)
+                                                local attrs = info.handler.db.profile.clickAttributes
+                                                local action = attrs[key] and attrs[key].action
+                                                return action ~= "macro"
+                                            end,
+                                            get = function(info)
+                                                local attrs = info.handler.db.profile.clickAttributes
+                                                return attrs[key] and attrs[key].macro or ""
+                                            end,
+                                            set = function(info, value)
+                                                local attrs = info.handler.db.profile.clickAttributes
+                                                if attrs[key] then
+                                                    attrs[key].macro = value
+                                                    info.handler:ApplyAllClickActions()
+                                                end
+                                            end,
+                                        },
+                                        spellname = {
+                                            order = 2.5,
+                                            name = L["ClickAction_SpellName"],
+                                            desc = L["ClickAction_SpellName_Desc"],
+                                            type = "input",
+                                            width = 1.5,
+                                            hidden = function(info)
+                                                local attrs = info.handler.db.profile.clickAttributes
+                                                local action = attrs[key] and attrs[key].action
+                                                return action ~= "spell"
+                                            end,
+                                            get = function(info)
+                                                local attrs = info.handler.db.profile.clickAttributes
+                                                return attrs[key] and attrs[key].macro or ""
+                                            end,
+                                            set = function(info, value)
+                                                local attrs = info.handler.db.profile.clickAttributes
+                                                if attrs[key] then
+                                                    attrs[key].macro = value
+                                                    info.handler:ApplyAllClickActions()
+                                                end
+                                            end,
+                                        },
+                                        delete = {
+                                            order = 3,
+                                            name = L["ClickAction_Delete"],
+                                            desc = L["ClickAction_Delete_Desc"],
+                                            type = "execute",
+                                            width = 0.5,
+                                            confirm = function() return sArenaMixin.popupHeader..L["ClickAction_Delete_Confirm"] end,
+                                            func = function(info)
+                                                info.handler.db.profile.clickAttributes[key] = nil
+                                                info.handler:ApplyAllClickActions()
+                                                info.handler:RebuildClickActionsOptions()
+                                                LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                            end,
+                                        },
+                                    },
+                                }
+                            end
+
+                            local args = {
+                                description = {
+                                    order = 0,
+                                    type = "description",
+                                    name = L["ClickAction_Desc"],
+                                    fontSize = "medium",
+                                },
+                                addGroup = {
+                                    order = 1,
+                                    type = "group",
+                                    name = L["ClickAction_Add"],
+                                    inline = true,
+                                    args = {
+                                        addButton = {
+                                            order = 1,
+                                            name = L["ClickAction_Button"],
+                                            type = "select",
+                                            width = 0.6,
+                                            values = CLICK_BUTTONS,
+                                            get = function() return addAttrButton end,
+                                            set = function(_, value) addAttrButton = value end,
+                                        },
+                                        addModifier = {
+                                            order = 2,
+                                            name = L["ClickAction_Modifier"],
+                                            type = "select",
+                                            width = 0.6,
+                                            values = CLICK_MODIFIERS,
+                                            get = function() return addAttrMod end,
+                                            set = function(_, value) addAttrMod = value end,
+                                        },
+                                        addExecute = {
+                                            order = 3,
+                                            name = L["ClickAction_AddButton"],
+                                            desc = L["ClickAction_AddButton_Desc"],
+                                            type = "execute",
+                                            width = 0.5,
+                                            func = function(info)
+                                                local displayName = GetAttrDisplayName(addAttrMod, addAttrButton)
+                                                local attrs = info.handler.db.profile.clickAttributes
+                                                if not attrs[displayName] then
+                                                    attrs[displayName] = {
+                                                        button = addAttrButton,
+                                                        modifier = addAttrMod,
+                                                        action = "target",
+                                                    }
+                                                    info.handler:ApplyAllClickActions()
+                                                    info.handler:RebuildClickActionsOptions()
+                                                    LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                                end
+                                            end,
+                                        },
+                                    },
+                                },
+                                attributeList = {
+                                    order = 2,
+                                    type = "group",
+                                    name = L["ClickAction_Existing"],
+                                    inline = true,
+                                    args = {},
+                                },
+                                resetAll = {
+                                    order = 99,
+                                    name = L["ClickAction_ResetAll"],
+                                    desc = L["ClickAction_ResetAll_Desc"],
+                                    type = "execute",
+                                    width = 0.7,
+                                    confirm = function() return L["ClickAction_ResetAll_Confirm"] end,
+                                    func = function(info)
+                                        local defaults = sArenaMixin.defaultSettings.profile.clickAttributes
+                                        local copy = {}
+                                        for k, v in pairs(defaults) do
+                                            copy[k] = { button = v.button, modifier = v.modifier, action = v.action, macro = v.macro }
+                                        end
+                                        info.handler.db.profile.clickAttributes = copy
+                                        info.handler:ApplyAllClickActions()
+                                        info.handler:RebuildClickActionsOptions()
+                                        LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                    end,
+                                },
+                            }
+
+                            local order = 1
+                            for key, _ in pairs(sArenaMixin.defaultSettings.profile.clickAttributes) do
+                                args.attributeList.args[key] = sArenaMixin:BuildClickActionOption(key, order)
+                                order = order + 1
+                            end
+
+                            sArenaMixin.ClickActionsArgs = args
+
+                            return args
+                        end)(),
+                    },
                 },
             },
             ImportOtherForkSettings = {
@@ -6465,7 +6741,7 @@ else
                     discordSpacer = {
                         order = 5,
                         type = "description",
-                        name = "\n\n\n\n\n\n\n\n\n\n\n\n",
+                        name = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
                     },
                     discordTitle = {
                         order = 5.5,

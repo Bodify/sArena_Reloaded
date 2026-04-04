@@ -1047,6 +1047,10 @@ function sArenaMixin:Test()
                 end
             end
 
+            if db.profile.highlightCastsOnMe and frame.CastBar.ArenaTargetHighlight then
+                frame.CastBar.ArenaTargetHighlight:SetAlpha(i == 2 and 1 or 0)
+            end
+
             if data.unint then
                 frame.CastBar.BorderShield:Show()
                 if useCustomColors then

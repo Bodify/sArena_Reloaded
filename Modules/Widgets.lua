@@ -430,8 +430,12 @@ function sArenaFrameMixin:UpdateArenaTargets(unit)
                 local color = RAID_CLASS_COLORS[class]
                 indicator.Texture:SetVertexColor(color.r, color.g, color.b)
             end
-            indicator:Show()
-            indicator:SetAlphaFromBoolean(isTarget, 1, 0)
+            if isTarget ~= nil then
+                indicator:Show()
+                indicator:SetAlphaFromBoolean(isTarget, 1, 0)
+            else
+                indicator:Hide()
+            end
         end
     else
         local targets = {}
@@ -548,8 +552,12 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
                             local color = RAID_CLASS_COLORS[class]
                             indicator.Texture:SetVertexColor(color.r, color.g, color.b)
                         end
-                        indicator:Show()
-                        indicator:SetAlphaFromBoolean(isTarget, 1, 0)
+                        if isTarget ~= nil then
+                            indicator:Show()
+                            indicator:SetAlphaFromBoolean(isTarget, 1, 0)
+                        else
+                            indicator:Hide()
+                        end
                     end
                 else
                     local attackers = {}
