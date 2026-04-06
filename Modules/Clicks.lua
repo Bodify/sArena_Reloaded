@@ -27,6 +27,14 @@ function sArenaFrameMixin:ApplyClickActions()
     self:ClearClickActions()
 
     local db = self.parent and self.parent.db
+    local isCliqueLoaded = C_AddOns.IsAddOnLoaded("Clique")
+    local cliqueEnabled = isCliqueLoaded and db and db.profile.enableCliqueSupport
+
+    if not ClickCastFrames then ClickCastFrames = {} end
+    ClickCastFrames[self] = cliqueEnabled and true or nil
+
+    if cliqueEnabled then return end
+
     local clickAttributes = db and db.profile.clickAttributes
     if not clickAttributes then
         self:SetAttribute("*type1", "target")

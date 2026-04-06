@@ -13,7 +13,6 @@ sArenaMixin.trinketTexture = (isRetail and 1322720) or 133453
 sArenaMixin.trinketID = (isRetail and 336126) or 42292
 
 local LSM = LibStub("LibSharedMedia-3.0")
-local decimalThreshold = 6 -- Default value, will be updated from db
 LSM:Register("statusbar", "Blizzard RetailBar", [[Interface\AddOns\sArena_Reloaded\Textures\BlizzardRetailBar]])
 LSM:Register("statusbar", "sArena Default", [[Interface\AddOns\sArena_Reloaded\Textures\sArenaDefault]])
 LSM:Register("statusbar", "sArena Stripes", [[Interface\AddOns\sArena_Reloaded\Textures\sArenaHealer]])
@@ -807,6 +806,7 @@ function sArenaMixin:Initialize()
         end
         self:UpdateDecimalThreshold()
         self:UpdateNoTrinketTexture()
+        self:ApplyAllClickActions()
         self:RebuildClickActionsOptions()
         LibStub("AceConfigDialog-3.0"):AddToBlizOptions("sArena", "sArena |cffff8000Reloaded|r |T135884:13:13|t")
         self:SetLayout(_, db.profile.currentLayout)
@@ -993,107 +993,6 @@ function sArenaMixin:SetupGrayTrinket()
         end)
     end
 end
-
-function sArenaMixin:UpdateDecimalThreshold()
-    decimalThreshold = self.db.profile.decimalThreshold or 6
-end
-
-function sArenaMixin:CreateCustomCooldown(cooldown, showDecimals)
-    if isMidnight then
-        cooldown:SetHideCountdownNumbers(false)
-        if showDecimals and cooldown.SetCountdownMillisecondsThreshold then
-            cooldown:SetCountdownMillisecondsThreshold(decimalThreshold)
-        end
-        return
-    end
-
-    local text = cooldown.sArenaText or cooldown:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
-    if not cooldown.sArenaText then
-        cooldown.sArenaText = text
-
-        if not cooldown.Text then
-            for _, region in next, { cooldown:GetRegions() } do
-                if region:GetObjectType() == "FontString" then
-                    cooldown.Text = region;
-                    cooldown.Text.fontFile = region:GetFont();
-                end
-            end
-        end
-
-        local f, s, o = cooldown.Text:GetFont()
-        text:SetFont(f, s, o)
-
-        local r, g, b, a = cooldown.Text:GetShadowColor()
-        local x, y = cooldown.Text:GetShadowOffset()
-        text:SetShadowColor(r, g, b, a)
-        text:SetShadowOffset(x, y)
-
-        text:SetPoint("CENTER", cooldown, "CENTER", 0, -1)
-        text:SetJustifyH("CENTER")
-        text:SetJustifyV("MIDDLE")
-    end
-
-    cooldown:SetHideCountdownNumbers(showDecimals)
-
-    if showDecimals then
-        cooldown.hideDefaultCD = true
-        local lastUpdate = 0
-        cooldown:SetScript("OnUpdate", function(self, elapsed)
-            lastUpdate = lastUpdate + elapsed
-            if lastUpdate < 0.1 then return end
-            lastUpdate = 0
-
-            local start, duration = cooldown:GetCooldownTimes()
-            start, duration = start / 1000, duration / 1000
-            local remaining = (start + duration) - GetTime()
-
-            if remaining > 0 then
-                if remaining < decimalThreshold then
-                    text:SetFormattedText("%.1f", remaining)
-                elseif remaining < 60 then
-                    text:SetFormattedText("%d", remaining)
-                elseif remaining < 3600 then
-                    local m, s = math.floor(remaining / 60), math.floor(remaining % 60)
-                    text:SetFormattedText("%d:%02d", m, s)
-                else
-                    text:SetFormattedText("%dh", math.floor(remaining / 3600))
-                end
-            else
-                text:SetText("")
-            end
-        end)
-    else
-        cooldown.hideDefaultCD = nil
-        cooldown:SetScript("OnUpdate", nil)
-        text:SetText(nil)
-    end
-end
-
-function sArenaMixin:SetupCustomCD()
-    if C_AddOns.IsAddOnLoaded("OmniCC") then return end
-    if self.customCDText then return end
-
-    for i = 1, self.maxArenaOpponents do
-        local frame = self["arena" .. i]
-
-        -- Class icon cooldown
-        self:CreateCustomCooldown(frame.ClassIcon.Cooldown, self.db.profile.showDecimalsClassIcon)
-
-        local useDrFrames = frame.drFrames ~= nil
-        local drList = frame.drFrames or self.drCategories
-        if drList then
-            for i = 1, #drList do
-                local drFrame = useDrFrames and drList[i] or frame[drList[i]]
-                if drFrame then
-                    self:CreateCustomCooldown(drFrame.Cooldown, self.db.profile.showDecimalsDR)
-                end
-            end
-        end
-    end
-
-    self.customCDText = true
-end
-
 
 function sArenaMixin:DarkMode()
     return db.profile.darkMode
@@ -2254,7 +2153,7 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
 
     -- Workaround to show frames in older arenas in combat.
     -- Does not actually call Show(), but SetAlpha() on older arenas.
-    if noEarlyFrames then
+    if noEarlyFrames or (not self:IsShown() and not InCombatLockdown()) then
         self:Show()
     end
 end
@@ -2377,8 +2276,10 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
 	if isMidnight then
 		if self.currentAuraSpellID and self.currentAuraDurationObj then
 			self.ClassIcon.Cooldown:SetCooldownFromDurationObject(self.currentAuraDurationObj)
+            self.ClassIcon.Cooldown.durationObj = self.currentAuraDurationObj
 		elseif not self.currentAuraSpellID then
 			self.ClassIcon.Cooldown:Clear()
+            self.ClassIcon.Cooldown.durationObj = nil
 		end
 	elseif (self.currentAuraSpellID and self.currentAuraDuration > 0 and self.currentClassIconStartTime ~= self.currentAuraStartTime) then
 		self.ClassIcon.Cooldown:SetCooldown(self.currentAuraStartTime, self.currentAuraDuration)

@@ -6577,6 +6577,8 @@ else
                                 }
                             end
 
+                            local isCliqueLoaded = C_AddOns.IsAddOnLoaded("Clique")
+
                             local args = {
                                 description = {
                                     order = 0,
@@ -6584,11 +6586,31 @@ else
                                     name = L["ClickAction_Desc"],
                                     fontSize = "medium",
                                 },
+                                cliqueDescription = {
+                                    order = 0.1,
+                                    type = "description",
+                                    name = "\n" .. L["ClickAction_CliqueDetected"],
+                                    fontSize = "medium",
+                                    hidden = not isCliqueLoaded,
+                                },
+                                enableCliqueSupport = {
+                                    order = 0.2,
+                                    type = "toggle",
+                                    name = L["ClickAction_EnableClique"],
+                                    width = "full",
+                                    hidden = not isCliqueLoaded,
+                                    get = function(info) return info.handler.db.profile.enableCliqueSupport end,
+                                    set = function(info, value)
+                                        info.handler.db.profile.enableCliqueSupport = value
+                                        info.handler:ApplyAllClickActions()
+                                    end,
+                                },
                                 addGroup = {
                                     order = 1,
                                     type = "group",
                                     name = L["ClickAction_Add"],
                                     inline = true,
+                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport end,
                                     args = {
                                         addButton = {
                                             order = 1,
@@ -6636,6 +6658,7 @@ else
                                     type = "group",
                                     name = L["ClickAction_Existing"],
                                     inline = true,
+                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport end,
                                     args = {},
                                 },
                                 resetAll = {
@@ -6644,6 +6667,7 @@ else
                                     desc = L["ClickAction_ResetAll_Desc"],
                                     type = "execute",
                                     width = 0.7,
+                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport end,
                                     confirm = function() return L["ClickAction_ResetAll_Confirm"] end,
                                     func = function(info)
                                         local defaults = sArenaMixin.defaultSettings.profile.clickAttributes

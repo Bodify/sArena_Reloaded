@@ -610,6 +610,8 @@ L["DR_MidnightDisclaimer"] = "|A:services-icon-warning:20:20|a |cffff8800The DR 
 ---------------------------------------
 
 L["ClickAction_Desc"] = "Configure what happens when you click on arena frames.\nYou can set different mouse buttons and modifier combinations to run macros etc."
+L["ClickAction_CliqueDetected"] = "Clique addon detected. Would you like to let Clique handle all click actions instead of sArena?"
+L["ClickAction_EnableClique"] = "Let Clique handle all Click Actions"
 L["ClickAction_Existing"] = "Active Click Actions"
 L["ClickAction_Button"] = "Mouse Button"
 L["ClickAction_Modifier"] = "Modifier"

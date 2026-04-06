@@ -741,6 +741,8 @@ function sArenaMixin:InitializeMidnightDRFrames()
                 drTextImmune:SetAlpha(0)
                 drTextFrame.DRTextImmune = drTextImmune
 
+                sArenaDRFrame.DRSeverity = 1
+
                 local blizzDRFrame = blizzDRFrames[drIndex]
                 if blizzDRFrame and blizzDRFrame.Icon then
                     sArenaDRFrame.blizzFrame = blizzDRFrame
@@ -752,20 +754,31 @@ function sArenaMixin:InitializeMidnightDRFrames()
                     hooksecurefunc(blizzDRFrame, "Show", function()
                         sArenaDRFrame:Show()
                         arenaFrame:UpdateDRPositions()
+                        sArenaDRFrame.DRSeverity = sArenaDRFrame.DRSeverity + 1
                     end)
 
                     hooksecurefunc(blizzDRFrame, "Hide", function()
                         sArenaDRFrame.Icon:SetTexture(nil)
                         sArenaDRFrame.Cooldown:Clear()
                         sArenaDRFrame:Hide()
+                        sArenaDRFrame.DRSeverity = 1
                         arenaFrame:UpdateDRPositions()
                     end)
 
                     hooksecurefunc(blizzDRFrame.Cooldown, "SetCooldown", function(_, start, duration)
+                        sArenaDRFrame:Show()
                         sArenaDRFrame.Cooldown:SetCooldown(GetTime(), 16.1)
-                        sArenaDRFrame.Cooldown.trueCD = true
+                        sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
+                        sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), 16.1)
                         --print(i, " DR CD Start")
-                        C_Timer.After(16.1, function() sArenaDRFrame.Cooldown.trueCD = nil end)
+                        -- sArenaDRFrame.Cooldown.trueCD = true
+                        -- if sArenaDRFrame.Cooldown.trueCDTimer then
+                        --     sArenaDRFrame.Cooldown.trueCDTimer:Cancel()
+                        -- end
+                        -- sArenaDRFrame.Cooldown.trueCDTimer = C_Timer.NewTimer(16.1, function()
+                        --     sArenaDRFrame.Cooldown.trueCD = nil
+                        --     sArenaDRFrame.Cooldown.trueCDTimer = nil
+                        -- end)
                     end)
 
                     local green = CreateColor(0, 1, 0, 1)
@@ -777,9 +790,20 @@ function sArenaMixin:InitializeMidnightDRFrames()
                         local borderHidden = layout and layout.dr and layout.dr.disableDRBorder
 
                         --print(i, " DR Immune Show:", shown, "IsCDOnDR: ", sArenaDRFrame.Cooldown:IsShown())
+                        sArenaDRFrame.Cooldown:Clear()
+                        sArenaDRFrame:Show()
 
-                        if not sArenaDRFrame.Cooldown.trueCD and not self.db.profile.disableInstantDRCooldown then
-                            sArenaDRFrame.Cooldown:SetCooldown(GetTime(), 20)
+                        --if not sArenaDRFrame.Cooldown.trueCD and not self.db.profile.disableInstantDRCooldown then
+                        if not self.db.profile.disableInstantDRCooldown then
+                            if sArenaDRFrame.DRSeverity == 1 then
+                                sArenaDRFrame.Cooldown:SetCooldown(GetTime(), 20)
+                                sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
+                                sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), 20)
+                            else
+                                sArenaDRFrame.Cooldown:SetCooldown(GetTime(), 18)
+                                sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
+                                sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), 18)
+                            end
                         end
 
                         if not borderHidden then

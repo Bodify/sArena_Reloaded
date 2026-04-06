@@ -18,6 +18,7 @@
     <Script file="Data\Profiles.lua"/>
     <!-- <Script file="Data\Auras\AuraList_Retail.lua"/> -->
     <Script file="Modules\Functions.lua"/>
+    <Script file="Modules\CooldownFrame.lua"/>
     <Script file="Modules\Clicks.lua"/>
     <Script file="Modules\Interrupt.lua"/>
     <Script file="Modules\CompatibilityCheck.lua"/>

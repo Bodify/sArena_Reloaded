@@ -711,7 +711,10 @@ function sArenaMixin:Test()
         frame.SpecNameText:SetShown(db.profile.layoutSettings[db.profile.currentLayout].showSpecManaText)
         frame:UpdateSpecNameColor()
 
-        frame.ClassIcon.Cooldown:SetCooldown(currTime, math.random(5, 35))
+        local randomDur = math.random(5, 35)
+        frame.ClassIcon.Cooldown:SetCooldown(currTime, randomDur)
+        frame.ClassIcon.Cooldown.durationObj = C_DurationUtil.CreateDuration()
+        frame.ClassIcon.Cooldown.durationObj:SetTimeFromStart(currTime, randomDur)
 
         if db.profile.showArenaNumber then
             if db.profile.arenaNumberIdOnly then
@@ -851,7 +854,10 @@ function sArenaMixin:Test()
                     if drFrame then
                         drFrame.Icon:SetTexture(drCategoryTextures[n])
                         drFrame:Show()
-                        drFrame.Cooldown:SetCooldown(currTime, math.random(12, 35))
+                        local randomDur = math.random(12, 35)
+                        drFrame.Cooldown:SetCooldown(currTime, randomDur)
+                        drFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
+                        drFrame.Cooldown.durationObj:SetTimeFromStart(currTime, randomDur)
 
                         local blackDRBorder = drSettings.blackDRBorder
 
