@@ -890,11 +890,15 @@ function sArenaFrameMixin:HookMidnightTrinket()
                     if sharedCD and sharedCD ~= 0 then
                         self.sharedRacialCDActive = true
                         self.Racial.Cooldown:SetCooldown(GetTime(), sharedCD)
+                        if self.racialDetectTimer then self.racialDetectTimer:Cancel() end
+                        if self.racialDetectConfirmTimer then self.racialDetectConfirmTimer:Cancel() end
                         -- Detect if racial was actually used first by checking trinket CD
                         -- before and after the shared CD expires
-                        C_Timer.After(math.max(sharedCD - 0.2, 0.2), function()
+                        self.racialDetectTimer = C_Timer.NewTimer(math.max(sharedCD - 0.2, 0.2), function()
+                            self.racialDetectTimer = nil
                             local trinketWasOnCD = self.Trinket.Cooldown:IsShown()
-                            C_Timer.After(0.4, function()
+                            self.racialDetectConfirmTimer = C_Timer.NewTimer(0.4, function()
+                                self.racialDetectConfirmTimer = nil
                                 self.sharedRacialCDActive = nil
                                 -- If trinket was on CD before shared CD ended and is now off,
                                 -- both CDs ended together - meaning the racial was used first

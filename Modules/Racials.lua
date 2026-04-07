@@ -353,5 +353,7 @@ function sArenaFrameMixin:ResetRacial()
     self.Racial.Cooldown:Clear()
     self.updateRacialOnTrinketSlot = nil
     self.sharedRacialCDActive = nil
+    if self.racialDetectTimer then self.racialDetectTimer:Cancel(); self.racialDetectTimer = nil end
+    if self.racialDetectConfirmTimer then self.racialDetectConfirmTimer:Cancel(); self.racialDetectConfirmTimer = nil end
     self:UpdateRacial()
 end
