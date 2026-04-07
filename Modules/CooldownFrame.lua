@@ -55,7 +55,7 @@ function sArenaMixin:CreateCustomCooldown(cooldown, showDecimals)
             cooldown:SetScript("OnUpdate", function(_, elapsed)
                 if not cooldown.durationObj then return end
                 lastUpdate = lastUpdate + elapsed
-                if lastUpdate < 0.1 then return end
+                if lastUpdate < 0.05 then return end
                 lastUpdate = 0
 
                 text:SetAlpha(cooldown.durationObj:EvaluateRemainingDuration(decimalCurve))
@@ -68,7 +68,7 @@ function sArenaMixin:CreateCustomCooldown(cooldown, showDecimals)
         else
             cooldown:SetScript("OnUpdate", function(self, elapsed)
                 lastUpdate = lastUpdate + elapsed
-                if lastUpdate < 0.1 then return end
+                if lastUpdate < 0.05 then return end
                 lastUpdate = 0
 
                 local start, duration = cooldown:GetCooldownTimes()
