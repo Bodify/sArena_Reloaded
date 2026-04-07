@@ -648,6 +648,7 @@ function sArenaMixin:OnEvent(event, ...)
         self:UnregisterEvent("PLAYER_LOGIN")
     elseif (event == "PLAYER_ENTERING_WORLD") then
         local _, instanceType = IsInInstance()
+        self.isInArena = (instanceType == "arena")
         self:UpdateBlizzArenaFrameVisibility(instanceType)
         self:SetMouseState(instanceType ~= "arena")
         self.testMode = nil
@@ -2067,6 +2068,8 @@ function sArenaFrameMixin:UpdateSpecNameColor()
 end
 
 function sArenaFrameMixin:UpdatePlayer(unitEvent)
+    if not self.parent.isInArena then return end
+
     local unit = self.unit
 
     if noEarlyFrames and UnitExists(unit) then
