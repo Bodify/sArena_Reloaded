@@ -1,3 +1,9 @@
+# sArena Reloaded 2.4.4c
+## Tweak
+- Midnight: Now if racials with shared trinket cd are used first they will first display the shared cooldown then afterwards update with the remaining full cooldown. (API limitation workaround to show racial CD)
+## Bugfix
+- Fix sArena Frames showing up in battlegrounds. I might add a new setting to enable this as a setting if that is of interest (for bg objectives only, flags, orbs, etc) lmk.
+
 # sArena Reloaded 2.4.4b
 ## New
 - Clique support. If you have Clique theres a new checkbox in the Click Actions tab to let Clique handle all click actions instead.
