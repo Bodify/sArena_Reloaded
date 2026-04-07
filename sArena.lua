@@ -1873,7 +1873,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
         self:Initialize()
     elseif (event == "PLAYER_ENTERING_WORLD") or (event == "ARENA_PREP_OPPONENT_SPECIALIZATIONS") then
         local _, instanceType = IsInInstance()
-
+        self.parent.isInArena = instanceType == "arena"
 
         if noEarlyFrames and instanceType == "arena" and self.ogShow then
             self.ogShow(self)
