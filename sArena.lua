@@ -632,7 +632,7 @@ function sArenaMixin:OnEvent(event, ...)
             self:RegisterCVarListener()
         end
         self:Initialize()
-        if self:CompatibilityIssueExists() then return end
+        if self:ConflictCheck() then return end
         self:UpdatePlayerSpec()
         self:SetupGrayTrinket()
         self:AddMasqueSupport()
@@ -784,7 +784,7 @@ end
 function sArenaMixin:Initialize()
     if (db) then return end
 
-    local compatIssue = self:CompatibilityIssueExists()
+    local conflictType = self:ConflictCheck()
 
     self.db = LibStub("AceDB-3.0"):New("sArena_ReloadedDB", self.defaultSettings, true)
     db = self.db
@@ -795,10 +795,10 @@ function sArenaMixin:Initialize()
     self.optionsTable.handler = self
     self.optionsTable.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(db)
     LibStub("AceConfig-3.0"):RegisterOptionsTable("sArena", self.optionsTable)
-    LibStub("AceConfigDialog-3.0"):SetDefaultSize("sArena", compatIssue and 520 or 860, compatIssue and 300 or 690)
+    LibStub("AceConfigDialog-3.0"):SetDefaultSize("sArena", conflictType and 520 or 860, conflictType and 300 or 690)
     LibStub("AceConsole-3.0"):RegisterChatCommand("sarena", function(input) self:ChatCommand(input) end)
     self:InterruptTracker()
-    if not compatIssue then
+    if not conflictType then
         self:DatabaseCleanup(db)
         if not isMidnight then
             self:UpdateDRTimeSetting()
@@ -811,9 +811,13 @@ function sArenaMixin:Initialize()
         self:RebuildClickActionsOptions()
         LibStub("AceConfigDialog-3.0"):AddToBlizOptions("sArena", "sArena |cffff8000Reloaded|r |T135884:13:13|t")
         self:SetLayout(_, db.profile.currentLayout)
-    else
+    elseif conflictType == "sarena" then
         C_Timer.After(5, function()
             self:Print(L["Print_MultipleVersionsLoaded"])
+        end)
+    elseif conflictType == "other" then
+        C_Timer.After(5, function()
+            self:Print(L["Print_OtherConflictsLoaded"])
         end)
     end
 end
@@ -1533,7 +1537,7 @@ function sArenaFrameMixin:OnLoad()
     local unit = "arena" .. self:GetID()
     self.unit = unit
     self.parent = self:GetParent()
-    if self.parent:CompatibilityIssueExists() then return end
+    if self.parent:ConflictCheck() then return end
 
     if noEarlyFrames then
         self.ogSetShown = self.SetShown

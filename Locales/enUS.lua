@@ -599,6 +599,16 @@ L["Conflict_UseReloaded_Import_Confirm"] = sArenaMixin.popupHeader.."This will c
 L["Conflict_UseReloaded_NoImport"] = "|cffffffffUse sArena |cffff8000Reloaded|r |T135884:13:13|t: Don't import other settings"
 L["Conflict_UseReloaded_NoImport_Desc"] = "This will disable the other sArena for compatibility and reload your UI so you can start using sArena |cffff8000Reloaded|r |T135884:13:13|t without your other settings."
 L["Conflict_UseReloaded_NoImport_Confirm"] = sArenaMixin.popupHeader.."This will disable the other sArena for compatibility and reload your UI so you can start using sArena |cffff8000Reloaded|r |T135884:13:13|t without your other settings.\n\nContinue?\n"
+
+L["Option_OtherAddonConflict"] = "Addon Conflict"
+L["OtherConflict_Detected"] = "Conflicting addons detected"
+L["OtherConflict_Warning"] = "|A:services-icon-warning:20:20|a |cffff4444Conflicting addons found|r |A:services-icon-warning:20:20|a"
+L["OtherConflict_Explanation"] = "|cffffffffIn order for sArena |cffff8000Reloaded|r |T135884:13:13|t |cffffffffto function properly, these addons need to be turned off:|r"
+L["OtherConflict_DisableAndReload"] = "|cffffffffDisable Conflicting AddOns & Reload|r"
+L["OtherConflict_DisableAndReload_Desc"] = "This will disable the conflicting addons listed above and reload your UI."
+L["OtherConflict_DisableAndReload_Confirm"] = sArenaMixin.popupHeader.."This will disable the conflicting addons and reload your UI so sArena |cffff8000Reloaded|r |T135884:13:13|t can function properly.\n\nContinue?\n"
+L["Print_OtherConflictsLoaded"] = "Conflicting addons detected. Type /sarena for info."
+
 L["Reload_Warning"] = "|A:services-icon-warning:20:20|a |cffff3300Reload Required|r |A:services-icon-warning:20:20|a"
 L["Reload_Explanation"] = "sArena requires \"Arena Frames\" enabled in Edit Mode.\n\nThey have been enabled for you automatically now, but the UI requires a reload to avoid issues.\n|cff888888(The default arena frames will not show, just needs to be enabled)|r"
 L["Error_EditModeAccountSettings"] = "Could not find Edit Mode Account Settings. Risk of sArena not working properly. Report to @bodify"

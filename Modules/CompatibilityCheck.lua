@@ -21,9 +21,18 @@ function sArenaMixin:CompatibilityEnsurer()
             C_AddOns.DisableAddOn(addonName)
         end
     end
+
+    -- Also disable any other conflicting addons
+    -- Once again only with the user's consent.
+    local conflictType, conflictNames = self:ConflictCheck()
+    if conflictType == "other" and conflictNames then
+        for _, addonName in ipairs(conflictNames) do
+            C_AddOns.DisableAddOn(addonName)
+        end
+    end
 end
 
-function sArenaMixin:CompatibilityIssueExists()
+function sArenaMixin:ConflictCheck()
     -- List of known sArena addon variants that will conflict
     local otherSArenaVersions = {
         "sArena", -- Original
@@ -33,14 +42,29 @@ function sArenaMixin:CompatibilityIssueExists()
         "sArena_Updated2_by_sammers",
     }
 
-    -- Check each known version to see if it's loaded
     for _, addonName in ipairs(otherSArenaVersions) do
         if C_AddOns.IsAddOnLoaded(addonName) then
-            return true
+            return "sarena"
         end
     end
 
-    return false -- No conflicts found
+    -- List of non-sArena addons that conflict with sArena Reloaded
+    local otherConflicts = {
+        "ArenaCore",
+    }
+
+    local found = {}
+    for _, addonName in ipairs(otherConflicts) do
+        if C_AddOns.IsAddOnLoaded(addonName) then
+            found[#found + 1] = addonName
+        end
+    end
+
+    if #found > 0 then
+        return "other", found
+    end
+
+    return nil
 end
 
 function sArenaMixin:IsElvUIActive()

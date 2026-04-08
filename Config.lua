@@ -4573,7 +4573,9 @@ local function setDRIcons()
     return inputs
 end
 
-if sArenaMixin:CompatibilityIssueExists() then
+local conflictType, conflictNames = sArenaMixin:ConflictCheck()
+
+if conflictType == "sarena" then
     sArenaMixin.optionsTable = {
         type = "group",
         name = sArenaMixin.addonTitle,
@@ -4659,6 +4661,69 @@ if sArenaMixin:CompatibilityIssueExists() then
                         name = function(info) return info.handler.conversionStatusText or "" end,
                         fontSize = "large",
                         hidden = function(info) return not info.handler.conversionStatusText end,
+                    },
+                },
+            },
+        },
+    }
+elseif conflictType == "other" then
+    local addonListText = ""
+    for _, name in ipairs(conflictNames) do
+        addonListText = addonListText .. "\n|cffff8800• " .. name .. "|r"
+    end
+
+    sArenaMixin.optionsTable = {
+        type = "group",
+        name = sArenaMixin.addonTitle,
+        childGroups = "tab",
+        validate = validateCombat,
+        args = {
+            OtherAddonConflict = {
+                order = 1,
+                name = L["Option_OtherAddonConflict"],
+                desc = L["OtherConflict_Detected"],
+                type = "group",
+                args = {
+                    warningTitle = {
+                        order = 1,
+                        type = "description",
+                        name = L["OtherConflict_Warning"],
+                        fontSize = "large",
+                    },
+                    spacer1 = {
+                        order = 1.1,
+                        type = "description",
+                        name = " ",
+                    },
+                    explanation = {
+                        order = 1.2,
+                        type = "description",
+                        name = L["OtherConflict_Explanation"],
+                        fontSize = "medium",
+                    },
+                    addonList = {
+                        order = 1.3,
+                        type = "description",
+                        name = addonListText,
+                        fontSize = "medium",
+                    },
+                    spacer2 = {
+                        order = 1.4,
+                        type = "description",
+                        name = " ",
+                    },
+                    disableButton = {
+                        order = 2,
+                        type = "execute",
+                        name = L["OtherConflict_DisableAndReload"],
+                        desc = L["OtherConflict_DisableAndReload_Desc"],
+                        func = function()
+                            sArenaMixin:CompatibilityEnsurer()
+                            ReloadUI()
+                        end,
+                        width = "full",
+                        confirm = true,
+                        confirmText = L["OtherConflict_DisableAndReload_Confirm"],
                     },
                 },
             },
