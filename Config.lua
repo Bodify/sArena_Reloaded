@@ -2258,6 +2258,14 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             info.handler:Test()
                         end,
                     },
+                    midnightWarning = {
+                        order = 0.5,
+                        name = "|cffff0000" .. L["Widget_ArenaTargetIndicators_Warning"] .. "|r",
+                        type = "description",
+                        fontSize = "medium",
+                        width = "full",
+                        hidden = function() return not isMidnight end,
+                    },
                     partyOnArena = {
                         order = 1,
                         name = L["Widget_PartyOnArena"],
