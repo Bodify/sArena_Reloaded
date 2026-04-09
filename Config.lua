@@ -4719,6 +4719,7 @@ elseif conflictType == "other" then
                         desc = L["OtherConflict_DisableAndReload_Desc"],
                         func = function()
                             sArenaMixin:CompatibilityEnsurer()
+                            sArena_ReloadedDB.reOpenOptions = true
                             ReloadUI()
                         end,
                         width = "full",
