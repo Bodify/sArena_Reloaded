@@ -21,7 +21,7 @@
     <Script file="Modules\CooldownFrame.lua"/>
     <Script file="Modules\Clicks.lua"/>
     <Script file="Modules\Interrupt.lua"/>
-    <Script file="Modules\CompatibilityCheck.lua"/>
+    <Script file="Modules\ConflictCheck.lua"/>
     <Script file="sArena.lua"/>
     <Script file="Modules\TestMode.lua"/>
     <Script file="Modules\Widgets.lua"/>
