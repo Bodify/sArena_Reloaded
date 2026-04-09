@@ -797,8 +797,8 @@ function sArenaMixin:Initialize()
     LibStub("AceConfig-3.0"):RegisterOptionsTable("sArena", self.optionsTable)
     LibStub("AceConfigDialog-3.0"):SetDefaultSize("sArena", conflictType and 520 or 860, conflictType and 300 or 690)
     LibStub("AceConsole-3.0"):RegisterChatCommand("sarena", function(input) self:ChatCommand(input) end)
-    self:InterruptTracker()
     if not conflictType then
+        self:InterruptTracker()
         self:DatabaseCleanup(db)
         if not isMidnight then
             self:UpdateDRTimeSetting()

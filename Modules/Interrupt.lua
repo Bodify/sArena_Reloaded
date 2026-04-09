@@ -95,6 +95,7 @@ function sArenaMixin:InterruptTracker()
 end
 
 function sArenaMixin:RegisterInterruptEvents()
+    if not self.interruptSpellUpdate then return end
     self.interruptSpellUpdate:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
     self.interruptSpellUpdate:RegisterEvent("TRAIT_CONFIG_UPDATED")
     self.interruptSpellUpdate:RegisterEvent("PLAYER_TALENT_UPDATE")
@@ -103,5 +104,6 @@ function sArenaMixin:RegisterInterruptEvents()
 end
 
 function sArenaMixin:UnregisterInterruptEvents()
+    if not self.interruptSpellUpdate then return end
     self.interruptSpellUpdate:UnregisterAllEvents()
 end
