@@ -530,6 +530,14 @@ function sArenaMixin:Test()
     local focusIndicatorOn = widgetSettings.focusIndicator.enabled
     local combatIndicatorOn = widgetSettings.combatIndicator.enabled
 
+    local ri = self.db.profile.rangeCheck
+    local rangeCheckOn = ri and ri.enabled
+    local rangeMode = ri and ri.mode or "transparency"
+
+    if rangeCheckOn then
+        self:UpdateRangeSettings()
+    end
+
     local ti = widgetSettings.targetIndicator
     local fi = widgetSettings.focusIndicator
     local targetUseBorder = ti and ti.enabled and ti.useBorder
@@ -647,6 +655,40 @@ function sArenaMixin:Test()
 
         frame.WidgetOverlay.combatIndicator:SetShown(combatIndicatorOn)
 
+        if rangeCheckOn then
+            local showIcon = (rangeMode == "icon" or rangeMode == "both")
+            local inRangeIcon = frame.WidgetOverlay.inRangeIcon
+            local notInRangeIcon = frame.WidgetOverlay.notInRangeIcon
+
+            if showIcon and i == 3 then
+                inRangeIcon:Hide()
+                if notInRangeIcon.hasAtlas then
+                    notInRangeIcon:Show()
+                else
+                    notInRangeIcon:Hide()
+                end
+            elseif showIcon and i ~= 3 then
+                notInRangeIcon:Hide()
+                if inRangeIcon.hasAtlas then
+                    inRangeIcon:Show()
+                else
+                    inRangeIcon:Hide()
+                end
+            else
+                inRangeIcon:Hide()
+                notInRangeIcon:Hide()
+            end
+
+            if (rangeMode == "transparency" or rangeMode == "both") and i == 3 then
+                frame:SetAlpha(ri.notInRangeAlpha or 0.4)
+            end
+            frame.notInRange = (i == 3)
+        else
+            frame.WidgetOverlay.inRangeIcon:Hide()
+            frame.WidgetOverlay.notInRangeIcon:Hide()
+            frame.notInRange = nil
+        end
+
         frame.PowerBar:SetMinMaxValues(0, 100)
         frame.PowerBar:SetValue(100)
 
@@ -667,6 +709,11 @@ function sArenaMixin:Test()
                 frame.SpecIcon.Texture:SetTexture(data.specIcon)
                 if frame.SpecIconMsq then
                     frame.SpecIconMsq:Show()
+                end
+            else
+                frame.SpecIcon:Hide()
+                if frame.SpecIconMsq then
+                    frame.SpecIconMsq:Hide()
                 end
             end
         else
@@ -713,8 +760,10 @@ function sArenaMixin:Test()
 
         local randomDur = math.random(5, 35)
         frame.ClassIcon.Cooldown:SetCooldown(currTime, randomDur)
-        frame.ClassIcon.Cooldown.durationObj = C_DurationUtil.CreateDuration()
-        frame.ClassIcon.Cooldown.durationObj:SetTimeFromStart(currTime, randomDur)
+        if isMidnight then
+            frame.ClassIcon.Cooldown.durationObj = C_DurationUtil.CreateDuration()
+            frame.ClassIcon.Cooldown.durationObj:SetTimeFromStart(currTime, randomDur)
+        end
 
         if db.profile.showArenaNumber then
             if db.profile.arenaNumberIdOnly then
@@ -740,6 +789,17 @@ function sArenaMixin:Test()
             local colors = db.profile.trinketColors
             local keepTexture = db.profile.colorTrinketKeepTexture
             if keepTexture then
+                if shouldSwapRacialToTrinket then
+                    frame.Trinket.Texture:SetTexture(data.racial or 132089)
+                elseif shouldForceHumanTrinket then
+                    frame.Trinket.Texture:SetTexture(133452)
+                else
+                    if not isModernArena then
+                        frame.Trinket.Texture:SetTexture(GetFactionTrinketIconByRace(data.race))
+                    else
+                        frame.Trinket.Texture:SetTexture(self.trinketTexture)
+                    end
+                end
                 frame.Trinket.Texture:SetDesaturated(true)
             else
                 frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")

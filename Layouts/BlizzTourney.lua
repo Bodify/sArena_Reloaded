@@ -222,6 +222,14 @@ function layout:Initialize(frame)
 
     f.Mask:SetSize(34, 34)
 
+    if not f.bgTexture then
+        f.bgTexture = f:CreateTexture(nil, "BORDER", nil, -1)
+    end
+    f.bgTexture:SetAllPoints(f.Texture)
+    f.bgTexture:SetColorTexture(0.1, 0.1, 0.1, 1)
+    f.bgTexture:AddMaskTexture(f.Mask)
+    f.bgTexture:Show()
+
     local trinket = frame.Trinket
     if self.db.trinketCircleBorder then
         frame.parent.showTrinketCircleBorder = true

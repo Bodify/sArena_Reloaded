@@ -194,6 +194,14 @@ function layout:Initialize(frame)
     f.Texture:AddMaskTexture(f.Mask)
     f.Mask:SetAllPoints(f.Texture)
 
+    if not f.bgTexture then
+        f.bgTexture = f:CreateTexture(nil, "BORDER", nil, -1)
+    end
+    f.bgTexture:SetAllPoints(f.Texture)
+    f.bgTexture:SetColorTexture(0.1, 0.1, 0.1, 1)
+    f.bgTexture:AddMaskTexture(f.Mask)
+    f.bgTexture:Show()
+
     local trinket = frame.Trinket
 
 

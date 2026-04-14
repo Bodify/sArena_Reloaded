@@ -28,14 +28,12 @@ sArenaMixin.hiddenFrame = CreateFrame("Frame")
 sArenaMixin.hiddenFrame:Hide()
 
 local GetSpellTexture = GetSpellTexture or C_Spell.GetSpellTexture
-local stealthAlpha = 0.4
 local shadowsightStartTime = 95
 local shadowsightResetTime = 122
 local shadowSightID = 34709
 
 sArenaMixin.shadowsightTimers = {0, 0}
 sArenaMixin.shadowsightAvailable = 2
-
 
 -- Track which arena units we've seen (to work around UnitExists returning false for stealthed units)
 if noEarlyFrames then
@@ -454,7 +452,7 @@ function sArenaMixin:HandleArenaStart()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         if not UnitIsVisible("arena"..i) then
-            frame:SetAlpha(stealthAlpha)
+            frame:SetAlpha(self.stealthAlpha)
         end
     end
 end
@@ -625,6 +623,7 @@ function sArenaMixin:OnEvent(event, ...)
             frame:UpdateArenaTargets(frame.unit)
         end
         self:UpdateArenaTargetsOnPartyFrames()
+
     elseif (event == "PLAYER_LOGIN") then
         if isMidnight then
             C_CVar.SetCVar("spellDiminishPVPEnemiesEnabled", "1")
@@ -675,6 +674,7 @@ function sArenaMixin:OnEvent(event, ...)
         self:UpdateArenaTargetsOnPartyFrames()
 
         if (instanceType == "arena") then
+            self:PrintConflictMessage()
             if not isMidnight then
                 self:ResetDetectedDispels()
                 if isTBC then
@@ -685,6 +685,7 @@ function sArenaMixin:OnEvent(event, ...)
             end
             self:RegisterWidgetEvents()
             self:RegisterInterruptEvents()
+            self:RegisterRangeCheckEvents()
             self:UpdatePlayerSpec()
             if self.TestTitle then
                 self.TestTitle:Hide()
@@ -713,6 +714,7 @@ function sArenaMixin:OnEvent(event, ...)
             end
             self:UnregisterWidgetEvents()
             self:UnregisterInterruptEvents()
+            self:UnregisterRangeCheckEvents()
             self:ResetShadowsightTimer()
         end
     elseif event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" then
@@ -768,6 +770,7 @@ function sArenaMixin:UpdatePlayerSpec()
         if specID and specID > 0 and specName then
             self.playerSpecID = specID
             self.playerSpecName = specName
+            self:UpdatePlayerRangeSpell()
             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
         end
     end
@@ -807,18 +810,14 @@ function sArenaMixin:Initialize()
         end
         self:UpdateDecimalThreshold()
         self:UpdateNoTrinketTexture()
+        self:UpdateStealthAlpha()
         self:ApplyAllClickActions()
         self:RebuildClickActionsOptions()
+        self:CreateRangeCheckFrames()
         LibStub("AceConfigDialog-3.0"):AddToBlizOptions("sArena", "sArena |cffff8000Reloaded|r |T135884:13:13|t")
         self:SetLayout(_, db.profile.currentLayout)
-    elseif conflictType == "sarena" then
-        C_Timer.After(5, function()
-            self:Print(L["Print_MultipleVersionsLoaded"])
-        end)
-    elseif conflictType == "other" then
-        C_Timer.After(5, function()
-            self:Print(L["Print_OtherConflictsLoaded"])
-        end)
+    else
+        self:PrintConflictMessage(conflictType)
     end
 end
 
@@ -1370,7 +1369,7 @@ function sArenaMixin:SetLayout(_, layout)
     end
 end
 
-function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateMethod, isWidget, subKey)
+function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateMethod, dragType, subKey)
     local db = self.db
     if frameToClick.dragSetup then return end
 
@@ -1378,10 +1377,10 @@ function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateM
         if (InCombatLockdown()) then return end
 
         if (IsShiftKeyDown() and IsControlKeyDown() and not frameToMove.isMoving) then
-            if isWidget then
+            if dragType then
                 frameToMove.dragStartX, frameToMove.dragStartY = frameToMove:GetCenter()
             end
-            self:HideTargetFocusBorderForDrag(frameToMove, isWidget)
+            self:HideTargetFocusBorderForDrag(frameToMove, dragType ~= nil)
             frameToMove:StartMoving()
             frameToMove.isMoving = true
         end
@@ -1396,10 +1395,15 @@ function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateM
 
             local settings
 
-            if isWidget then
+            if dragType == "global" then
+                if not db.profile[settingsTable] then
+                    db.profile[settingsTable] = {}
+                end
+                settings = db.profile[settingsTable]
+            elseif dragType == "widget" then
                 settings = db.profile.layoutSettings[db.profile.currentLayout].widgets
                 if not settings then
-                    self:RestoreTargetFocusBorderAfterDrag(frameToMove, isWidget)
+                    self:RestoreTargetFocusBorderAfterDrag(frameToMove, true)
                     return
                 end
                 if not settings[settingsTable] then
@@ -1417,23 +1421,31 @@ function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateM
                 end
             end
 
-            if isWidget then
+            if dragType then
                 local newX, newY = frameToMove:GetCenter()
                 local scale = frameToMove:GetScale()
                 local deltaX = ((newX - frameToMove.dragStartX) * scale) / scale
                 local deltaY = ((newY - frameToMove.dragStartY) * scale) / scale
 
-                local currentX = settings.posX or 0
-                local currentY = settings.posY or 0
-
-                settings.posX = floor((currentX + deltaX) * 10 + 0.5) / 10
-                settings.posY = floor((currentY + deltaY) * 10 + 0.5) / 10
-
                 frameToMove.dragStartX = nil
                 frameToMove.dragStartY = nil
 
-                local widgetsSettings = db.profile.layoutSettings[db.profile.currentLayout].widgets
-                self:UpdateWidgetSettings(widgetsSettings)
+                if dragType == "widget" then
+                    local currentX = settings.posX or 0
+                    local currentY = settings.posY or 0
+                    settings.posX = floor((currentX + deltaX) * 10 + 0.5) / 10
+                    settings.posY = floor((currentY + deltaY) * 10 + 0.5) / 10
+                    local widgetsSettings = db.profile.layoutSettings[db.profile.currentLayout].widgets
+                    self:UpdateWidgetSettings(widgetsSettings)
+                elseif dragType == "global" then
+                    local posXKey = subKey and (subKey .. "PosX") or "posX"
+                    local posYKey = subKey and (subKey .. "PosY") or "posY"
+                    local currentX = settings[posXKey] or 0
+                    local currentY = settings[posYKey] or 0
+                    settings[posXKey] = floor((currentX + deltaX) * 10 + 0.5) / 10
+                    settings[posYKey] = floor((currentY + deltaY) * 10 + 0.5) / 10
+                    self:ApplyRangeCheckTextures()
+                end
             else
                 local frameX, frameY = frameToMove:GetCenter()
                 local parentX, parentY = frameToMove:GetParent():GetCenter()
@@ -1449,7 +1461,7 @@ function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateM
                 self[updateMethod](self, settings)
             end
 
-            self:RestoreTargetFocusBorderAfterDrag(frameToMove, isWidget)
+            self:RestoreTargetFocusBorderAfterDrag(frameToMove, dragType ~= nil)
             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
         end
     end)
@@ -1635,7 +1647,7 @@ function sArenaFrameMixin:OnLoad()
             end
             if not (castBar.interruptedBy or castBar.wasKicked) then
                 local cast = UnitCastingInfo(unit) or UnitChannelInfo(unit)
-                if not cast then
+                if not cast and event ~= "UNIT_SPELLCAST_CHANNEL_STOP" then
                     castBar:Hide()
                     if isRetail then
                         return
@@ -1822,6 +1834,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
                     self.WidgetOverlay:Hide()
                 end
                 self.DeathIcon:SetShown(isDead)
+                self.DisconnectedIcon:SetShown(not UnitIsConnected(unit))
                 self:SetStatusText()
             else
                 local currentHealth = UnitHealth(unit)
@@ -1939,12 +1952,14 @@ function sArenaFrameMixin:Initialize()
     self.parent:SetupDrag(self.Racial, self.Racial, "racial", "UpdateRacialSettings")
     self.parent:SetupDrag(self.Dispel, self.Dispel, "dispel", "UpdateDispelSettings")
 
-    self.parent:SetupDrag(self.WidgetOverlay.combatIndicator, self.WidgetOverlay.combatIndicator, "combatIndicator", nil, true)
-    self.parent:SetupDrag(self.WidgetOverlay.targetIndicator, self.WidgetOverlay.targetIndicator, "targetIndicator", nil, true)
-    self.parent:SetupDrag(self.WidgetOverlay.focusIndicator, self.WidgetOverlay.focusIndicator, "focusIndicator", nil, true)
-    self.parent:SetupDrag(self.WidgetOverlay.partyTarget1, self.WidgetOverlay.partyTarget1, "partyTargetIndicators", nil, true, "partyOnArena")
-    self.parent:SetupDrag(self.WidgetOverlay.partyTarget2, self.WidgetOverlay.partyTarget1, "partyTargetIndicators", nil, true, "partyOnArena")
-    self.parent:SetupDrag(self.WidgetOverlay.partyTarget3, self.WidgetOverlay.partyTarget1, "partyTargetIndicators", nil, true, "partyOnArena")
+    self.parent:SetupDrag(self.WidgetOverlay.combatIndicator, self.WidgetOverlay.combatIndicator, "combatIndicator", nil, "widget")
+    self.parent:SetupDrag(self.WidgetOverlay.targetIndicator, self.WidgetOverlay.targetIndicator, "targetIndicator", nil, "widget")
+    self.parent:SetupDrag(self.WidgetOverlay.focusIndicator, self.WidgetOverlay.focusIndicator, "focusIndicator", nil, "widget")
+    self.parent:SetupDrag(self.WidgetOverlay.inRangeIcon, self.WidgetOverlay.inRangeIcon, "rangeCheck", nil, "global", "inRange")
+    self.parent:SetupDrag(self.WidgetOverlay.notInRangeIcon, self.WidgetOverlay.notInRangeIcon, "rangeCheck", nil, "global", "notInRange")
+    self.parent:SetupDrag(self.WidgetOverlay.partyTarget1, self.WidgetOverlay.partyTarget1, "partyTargetIndicators", nil, "widget", "partyOnArena")
+    self.parent:SetupDrag(self.WidgetOverlay.partyTarget2, self.WidgetOverlay.partyTarget1, "partyTargetIndicators", nil, "widget", "partyOnArena")
+    self.parent:SetupDrag(self.WidgetOverlay.partyTarget3, self.WidgetOverlay.partyTarget1, "partyTargetIndicators", nil, "widget", "partyOnArena")
 end
 
 function sArenaFrameMixin:OnEnter()
@@ -2153,9 +2168,10 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
     end
 
     if noEarlyFrames and not UnitExists(unit) then
-        self:SetAlpha(stealthAlpha)
+        self:SetAlpha(self.parent.stealthAlpha)
     else
         self:SetAlpha(1)
+        self:UpdateRangeCheck(unit)
     end
 
     -- Workaround to show frames in older arenas in combat.
@@ -2222,12 +2238,13 @@ function sArenaFrameMixin:SetMysteryPlayer()
         end
     end
 
-    self:SetAlpha(self.parent.waitingForMatch and 1 or stealthAlpha)
+    self:SetAlpha(self.parent.waitingForMatch and 1 or self.parent.stealthAlpha)
     self.hideStatusText = true
     self:SetStatusText()
     self.WidgetOverlay:Hide()
 
     self.DeathIcon:Hide()
+    self.DisconnectedIcon:Hide()
 end
 
 function sArenaFrameMixin:GetClass()
@@ -2418,6 +2435,10 @@ function sArenaFrameMixin:ResetLayout()
     self.ClassIcon.Mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask")
     self.ClassIcon.Texture:RemoveMaskTexture(self.ClassIcon.Mask)
     self.ClassIcon.Texture:SetDrawLayer("BORDER", 1)
+    if self.ClassIcon.bgTexture then
+        self.ClassIcon.bgTexture:RemoveMaskTexture(self.ClassIcon.Mask)
+        self.ClassIcon.bgTexture:Hide()
+    end
     self.ClassIcon.Texture:SetAllPoints(self.ClassIcon)
     self.ClassIcon.Texture:Show()
     self.ClassIcon:SetScale(1)
@@ -2651,6 +2672,7 @@ end
 
 function sArenaMixin:CastbarOnEvent(castBar, event)
     local colors = self.castbarColors
+    if not colors then return end
 
     local unitToken = castBar.unit
     local castBarTexture = castBar:GetStatusBarTexture()

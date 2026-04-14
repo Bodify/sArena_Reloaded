@@ -76,3 +76,17 @@ function sArenaMixin:IsElvUIActive()
     end
     return false
 end
+
+function sArenaMixin:PrintConflictMessage(conflictType)
+    local L = sArenaMixin.L
+    conflictType = conflictType or self:ConflictCheck()
+    if conflictType == "sarena" then
+        C_Timer.After(5, function()
+            self:Print(L["Print_MultipleVersionsLoaded"])
+        end)
+    elseif conflictType == "other" then
+        C_Timer.After(5, function()
+            self:Print(L["Print_OtherConflictsLoaded"])
+        end)
+    end
+end

@@ -56,6 +56,10 @@ function sArenaFrameMixin:RegisterFrameEvents()
     end
 end
 
+function sArenaMixin:UpdateStealthAlpha()
+    self.stealthAlpha = self.db and self.db.profile.stealthAlpha or 0.4
+end
+
 function sArenaMixin:UpdateBlizzArenaFrameVisibility(instanceType)
     if isRetail and not noEarlyFrames then
         -- Hide Blizzard Arena Frames while in Arena
@@ -770,15 +774,6 @@ function sArenaMixin:InitializeMidnightDRFrames()
                         sArenaDRFrame.Cooldown:SetCooldown(GetTime(), 16.1)
                         sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
                         sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), 16.1)
-                        --print(i, " DR CD Start")
-                        -- sArenaDRFrame.Cooldown.trueCD = true
-                        -- if sArenaDRFrame.Cooldown.trueCDTimer then
-                        --     sArenaDRFrame.Cooldown.trueCDTimer:Cancel()
-                        -- end
-                        -- sArenaDRFrame.Cooldown.trueCDTimer = C_Timer.NewTimer(16.1, function()
-                        --     sArenaDRFrame.Cooldown.trueCD = nil
-                        --     sArenaDRFrame.Cooldown.trueCDTimer = nil
-                        -- end)
                     end)
 
                     local green = CreateColor(0, 1, 0, 1)
@@ -789,11 +784,9 @@ function sArenaMixin:InitializeMidnightDRFrames()
                         local blackBorder = layout and layout.dr and layout.dr.blackDRBorder
                         local borderHidden = layout and layout.dr and layout.dr.disableDRBorder
 
-                        --print(i, " DR Immune Show:", shown, "IsCDOnDR: ", sArenaDRFrame.Cooldown:IsShown())
                         sArenaDRFrame.Cooldown:Clear()
                         sArenaDRFrame:Show()
 
-                        --if not sArenaDRFrame.Cooldown.trueCD and not self.db.profile.disableInstantDRCooldown then
                         if not self.db.profile.disableInstantDRCooldown then
                             if sArenaDRFrame.DRSeverity == 1 then
                                 sArenaDRFrame.Cooldown:SetCooldown(GetTime(), 20)

@@ -11,6 +11,7 @@ sArenaMixin.interruptList = {
     [115781] = 5,     -- Optical Blast (Warlock)
     [116705] = 3,     -- Spear Hand Strike (Monk)
     [132409] = 5,     -- Spell Lock (Warlock)
+    [119910] = 5,     -- Spell Lock (Warlock Pet)
     [89766]  = 4,     -- Axe Toss (Warlock Pet)
     [147362] = 3,     -- Countershot (Hunter)
     [171138] = 5,     -- Shadow Lock (Warlock)

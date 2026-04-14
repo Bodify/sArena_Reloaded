@@ -229,6 +229,14 @@ function layout:Initialize(frame)
     frame.ClassIcon.Mask:SetPoint("CENTER", frame.ClassIcon, 0,1)
     frame.ClassIcon.Mask:SetSize(60, 57)
 
+    if not frame.ClassIcon.bgTexture then
+        frame.ClassIcon.bgTexture = frame.ClassIcon:CreateTexture(nil, "BORDER", nil, -1)
+    end
+    frame.ClassIcon.bgTexture:SetAllPoints(frame.ClassIcon.Texture)
+    frame.ClassIcon.bgTexture:SetColorTexture(0.1, 0.1, 0.1, 1)
+    frame.ClassIcon.bgTexture:AddMaskTexture(frame.ClassIcon.Mask)
+    frame.ClassIcon.bgTexture:Show()
+
     frame.PowerBar:SetFrameStrata("LOW")
     frame.PowerBar:SetFrameLevel(5)
 
@@ -399,7 +407,7 @@ function layout:UpdateHealthbarOrientation(frame)
     local normalHeight = 21
     local hiddenHeight = 32
 
-    healthBar:SetSize(shouldHide and 131 or 128, shouldHide and hiddenHeight or normalHeight)
+    healthBar:SetSize(shouldHide and 136 or 128, shouldHide and hiddenHeight or normalHeight)
     frame.PowerBar:SetAlpha(shouldHide and 0 or 1)
     frame.PowerText:SetAlpha((shouldHide or frame.parent.db.profile.hidePowerText) and 0 or 1)
 
@@ -426,29 +434,29 @@ function layout:UpdateHealthbarOrientation(frame)
 
     name:ClearAllPoints()
     if (txt.nameAnchor or "CENTER") == "LEFT" then
-        name:SetPoint("BOTTOMLEFT", healthBar, "TOPLEFT", 3 + (txt.nameOffsetX or 0) + (shouldHide and 3 or 0), 1.5 + (txt.nameOffsetY or 0))
+        name:SetPoint("BOTTOMLEFT", healthBar, "TOPLEFT", 3 + (txt.nameOffsetX or 0) + (shouldHide and 8 or 0), 1.5 + (txt.nameOffsetY or 0))
     elseif (txt.nameAnchor or "CENTER") == "RIGHT" then
         name:SetPoint("BOTTOMRIGHT", healthBar, "TOPRIGHT", -3 + (txt.nameOffsetX or 0), 1.5 + (txt.nameOffsetY or 0))
     else
-        name:SetPoint("BOTTOM", healthBar, "TOP", -1 + (txt.nameOffsetX or 0) + (shouldHide and 1.5 or 0), 1.5 + (txt.nameOffsetY or 0))
+        name:SetPoint("BOTTOM", healthBar, "TOP", -1 + (txt.nameOffsetX or 0) + (shouldHide and 6.5 or 0), 1.5 + (txt.nameOffsetY or 0))
     end
 
     healthText:ClearAllPoints()
     if (txt.healthAnchor or "CENTER") == "LEFT" then
-        healthText:SetPoint("LEFT", healthBar, "LEFT", 4 + (txt.healthOffsetX or 0) + (shouldHide and 3 or 0), (txt.healthOffsetY or 0) + hideOffset)
+        healthText:SetPoint("LEFT", healthBar, "LEFT", 4 + (txt.healthOffsetX or 0) + (shouldHide and 8 or 0), (txt.healthOffsetY or 0) + hideOffset)
     elseif (txt.healthAnchor or "CENTER") == "RIGHT" then
         healthText:SetPoint("RIGHT", healthBar, "RIGHT", -3 + (txt.healthOffsetX or 0), (txt.healthOffsetY or 0) + hideOffset)
     else
-        healthText:SetPoint("CENTER", healthBar, "CENTER", -1 + (txt.healthOffsetX or 0) + (shouldHide and 1.5 or 0), (txt.healthOffsetY or 0) + hideOffset)
+        healthText:SetPoint("CENTER", healthBar, "CENTER", -1 + (txt.healthOffsetX or 0) + (shouldHide and 6.5 or 0), (txt.healthOffsetY or 0) + hideOffset)
     end
 
     specName:ClearAllPoints()
     if (txt.specNameAnchor or "CENTER") == "LEFT" then
-        specName:SetPoint("LEFT", healthBar, "TOPLEFT", 4 + (txt.specNameOffsetX or 0) + (shouldHide and 3 or 0), -30 + (txt.specNameOffsetY or 0))
+        specName:SetPoint("LEFT", healthBar, "TOPLEFT", 4 + (txt.specNameOffsetX or 0) + (shouldHide and 8 or 0), -30 + (txt.specNameOffsetY or 0))
     elseif (txt.specNameAnchor or "CENTER") == "RIGHT" then
         specName:SetPoint("RIGHT", healthBar, "TOPRIGHT", -3 + (txt.specNameOffsetX or 0), -30 + (txt.specNameOffsetY or 0))
     else
-        specName:SetPoint("CENTER", healthBar, "TOP", -1 + (txt.specNameOffsetX or 0) + (shouldHide and 1.5 or 0), -30 + (txt.specNameOffsetY or 0))
+        specName:SetPoint("CENTER", healthBar, "TOP", -1 + (txt.specNameOffsetX or 0) + (shouldHide and 6.5 or 0), -30 + (txt.specNameOffsetY or 0))
     end
 end
 
@@ -498,7 +506,6 @@ function layout:UpdateOrientation(frame)
             frame.WidgetOverlay.focusIndicator:SetPoint("BOTTOMRIGHT", frame.ClassIcon, "BOTTOMRIGHT",
                 (w.focusIndicator.posX or 0) + 12, (w.focusIndicator.posY or 0) + 20)
         end
-
         -- Party Target Indicators
         if w.partyTargetIndicators and w.partyTargetIndicators.partyOnArena then
             local poa = w.partyTargetIndicators.partyOnArena

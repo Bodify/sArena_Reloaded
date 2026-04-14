@@ -926,6 +926,59 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                 return info.handler.db.profile.layoutSettings[layoutName].castBar.useModernCastbars and info.handler.db.profile.layoutSettings[layoutName].castBar.keepDefaultModernTextures
                             end,
                         },
+                        castbarBgTexture = {
+                            order         = 3.6,
+                            type          = "select",
+                            name          = L["Castbar_BackgroundTexture"],
+                            desc          = L["Castbar_BackgroundTexture_Desc"],
+                            style         = "dropdown",
+                            dialogControl = "LSM30_Statusbar",
+                            values        = StatusbarValues,
+                            get           = function(info)
+                                local layout = info.handler.db.profile.layoutSettings[layoutName]
+                                local t = layout.textures
+                                return (t and t.castbarBgTexture) or "Solid"
+                            end,
+                            set           = function(info, key)
+                                local layout = info.handler.db.profile.layoutSettings[layoutName]
+                                layout.textures = layout.textures or {
+                                    generalStatusBarTexture = "sArena Default",
+                                    healStatusBarTexture    = "sArena Default",
+                                    castbarStatusBarTexture = "sArena Default",
+                                    castbarUninterruptibleTexture = "sArena Default",
+                                    castbarBgTexture = "Solid",
+                                }
+                                layout.textures.castbarBgTexture = key
+                                info.handler:UpdateTextures()
+                            end,
+                            width = "75%",
+                        },
+                        castbarBgColor = {
+                            order = 3.7,
+                            type  = "color",
+                            name  = L["Castbar_BackgroundColor"],
+                            desc  = L["Castbar_BackgroundColor_Desc"],
+                            hasAlpha = true,
+                            get   = function(info)
+                                local layout = info.handler.db.profile.layoutSettings[layoutName]
+                                local c = layout.textures and layout.textures.castbarBgColor or {0, 0, 0, 0.5}
+                                return c[1], c[2], c[3], c[4]
+                            end,
+                            set   = function(info, r, g, b, a)
+                                local layout = info.handler.db.profile.layoutSettings[layoutName]
+                                layout.textures = layout.textures or {
+                                    generalStatusBarTexture = "sArena Default",
+                                    healStatusBarTexture    = "sArena Default",
+                                    castbarStatusBarTexture = "sArena Default",
+                                    castbarUninterruptibleTexture = "sArena Default",
+                                    castbarBgTexture = "Solid",
+                                    castbarBgColor = {0, 0, 0, 0.5},
+                                }
+                                layout.textures.castbarBgColor = {r, g, b, a}
+                                info.handler:UpdateTextures()
+                            end,
+                            width = 1.5,
+                        },
                         castBarColorsGroup = {
                             order = 4,
                             type = "group",
@@ -5356,6 +5409,61 @@ else
                                             info.handler:SetupCustomCD()
                                         end
                                     },
+                                    spacer = {
+                                        order = 11.5,
+                                        name = "",
+                                        type = "description",
+                                        width = "full",
+                                    },
+                                    stealthAlpha = {
+                                        order = 12,
+                                        name = L["Option_StealthAlpha"],
+                                        desc = L["Option_StealthAlpha_Desc"],
+                                        type = "range",
+                                        min = 0,
+                                        max = 1,
+                                        step = 0.01,
+                                        isPercent = true,
+                                        width = 0.8,
+                                        get = function(info) return info.handler.db.profile.stealthAlpha end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.stealthAlpha = val
+                                            info.handler:UpdateStealthAlpha()
+                                            if not sArenaMixin.stealthAlphaPreviewActive then
+                                                sArenaMixin.stealthAlphaPreviewActive = true
+                                                sArenaMixin.stealthAlphaPreviewSaved = {}
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    if frame and frame:IsShown() then
+                                                        sArenaMixin.stealthAlphaPreviewSaved[i] = frame:GetAlpha()
+                                                    end
+                                                end
+                                            end
+
+                                            for i = 1, info.handler.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                if frame and frame:IsShown() then
+                                                    frame:SetAlpha(val)
+                                                end
+                                            end
+
+                                            sArenaMixin.stealthAlphaPreviewGen = (sArenaMixin.stealthAlphaPreviewGen or 0) + 1
+                                            local gen = sArenaMixin.stealthAlphaPreviewGen
+                                            C_Timer.After(0.7, function()
+                                                if sArenaMixin.stealthAlphaPreviewGen ~= gen then return end
+                                                local saved = sArenaMixin.stealthAlphaPreviewSaved
+                                                sArenaMixin.stealthAlphaPreviewActive = nil
+                                                sArenaMixin.stealthAlphaPreviewSaved = nil
+                                                sArenaMixin.stealthAlphaPreviewGen = nil
+                                                for i = 1, sArenaMixin.maxArenaOpponents do
+                                                    local frame = sArena["arena" .. i]
+                                                    if frame and frame:IsShown() then
+                                                        frame:SetAlpha(saved and saved[i] or 1)
+                                                    end
+                                                end
+                                            end)
+                                        end,
+                                    },
                                 },
                             },
                             swipeAnimations = {
@@ -6767,6 +6875,573 @@ else
 
                             return args
                         end)(),
+                    },
+                    rangeCheckGroup = {
+                        order = 7,
+                        name = L["Category_RangeCheck"] .. " |A:NewCharacter-Alliance:38:65|a",
+                        type = "group",
+                        args = {
+                            rangeCheckSettings = {
+                                order = 1,
+                                name = L["Widget_RangeCheck"],
+                                type = "group",
+                                inline = true,
+                                args = {
+                                    enabled = {
+                                        order = 1,
+                                        name = L["Widget_RangeCheck_Enable"],
+                                        desc = L["Widget_RangeCheck_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        get = function(info) return info.handler.db.profile.rangeCheck.enabled end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.rangeCheck.enabled = val
+                                            info.handler:UnregisterRangeCheckEvents()
+                                            if not val then
+                                                info.handler:ResetRangeChecks()
+                                            end
+                                            info.handler:Test()
+                                        end,
+                                    },
+                                    mode = {
+                                        order = 2,
+                                        name = L["Mode"],
+                                        desc = L["Widget_RangeCheck_Mode_Desc"],
+                                        type = "select",
+                                        width = 1,
+                                        values = {
+                                            ["transparency"] = L["Transparency"],
+                                            ["icon"] = L["Icon"],
+                                            ["both"] = L["Widget_RangeCheck_Mode_Both"],
+                                        },
+                                        get = function(info) return info.handler.db.profile.rangeCheck.mode end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.rangeCheck.mode = val
+                                            info.handler:UpdateRangeSettings()
+                                            info.handler:Test()
+                                        end,
+                                        disabled = function(info) return not info.handler.db.profile.rangeCheck.enabled end,
+                                    },
+                                    notInRangeAlpha = {
+                                        order = 3,
+                                        name = L["Widget_RangeCheck_NotInRangeAlpha"],
+                                        desc = L["Widget_RangeCheck_NotInRangeAlpha_Desc"],
+                                        type = "range",
+                                        min = 0,
+                                        max = 1,
+                                        step = 0.01,
+                                        isPercent = true,
+                                        width = 1.2,
+                                        get = function(info) return info.handler.db.profile.rangeCheck.notInRangeAlpha end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.rangeCheck.notInRangeAlpha = val
+                                            info.handler.rangeNotInRangeAlpha = val
+                                            local frame = info.handler["arena3"]
+                                            if frame and frame:IsShown() and frame.notInRange then
+                                                frame:SetAlpha(val)
+                                            end
+                                        end,
+                                        disabled = function(info)
+                                            local rc = info.handler.db.profile.rangeCheck
+                                            return not rc.enabled or rc.mode == "icon"
+                                        end,
+                                    },
+                                    notInRangeGroup = {
+                                        order = 5,
+                                        name = L["Widget_RangeCheck_NotInRange"],
+                                        type = "group",
+                                        inline = true,
+                                        disabled = function(info)
+                                            local rc = info.handler.db.profile.rangeCheck
+                                            return not rc.enabled or rc.mode == "transparency"
+                                        end,
+                                        args = {
+                                            notInRangeAtlas = {
+                                                order = 1,
+                                                name = L["Widget_RangeCheck_NotInRangeTexture"],
+                                                desc = L["Widget_RangeCheck_NotInRangeTexture_Desc"],
+                                                type = "select",
+                                                width = 1.2,
+                                                values = sArenaMixin.rangeTextures,
+                                                sorting = sArenaMixin.rangeTexturesSorting,
+                                                get = function(info) return info.handler.db.profile.rangeCheck.notInRangeAtlas end,
+                                                set = function(info, val)
+                                                    info.handler.db.profile.rangeCheck.notInRangeAtlas = val
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                    info.handler:Test()
+                                                end,
+                                            },
+                                            notInRangeCustomAtlas = {
+                                                order = 2,
+                                                name = L["Widget_RangeCheck_CustomAtlas"],
+                                                desc = L["Widget_RangeCheck_CustomAtlas_Desc"],
+                                                type = "input",
+                                                width = 1.0,
+                                                get = function(info) return info.handler.db.profile.rangeCheck.notInRangeCustomAtlas end,
+                                                set = function(info, val)
+                                                    info.handler.db.profile.rangeCheck.notInRangeCustomAtlas = val
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                    info.handler:Test()
+                                                end,
+                                                hidden = function(info) return info.handler.db.profile.rangeCheck.notInRangeAtlas ~= "custom" end,
+                                            },
+                                            notInRangeColorEnabled = {
+                                                order = 3,
+                                                name = L["Color"],
+                                                desc = L["Widget_RangeCheck_ColorEnabled_Desc"],
+                                                type = "toggle",
+                                                width = 0.4,
+                                                get = function(info) return info.handler.db.profile.rangeCheck.notInRangeColorEnabled end,
+                                                set = function(info, val)
+                                                    info.handler.db.profile.rangeCheck.notInRangeColorEnabled = val
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                    info.handler:Test()
+                                                end,
+                                                hidden = function(info) return info.handler.db.profile.rangeCheck.notInRangeAtlas == "" end,
+                                            },
+                                            notInRangeColor = {
+                                                order = 4,
+                                                name = "",
+                                                type = "color",
+                                                hasAlpha = true,
+                                                width = 0.3,
+                                                get = function(info)
+                                                    local c = info.handler.db.profile.rangeCheck.notInRangeColor
+                                                    return c[1], c[2], c[3], c[4]
+                                                end,
+                                                set = function(info, r, g, b, a)
+                                                    info.handler.db.profile.rangeCheck.notInRangeColor = { r, g, b, a }
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                    info.handler:Test()
+                                                end,
+                                                disabled = function(info)
+                                                    local rc = info.handler.db.profile.rangeCheck
+                                                    return not rc.enabled or rc.mode == "transparency" or not rc.notInRangeColorEnabled
+                                                end,
+                                                hidden = function(info) return info.handler.db.profile.rangeCheck.notInRangeAtlas == "" end,
+                                            },
+                                            notInRangeSpacer = {
+                                                order = 5,
+                                                name = "",
+                                                type = "description",
+                                                width = "full",
+                                            },
+                                            notInRangePosX = {
+                                                order = 6,
+                                                name = L["Horizontal"],
+                                                type = "range",
+                                                min = -200,
+                                                max = 200,
+                                                step = 0.1,
+                                                bigStep = 1,
+                                                width = 0.95,
+                                                get = function(info) return info.handler.db.profile.rangeCheck.notInRangePosX end,
+                                                set = function(info, val)
+                                                    info.handler.db.profile.rangeCheck.notInRangePosX = val
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                end,
+                                            },
+                                            notInRangePosY = {
+                                                order = 7,
+                                                name = L["Vertical"],
+                                                type = "range",
+                                                min = -200,
+                                                max = 200,
+                                                step = 0.1,
+                                                bigStep = 1,
+                                                width = 0.95,
+                                                get = function(info) return info.handler.db.profile.rangeCheck.notInRangePosY end,
+                                                set = function(info, val)
+                                                    info.handler.db.profile.rangeCheck.notInRangePosY = val
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                end,
+                                            },
+                                            notInRangeScale = {
+                                                order = 8,
+                                                name = L["Scale"],
+                                                type = "range",
+                                                min = 0.1,
+                                                max = 3.0,
+                                                step = 0.01,
+                                                bigStep = 0.01,
+                                                isPercent = true,
+                                                width = 0.95,
+                                                get = function(info) return info.handler.db.profile.rangeCheck.notInRangeScale end,
+                                                set = function(info, val)
+                                                    info.handler.db.profile.rangeCheck.notInRangeScale = val
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                end,
+                                            },
+                                        },
+                                    },
+                                    inRangeGroup = {
+                                        order = 4,
+                                        name = L["Widget_RangeCheck_InRange"],
+                                        type = "group",
+                                        inline = true,
+                                        disabled = function(info)
+                                            local rc = info.handler.db.profile.rangeCheck
+                                            return not rc.enabled or rc.mode == "transparency"
+                                        end,
+                                        args = {
+                                            inRangeAtlas = {
+                                                order = 1,
+                                                name = L["Widget_RangeCheck_InRangeTexture"],
+                                                desc = L["Widget_RangeCheck_InRangeTexture_Desc"],
+                                                type = "select",
+                                                width = 1.2,
+                                                values = sArenaMixin.rangeTextures,
+                                                sorting = sArenaMixin.rangeTexturesSorting,
+                                                get = function(info) return info.handler.db.profile.rangeCheck.inRangeAtlas end,
+                                                set = function(info, val)
+                                                    info.handler.db.profile.rangeCheck.inRangeAtlas = val
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                    info.handler:Test()
+                                                end,
+                                            },
+                                            inRangeCustomAtlas = {
+                                                order = 2,
+                                                name = L["Widget_RangeCheck_CustomAtlas"],
+                                                desc = L["Widget_RangeCheck_CustomAtlas_Desc"],
+                                                type = "input",
+                                                width = 1.0,
+                                                get = function(info) return info.handler.db.profile.rangeCheck.inRangeCustomAtlas end,
+                                                set = function(info, val)
+                                                    info.handler.db.profile.rangeCheck.inRangeCustomAtlas = val
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                    info.handler:Test()
+                                                end,
+                                                hidden = function(info) return info.handler.db.profile.rangeCheck.inRangeAtlas ~= "custom" end,
+                                            },
+                                            inRangeColorEnabled = {
+                                                order = 3,
+                                                name = L["Color"],
+                                                desc = L["Widget_RangeCheck_ColorEnabled_Desc"],
+                                                type = "toggle",
+                                                width = 0.4,
+                                                get = function(info) return info.handler.db.profile.rangeCheck.inRangeColorEnabled end,
+                                                set = function(info, val)
+                                                    info.handler.db.profile.rangeCheck.inRangeColorEnabled = val
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                    info.handler:Test()
+                                                end,
+                                                hidden = function(info) return info.handler.db.profile.rangeCheck.inRangeAtlas == "" end,
+                                            },
+                                            inRangeColor = {
+                                                order = 4,
+                                                name = "",
+                                                type = "color",
+                                                hasAlpha = true,
+                                                width = 0.3,
+                                                get = function(info)
+                                                    local c = info.handler.db.profile.rangeCheck.inRangeColor
+                                                    return c[1], c[2], c[3], c[4]
+                                                end,
+                                                set = function(info, r, g, b, a)
+                                                    info.handler.db.profile.rangeCheck.inRangeColor = { r, g, b, a }
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                    info.handler:Test()
+                                                end,
+                                                disabled = function(info)
+                                                    local rc = info.handler.db.profile.rangeCheck
+                                                    return not rc.enabled or rc.mode == "transparency" or not rc.inRangeColorEnabled
+                                                end,
+                                                hidden = function(info) return info.handler.db.profile.rangeCheck.inRangeAtlas == "" end,
+                                            },
+                                            inRangeSpacer = {
+                                                order = 5,
+                                                name = "",
+                                                type = "description",
+                                                width = "full",
+                                            },
+                                            inRangePosX = {
+                                                order = 6,
+                                                name = L["Horizontal"],
+                                                type = "range",
+                                                min = -200,
+                                                max = 200,
+                                                step = 0.1,
+                                                bigStep = 1,
+                                                width = 0.95,
+                                                get = function(info) return info.handler.db.profile.rangeCheck.inRangePosX end,
+                                                set = function(info, val)
+                                                    info.handler.db.profile.rangeCheck.inRangePosX = val
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                end,
+                                            },
+                                            inRangePosY = {
+                                                order = 7,
+                                                name = L["Vertical"],
+                                                type = "range",
+                                                min = -200,
+                                                max = 200,
+                                                step = 0.1,
+                                                bigStep = 1,
+                                                width = 0.95,
+                                                get = function(info) return info.handler.db.profile.rangeCheck.inRangePosY end,
+                                                set = function(info, val)
+                                                    info.handler.db.profile.rangeCheck.inRangePosY = val
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                end,
+                                            },
+                                            inRangeScale = {
+                                                order = 8,
+                                                name = L["Scale"],
+                                                type = "range",
+                                                min = 0.1,
+                                                max = 3.0,
+                                                step = 0.01,
+                                                bigStep = 0.01,
+                                                isPercent = true,
+                                                width = 0.95,
+                                                get = function(info) return info.handler.db.profile.rangeCheck.inRangeScale end,
+                                                set = function(info, val)
+                                                    info.handler.db.profile.rangeCheck.inRangeScale = val
+                                                    info.handler:ApplyRangeCheckTextures()
+                                                end,
+                                            },
+                                        },
+                                    },
+                                    resetRangeCheck = {
+                                        order = 6,
+                                        name = L["Reset"],
+                                        width = 0.4,
+                                        type = "execute",
+                                        func = function(info)
+                                            local defaults = sArenaMixin.defaultSettings.profile.rangeCheck
+                                            local rc = info.handler.db.profile.rangeCheck
+                                            local currentEnabled = rc.enabled
+                                            for k, v in pairs(defaults) do
+                                                if k ~= "enabled" then
+                                                    if type(v) == "table" then
+                                                        rc[k] = { unpack(v) }
+                                                    else
+                                                        rc[k] = v
+                                                    end
+                                                end
+                                            end
+                                            rc.enabled = currentEnabled
+                                            info.handler:ApplyRangeCheckTextures()
+                                            info.handler:Test()
+                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                        end,
+                                        disabled = function(info) return not info.handler.db.profile.rangeCheck.enabled end,
+                                    },
+                                },
+                            },
+                            rangeSpellSettings = {
+                                order = 2,
+                                name = "Range Check Spells",
+                                type = "group",
+                                inline = true,
+                                disabled = function(info) return not info.handler.db.profile.rangeCheck.enabled end,
+                                args = (function()
+                                    local rangeClassOrder = {
+                                        "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST",
+                                        "DEATHKNIGHT", "SHAMAN", "MAGE", "WARLOCK",
+                                        "MONK", "DRUID", "DEMONHUNTER", "EVOKER",
+                                    }
+                                    local rangeClassSpecs = {
+                                        WARRIOR     = { 71, 72, 73 },
+                                        PALADIN     = { 65, 66, 70 },
+                                        HUNTER      = { 253, 254, 255 },
+                                        ROGUE       = { 259, 260, 261 },
+                                        PRIEST      = { 256, 257, 258 },
+                                        DEATHKNIGHT = { 250, 251, 252 },
+                                        SHAMAN      = { 262, 263, 264 },
+                                        MAGE        = { 62, 63, 64 },
+                                        WARLOCK     = { 265, 266, 267 },
+                                        MONK        = { 268, 269, 270 },
+                                        DRUID       = { 102, 103, 104, 105 },
+                                        DEMONHUNTER = { 577, 581, 1480 },
+                                        EVOKER      = { 1467, 1468, 1473 },
+                                    }
+                                    local hiddenClasses = {}
+                                    local hiddenSpecs = {}
+                                    if sArenaMixin.isTBC then
+                                        hiddenClasses = { DEATHKNIGHT = true, MONK = true, DEMONHUNTER = true, EVOKER = true }
+                                        hiddenSpecs = { [104] = true } -- Guardian Druid
+                                    elseif sArenaMixin.isWrath then
+                                        hiddenClasses = { MONK = true, DEMONHUNTER = true, EVOKER = true }
+                                    elseif sArenaMixin.isMoP then
+                                        hiddenClasses = { DEMONHUNTER = true, EVOKER = true }
+                                    end
+                                    local classIDs = {
+                                        WARRIOR = 1, PALADIN = 2, HUNTER = 3, ROGUE = 4, PRIEST = 5,
+                                        DEATHKNIGHT = 6, SHAMAN = 7, MAGE = 8, WARLOCK = 9,
+                                        MONK = 10, DRUID = 11, DEMONHUNTER = 12, EVOKER = 13,
+                                    }
+                                    local function getClassName(classKey)
+                                        if LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[classKey] then
+                                            return LOCALIZED_CLASS_NAMES_MALE[classKey]
+                                        end
+                                        return classKey
+                                    end
+
+                                    local useClassIDLookup = sArenaMixin.isTBC or sArenaMixin.isWrath or sArenaMixin.isMoP
+
+                                    local function getSpecName(specID, classKey, specIndex)
+                                        if useClassIDLookup and classKey and specIndex and GetSpecializationInfoForClassID then
+                                            local classID = classIDs[classKey]
+                                            if classID then
+                                                local _, name = GetSpecializationInfoForClassID(classID, specIndex)
+                                                if name then return name end
+                                            end
+                                        end
+                                        if specID and GetSpecializationInfoByID then
+                                            local _, name = GetSpecializationInfoByID(specID)
+                                            if name then return name end
+                                        end
+                                        return tostring(specID or "?")
+                                    end
+
+                                    local function specIconLabel(specID, classKey, specIndex)
+                                        if not specID then return "" end
+                                        if useClassIDLookup and classKey and specIndex and GetSpecializationInfoForClassID then
+                                            local classID = classIDs[classKey]
+                                            if classID then
+                                                local _, _, _, specTexture = GetSpecializationInfoForClassID(classID, specIndex)
+                                                if specTexture then
+                                                    return "|T" .. specTexture .. ":14|t "
+                                                end
+                                            end
+                                        end
+                                        if GetSpecializationInfoByID then
+                                            local _, _, _, specTexture = GetSpecializationInfoByID(specID)
+                                            if specTexture then
+                                                return "|T" .. specTexture .. ":14|t "
+                                            end
+                                        end
+                                        return ""
+                                    end
+
+                                    local function spellTooltip(activeID, defaultID)
+                                        if not activeID then return L["Widget_RangeCheck_SpellID_Desc"] end
+                                        local spellName, _, _, _, minRange, maxRange = GetSpellInfoCompat(activeID)
+                                        local tip = (spellName or "Unknown") .. " (" .. activeID .. ")"
+                                        if minRange and maxRange then
+                                            if minRange > 0 then
+                                                tip = tip .. "\nRange: " .. minRange .. "-" .. maxRange .. " yd"
+                                            elseif maxRange > 0 then
+                                                tip = tip .. "\nRange: " .. maxRange .. " yd"
+                                            else
+                                                tip = tip .. "\nRange: Melee"
+                                            end
+                                        end
+                                        if defaultID then
+                                            local defName = GetSpellInfoCompat(defaultID)
+                                            tip = tip .. "\n\n|cff888888(default: " .. (defName or "Unknown") .. " (" .. defaultID .. "))|r"
+                                        end
+                                        return tip
+                                    end
+
+                                    local function spellNameByID(spellID)
+                                        if not spellID then return nil end
+                                        local name = GetSpellInfoCompat(spellID)
+                                        return name
+                                    end
+
+                                    local function validateSpellID(info, value)
+                                        if value == "" then return true end
+                                        local num = tonumber(value)
+                                        if not num or num <= 0 then
+                                            return L["Widget_RangeCheck_SpellID_Desc"]
+                                        end
+                                        return true
+                                    end
+
+                                    local args = {}
+                                    local orderCounter = 1
+
+                                    for classIdx, classKey in ipairs(rangeClassOrder) do
+                                      if not hiddenClasses[classKey] then
+                                        local displayName = getClassName(classKey)
+                                        local classColor = RAID_CLASS_COLORS[classKey]
+                                        local coloredName = displayName
+                                        if classColor then
+                                            coloredName = "|c" .. classColor.colorStr .. displayName .. "|r"
+                                        end
+
+                                        args["header_" .. classKey] = {
+                                            order = orderCounter,
+                                            name = coloredName,
+                                            type = "description",
+                                            fontSize = "medium",
+                                            width = "full",
+                                        }
+                                        orderCounter = orderCounter + 1
+
+                                        local specs = rangeClassSpecs[classKey]
+                                        if specs then
+                                            local gameSpecIdx = 0
+                                            for specIdx, specID in ipairs(specs) do
+                                              if not hiddenSpecs[specID] then
+                                                gameSpecIdx = gameSpecIdx + 1
+                                                local currentSpecIdx = gameSpecIdx
+                                                local specName = getSpecName(specID, classKey, currentSpecIdx)
+                                                local defaultSpecID = sArenaMixin.defaultRangeSpellsPerSpec[specID]
+
+                                                args["spec_" .. specID] = {
+                                                    order = orderCounter,
+                                                    name = function(info)
+                                                        local icon = specIconLabel(specID, classKey, currentSpecIdx)
+                                                        local perSpec = info.handler.db.profile.rangeCheckSpellsPerSpec or {}
+                                                        local activeID = perSpec[specID] or defaultSpecID
+                                                        local sName = spellNameByID(activeID) or tostring(activeID or "?")
+                                                        return icon .. specName .. "  |cff666666(" .. sName .. ")|r"
+                                                    end,
+                                                    desc = function(info)
+                                                        local perSpec = info.handler.db.profile.rangeCheckSpellsPerSpec or {}
+                                                        local activeID = perSpec[specID] or defaultSpecID
+                                                        return spellTooltip(activeID, defaultSpecID)
+                                                    end,
+                                                    type = "input",
+                                                    width = 0.8,
+                                                    get = function(info)
+                                                        local perSpec = info.handler.db.profile.rangeCheckSpellsPerSpec or {}
+                                                        local id = perSpec[specID]
+                                                        if id then return tostring(id) end
+                                                        return defaultSpecID and tostring(defaultSpecID) or ""
+                                                    end,
+                                                    set = function(info, value)
+                                                        local db = info.handler.db
+                                                        local num = tonumber(value)
+                                                        db.profile.rangeCheckSpellsPerSpec = db.profile.rangeCheckSpellsPerSpec or {}
+                                                        if num and num ~= defaultSpecID then
+                                                            db.profile.rangeCheckSpellsPerSpec[specID] = num
+                                                        else
+                                                            db.profile.rangeCheckSpellsPerSpec[specID] = nil
+                                                        end
+                                                        info.handler:UpdatePlayerRangeSpell()
+                                                        info.handler:UpdateAllRangeChecks()
+                                                        info.handler:Test()
+                                                    end,
+                                                    validate = validateSpellID,
+                                                }
+                                                orderCounter = orderCounter + 1
+                                              end
+                                            end
+                                        end
+                                      end
+                                    end
+
+                                    args["resetAllSpells"] = {
+                                        order = 999,
+                                        name = L["Reset"],
+                                        width = 0.5,
+                                        type = "execute",
+                                        func = function(info)
+                                            info.handler.db.profile.rangeCheckSpellsPerSpec = {}
+                                            info.handler:UpdatePlayerRangeSpell()
+                                            info.handler:UpdateAllRangeChecks()
+                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                        end,
+                                    }
+
+                                    return args
+                                end)(),
+                            },
+                        },
                     },
                 },
             },

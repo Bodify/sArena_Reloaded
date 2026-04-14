@@ -1,26 +1,14 @@
-# sArena Reloaded 2.4.4c
-## Tweak
-- Midnight: Now if racials with shared trinket cd are used first they will first display the shared cooldown then afterwards update with the remaining full cooldown. (API limitation workaround to show racial CD)
-## Bugfix
-- Fix sArena Frames showing up in battlegrounds. I might add a new setting to enable this as a setting if that is of interest (for bg objectives only, flags, orbs, etc) lmk.
-
-# sArena Reloaded 2.4.4b
+# sArena Reloaded 2.4.5
 ## New
-- Clique support. If you have Clique theres a new checkbox in the Click Actions tab to let Clique handle all click actions instead.
+- New Range Check settings in Global. You can now enable icons/colors/transparency settings for range and set a specific range depending on the spell you pick. (Global -> Range Check)
+- Castbar background can now also be changed texture and set color for (Layout -> Castbar)
+- Stealth Alpha slider (Global -> Arena Frames)
+- New disconnected icon on healthbar similar to death icon when disconnected.
 ## Tweak
-- Midnight: Decimals are now working again for Midnight. Temporary solution until new proper API in 12.0.5 comes.
-- Midnight: Improve the Instant DR Cooldown a little bit by making it consider DR severity and do a lower time if already on DR.
+- Midnight: Make sure Racial Shared CD does not reset an already active Racial CD when Trinket gets used 2nd.
+- Midnight: Mention Blizzards new API restriction bricking the current Party/Arena Targets feature in its section (and that a new similar feature is inc).
+- Midnight: Add missing Warlock Pet Spell Lock ID to interrupt list so castbars color properly.
+- Tweak healthbar size for Blizz Retail layout when hiding powerbars to not leave a small gap on the bottom left side.
+- Add a dark background texture for "Hide Class Icon (Show Auras Only)" setting on layouts that have a circle border around class icon to make it look less strange with it being see through.
 ## Bugfix
-- Midnight: Fix issue with DR frames disappearing if DR got refreshed just as the first DR was ending. (This is not the Blizzard bug with Mass Invisibility, that one I cannot fix its on Blizzard)
-
-# sArena Reloaded 2.4.4
-## New
-- Click Actions (Global). You can now add new and customize existing Click Actions like Left Click to Target and Right Click to Focus. For example Shift+RightClick to use a macro.
-- Midnight only: New castbar setting "Highlight Casts on Me" that puts a bright border around the castbar if the spell is being casted on you. (Layout -> Cast Bar)
-## Tweak
-- Fix Castbar TargetText/ID not getting proper font sometimes.
-- Castbar color tweaks to be more consistent.
-- Midnight: Fix castbar interrupt detection so now castbars will immediately hide again when a cast is over except for when they get interrupted and it will say who interrupted it and fade out slowly.
-## Bugfix
-- Midnight: Fix percent display on manabars being stuck at 0-1 instead of 0-100.
-- Midnight: Fix DR Black Border setting being white.
+- Fix test mode running into an error on Classic clients due to some Midnight-only code accidentally being run.

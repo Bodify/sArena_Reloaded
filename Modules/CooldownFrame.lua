@@ -11,13 +11,13 @@ function sArenaMixin:UpdateDecimalThreshold()
 end
 
 function sArenaMixin:CreateCustomCooldown(cooldown, showDecimals)
-    -- if isMidnight then
-    --     cooldown:SetHideCountdownNumbers(false)
-    --     if showDecimals and cooldown.SetCountdownMillisecondsThreshold then
-    --         cooldown:SetCountdownMillisecondsThreshold(decimalThreshold)
-    --     end
-    --     return
-    -- end
+    if isMidnight and cooldown.SetCountdownMillisecondsThreshold then
+        cooldown:SetHideCountdownNumbers(false)
+        if showDecimals and cooldown.SetCountdownMillisecondsThreshold then
+            cooldown:SetCountdownMillisecondsThreshold(decimalThreshold)
+        end
+        return
+    end
 
     local text = cooldown.sArenaText or cooldown:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
     if not cooldown.sArenaText then

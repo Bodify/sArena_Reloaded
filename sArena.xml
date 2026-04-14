@@ -16,6 +16,7 @@
     <Script file="Data\Interrupts\InterruptList_Retail.lua"/>
     <Script file="Data\DRs\DrList_Retail.lua"/>
     <Script file="Data\Profiles.lua"/>
+    <Script file="Data\RangeSpells\RangeSpells_Midnight.lua"/>
     <!-- <Script file="Data\Auras\AuraList_Retail.lua"/> -->
     <Script file="Modules\Functions.lua"/>
     <Script file="Modules\CooldownFrame.lua"/>
@@ -25,6 +26,7 @@
     <Script file="sArena.lua"/>
     <Script file="Modules\TestMode.lua"/>
     <Script file="Modules\Widgets.lua"/>
+    <Script file="Modules\RangeCheck.lua"/>
     <Script file="Modules\Fonts.lua"/>
     <Script file="Modules\Textures.lua"/>
     <Script file="Modules\Racials.lua"/>
@@ -112,7 +114,7 @@
     <StatusBar name="sArenaCastBarFrameTemplate" mixin="CastingBarMixin,sArenaCastingBarExtensionMixin" inherits="CastingBarFrameAnimsTemplate" enablemouse="true" movable="true" virtual="true" hidden="true">
         <Layers>
             <Layer level="BACKGROUND">
-                <Texture setAllPoints="true">
+                <Texture parentKey="Background" setAllPoints="true">
                     <Color r="0" g="0" b="0" a="0.5"/>
                 </Texture>
             </Layer>
@@ -233,13 +235,19 @@
                 <Texture parentKey="DeathIcon" atlas="DeathIcon" hidden="true">
                     <TexCoords left="0" right="1" top="0" bottom="0.5"/>
                 </Texture>
+                <Texture parentKey="DisconnectedIcon" file="interface/characterframe/disconnect-icon.blp" hidden="true">
+                    <Size x="35" y="35"/>
+                    <Anchors>
+                        <Anchor point="CENTER" relativeKey="$parent.DeathIcon"/>
+                    </Anchors>
+                </Texture>
                 <FontString parentKey="AuraStacks" inherits="SystemFont_Shadow_Small2"/>
                 <FontString parentKey="DispelStacks" inherits="SystemFont_Shadow_Small2"/>
             </Layer>
         </Layers>
 
         <Frames>
-            <StatusBar parentKey="HealthBar" drawLayer="BORDER" useParentLevel="true">
+            <StatusBar parentKey="HealthBar" frameStrata="LOW" drawLayer="BORDER" useParentLevel="true">
                 <Layers>
                     <Layer level="BACKGROUND">
                         <Texture parentKey="hpUnderlay" setAllPoints="true">
@@ -331,6 +339,16 @@
                         <KeyValues>
                             <KeyValue key="atlas" value="GM-icon-headCount" type="string"/>
                             <KeyValue key="desaturated" value="true" type="boolean"/>
+                        </KeyValues>
+                    </Frame>
+                    <Frame parentKey="inRangeIcon" inherits="sArenaWidgetFrameTemplate">
+                        <KeyValues>
+                            <KeyValue key="ignoreParentAlpha" value="true" type="boolean"/>
+                        </KeyValues>
+                    </Frame>
+                    <Frame parentKey="notInRangeIcon" inherits="sArenaWidgetFrameTemplate">
+                        <KeyValues>
+                            <KeyValue key="ignoreParentAlpha" value="true" type="boolean"/>
                         </KeyValues>
                     </Frame>
                 </Frames>

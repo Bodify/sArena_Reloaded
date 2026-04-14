@@ -4,6 +4,7 @@
 -- in other projects without explicit prior written permission from the author.
 
 local isMidnight = sArenaMixin.isMidnight
+local LSM = LibStub("LibSharedMedia-3.0")
 
 function sArenaMixin:ModernOrClassicCastbar()
     local db = self.db
@@ -11,6 +12,10 @@ function sArenaMixin:ModernOrClassicCastbar()
     local useModern = layoutSettings.castBar.useModernCastbars
     local simpleCastbar = layoutSettings.castBar.simpleCastbar
     local castbarSettings = layoutSettings.castBar
+
+    local texKeys = layoutSettings.textures or {}
+    local cbBgTexturePath = LSM:Fetch(LSM.MediaType.STATUSBAR, texKeys.castbarBgTexture or "Solid")
+    local cbBgColor = texKeys.castbarBgColor or {0, 0, 0, 0.5}
 
     if isMidnight then
         for i = 1, self.maxArenaOpponents do
@@ -49,7 +54,8 @@ function sArenaMixin:ModernOrClassicCastbar()
                     newBar.Text:SetPoint("BOTTOM", newBar, 0, -14)
                     newBar.TextBorder:SetAlpha(1)
                 end
-                newBar.Background:SetAtlas("UI-CastingBar-Background")
+                newBar.Background:SetTexture(cbBgTexturePath)
+                newBar.Background:SetVertexColor(cbBgColor[1], cbBgColor[2], cbBgColor[3], cbBgColor[4])
                 newBar:SetHeight(9)
                 newBar.Icon:SetSize(20,20)
                 if newBar.ArenaTargetHighlight then
@@ -64,7 +70,8 @@ function sArenaMixin:ModernOrClassicCastbar()
                 newBar.TextBorder:SetAlpha(0)
                 newBar.Border:SetAlpha(0)
                 newBar.Icon:SetSize(16,16)
-                newBar.Background:SetColorTexture(0,0,0,0.5)
+                newBar.Background:SetTexture(cbBgTexturePath)
+                newBar.Background:SetVertexColor(cbBgColor[1], cbBgColor[2], cbBgColor[3], cbBgColor[4])
                 if newBar.MaskTexture then
                     newBar.MaskTexture:Hide()
                 end
@@ -451,7 +458,14 @@ local function ApplyModern(bar, simpleCastbar, frame, unit)
     EnsureModernPieces(bar)
 
     bar.TextBorder:SetTexture(MOD_TEXTBOX_TEX)
-    bar.Background:SetTexture(MOD_BG_TEX)
+    local cbTexKeys = {}
+    if frame and frame.parent and frame.parent.db then
+        local ls = frame.parent.db.profile.layoutSettings[frame.parent.db.profile.currentLayout]
+        cbTexKeys = ls and ls.textures or {}
+    end
+    bar.Background:SetTexture(LSM:Fetch(LSM.MediaType.STATUSBAR, cbTexKeys.castbarBgTexture or "Solid"))
+    local cbBgCol = cbTexKeys.castbarBgColor or {0, 0, 0, 0.5}
+    bar.Background:SetVertexColor(cbBgCol[1], cbBgCol[2], cbBgCol[3], cbBgCol[4])
     bar.Border:SetTexture(MOD_FRAME_TEX)
     bar.BorderShield:SetTexture(MOD_SHIELD_TEX)
     bar.BorderShield:SetDrawLayer("BACKGROUND", 0)
@@ -514,11 +528,6 @@ local function ApplyModern(bar, simpleCastbar, frame, unit)
         bar.Text:SetPoint("BOTTOM", bar, 0, -10.5)
     end
 
-    local ogBg = select(1, bar:GetRegions())
-    if ogBg then
-        ogBg:Hide()
-    end
-
     if not bar.MaskTexture then
         bar.MaskTexture = bar:CreateMaskTexture()
     end
@@ -565,8 +574,19 @@ local function RestoreClassic(bar, frame)
     if bar.Icon then bar.Icon:SetSize(16, 16) end
 
     if bar.TextBorder then bar.TextBorder:Hide() end
-    if bar.Background then bar.Background:Hide() end
     if bar.Border then bar.Border:Hide() end
+
+    if bar.Background then
+        local cbTexKeys = {}
+        if frame and frame.parent and frame.parent.db then
+            local ls = frame.parent.db.profile.layoutSettings[frame.parent.db.profile.currentLayout]
+            cbTexKeys = ls and ls.textures or {}
+        end
+        local cbBgCol = cbTexKeys.castbarBgColor or {0, 0, 0, 0.5}
+        bar.Background:SetTexture(LSM:Fetch(LSM.MediaType.STATUSBAR, cbTexKeys.castbarBgTexture or "Solid"))
+        bar.Background:SetVertexColor(cbBgCol[1], cbBgCol[2], cbBgCol[3], cbBgCol[4])
+        bar.Background:Show()
+    end
 
     local castbarColors = frame and frame.parent and frame.parent.castbarColors
     if castbarColors and castbarColors.enabled then
@@ -590,11 +610,6 @@ local function RestoreClassic(bar, frame)
             if o.start then bar.startCastColor = CreateColor(o.start.r, o.start.g, o.start.b, o.start.a) end
             if o.channel then bar.startChannelColor = CreateColor(o.channel.r, o.channel.g, o.channel.b, o.channel.a) end
         end
-    end
-
-    local ogBg = select(1, bar:GetRegions())
-    if ogBg then
-        ogBg:Show()
     end
 
     if bar.MaskTexture then

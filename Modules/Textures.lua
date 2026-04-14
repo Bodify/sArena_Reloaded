@@ -41,6 +41,8 @@ function sArenaMixin:UpdateTextures()
         castbarUninterruptibleTexture = "sArena Default",
         bgTexture = "Solid",
         bgColor = {0, 0, 0, 0.6},
+        castbarBgTexture = "Solid",
+        castbarBgColor = {0, 0, 0, 0.5},
     }
 
     local castTexture = LSM:Fetch(LSM.MediaType.STATUSBAR, texKeys.castbarStatusBarTexture)
@@ -49,6 +51,8 @@ function sArenaMixin:UpdateTextures()
     local healerTexture = LSM:Fetch(LSM.MediaType.STATUSBAR, texKeys.healStatusBarTexture)
     local bgTexture = LSM:Fetch(LSM.MediaType.STATUSBAR, texKeys.bgTexture or "Solid")
     local bgColor = texKeys.bgColor or {0, 0, 0, 0.6}
+    local cbBgTexture = LSM:Fetch(LSM.MediaType.STATUSBAR, texKeys.castbarBgTexture or "Solid")
+    local cbBgColor = texKeys.castbarBgColor or {0, 0, 0, 0.5}
     local modernCastbars            = layout.castBar.useModernCastbars
     local keepDefaultModernTextures = layout.castBar.keepDefaultModernTextures
     local interruptStatusColorOn     = layout.castBar.interruptStatusColorOn
@@ -97,6 +101,10 @@ function sArenaMixin:UpdateTextures()
         if frame.PowerBar.ppUnderlay then
             frame.PowerBar.ppUnderlay:SetTexture(bgTexture)
             frame.PowerBar.ppUnderlay:SetVertexColor(bgColor[1], bgColor[2], bgColor[3], bgColor[4])
+        end
+        if frame.CastBar.Background then
+            frame.CastBar.Background:SetTexture(cbBgTexture)
+            frame.CastBar.Background:SetVertexColor(cbBgColor[1], cbBgColor[2], cbBgColor[3], cbBgColor[4])
         end
 
         frame.HealthBar:SetReverseFill(reverseBarsFill)
