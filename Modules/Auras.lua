@@ -106,7 +106,7 @@ local function AuraTooltipExtractPercent(unit, index, filter)
 end
 
 function sArenaFrameMixin:FindAura()
-    if (self.parent.db and self.parent.db.profile.disableAurasOnClassIcon) or self.parent.isMidnight then
+    if self.disabledAuras then
         self:UpdateClassIcon()
         return
     end

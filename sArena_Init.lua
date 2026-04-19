@@ -12,6 +12,18 @@ sArenaMixin.addonName = "|T135884:13:13|t sArena |cffff8000Reloaded|r"
 sArenaMixin.addonTitle = sArenaMixin.addonName.. " " .. (C_AddOns.GetAddOnMetadata("sArena_Reloaded", "Version") or "")
 sArenaMixin.popupHeader = "\n"..sArenaMixin.addonName.."\n\n"
 
+sArenaMixin.playerClass = select(2, UnitClass("player"))
+sArenaMixin.maxArenaOpponents = (sArenaMixin.isRetail and 3) or 5
+sArenaMixin.noTrinketTexture = (sArenaMixin.isTBC and 132311) or 638661 --temp texture for tbc. todo: export retail and include in sarena
+sArenaMixin.trinketTexture = (sArenaMixin.isRetail and 1322720) or 133453
+sArenaMixin.trinketID = (sArenaMixin.isRetail and 336126) or 42292
+
+sArenaMixin.shadowsightStartTime = 95
+sArenaMixin.shadowsightResetTime = 122
+sArenaMixin.shadowSightID = 34709
+sArenaMixin.shadowsightTimers = {0, 0}
+sArenaMixin.shadowsightAvailable = 2
+
 sArenaMixin.layouts = {}
 sArenaMixin.defaultSettings = {
     profile = {

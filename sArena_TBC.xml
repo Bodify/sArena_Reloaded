@@ -351,7 +351,7 @@
                 </Frames>
             </Frame>
 
-            <Frame parentKey="TargetFocusBorder" hidden="true">
+            <Frame parentKey="TargetFocusBorder" frameStrata="MEDIUM" frameLevel="20" hidden="true">
                 <Layers>
                     <Layer level="OVERLAY" textureSubLevel="5">
                         <Texture parentKey="top"/>

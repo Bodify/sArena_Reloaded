@@ -5211,18 +5211,6 @@ else
                                         type = "description",
                                         width = "full",
                                     },
-                                    replaceHealerIcon = {
-                                        order = 2,
-                                        name = L["Option_ReplaceHealerIcon"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["Icon_ReplaceHealerWithHealerIcon_Desc"],
-                                        get = function(info) return info.handler.db.profile.replaceHealerIcon end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.replaceHealerIcon = val
-                                            info.handler:Test()
-                                        end,
-                                    },
                                     showNames = {
                                         order = 4,
                                         name = L["Option_ShowNames"],
@@ -5288,19 +5276,6 @@ else
                                             end
                                         end,
                                     },
-                                    prioImportantOverDefensives = {
-                                        order = 5.5,
-                                        name = L["Option_PrioImportantOverDefensives"],
-                                        desc = L["Option_PrioImportantOverDefensives_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        hidden = not isMidnight,
-                                        get = function(info) return info.handler.db.profile.prioImportantOverDefensives end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.prioImportantOverDefensives = val
-                                            info.handler:UpdateAuraPrioImportant()
-                                        end,
-                                    },
                                     reverseBarsFill = {
                                         order = 6,
                                         name = L["Option_ReverseBarsFill"],
@@ -5315,47 +5290,6 @@ else
                                                 frame.HealthBar:SetReverseFill(val)
                                                 frame.PowerBar:SetReverseFill(val)
                                             end
-                                        end,
-                                    },
-                                    hideClassIcon = {
-                                        order = 6,
-                                        name = L["Option_HideClassIconShowAurasOnly"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["ClassIcon_HideAndShowOnlyAuras_Desc"],
-                                        get = function(info) return info.handler.db.profile.hideClassIcon end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.hideClassIcon = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                if val then
-                                                    info.handler["arena" .. i].ClassIcon.Texture:SetTexture(nil)
-                                                else
-                                                    if info.handler["arena" .. i].replaceClassIcon then
-                                                        info.handler["arena" .. i].ClassIcon.Texture:SetTexture(info.handler["arena" .. i].tempSpecIcon)
-                                                    else
-                                                        info.handler["arena" .. i].ClassIcon.Texture:SetTexture(info.handler.classIcons[info.handler["arena" .. i].tempClass])
-                                                    end
-                                                end
-                                            end
-                                            info.handler:Test()
-                                        end,
-                                    },
-                                    disableAurasOnClassIcon = {
-                                        order = 7,
-                                        name = L["Option_DisableAurasOnClassIcon"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["ClassIcon_DontShowAuras_Desc"],
-                                        get = function(info) return info.handler.db.profile.disableAurasOnClassIcon end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.disableAurasOnClassIcon = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                if frame then
-                                                    frame:SetUnitAuraRegistration()
-                                                end
-                                            end
-                                            info.handler:Test()
                                         end,
                                     },
                                     shadowSightTimer = {
@@ -5379,41 +5313,6 @@ else
                                         set = function(info, val)
                                             info.handler.db.profile.colorMysteryGray = val
                                         end,
-                                    },
-                                    showDecimalsClassIcon = {
-                                        order = 10,
-                                        name = L["Option_ShowDecimalsOnClassIcon"],
-                                        desc = L["Option_ShowDecimalsOnClassIcon_Desc"],
-                                        type = "toggle",
-                                        width = 1.4,
-                                        get = function(info) return info.handler.db.profile.showDecimalsClassIcon end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.showDecimalsClassIcon = val
-                                            info.handler:SetupCustomCD()
-                                        end
-                                    },
-                                    decimalThreshold = {
-                                        order = 11,
-                                        name = L["Option_DecimalThreshold"],
-                                        desc = L["Cooldown_ShowDecimalsThreshold_Desc"],
-                                        type = "range",
-                                        min = 1,
-                                        max = 10,
-                                        step = 0.1,
-                                        width = 0.75,
-                                        disabled = function(info) return not info.handler.db.profile.showDecimalsClassIcon end,
-                                        get = function(info) return info.handler.db.profile.decimalThreshold or 6 end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.decimalThreshold = val
-                                            info.handler:UpdateDecimalThreshold()
-                                            info.handler:SetupCustomCD()
-                                        end
-                                    },
-                                    spacer = {
-                                        order = 11.5,
-                                        name = "",
-                                        type = "description",
-                                        width = "full",
                                     },
                                     stealthAlpha = {
                                         order = 12,
@@ -5702,6 +5601,140 @@ else
                                         get = function(info) return info.handler.db.profile.disableOvershields end,
                                         set = function(info, val)
                                             info.handler.db.profile.disableOvershields = val
+                                        end
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    classIconGroup = {
+                        order = 1.5,
+                        name = L["Category_ClassIcon"],
+                        type = "group",
+                        args = {
+                            options = {
+                                order = 1,
+                                name = L["Options"],
+                                type = "group",
+                                inline = true,
+                                args = {
+                                    onlyShowAuras = {
+                                        order = 1,
+                                        name = L["Option_HideClassIconShowAurasOnly"],
+                                        type = "toggle",
+                                        width = "full",
+                                        desc = L["ClassIcon_HideAndShowOnlyAuras_Desc"],
+                                        disabled = function(info) return info.handler.db.profile.hideClassIcon end,
+                                        get = function(info) return info.handler.db.profile.onlyShowAuras end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.onlyShowAuras = val
+                                            for i = 1, info.handler.maxArenaOpponents do
+                                                if val then
+                                                    info.handler["arena" .. i].ClassIcon.Texture:SetTexture(nil)
+                                                else
+                                                    if info.handler["arena" .. i].replaceClassIcon then
+                                                        info.handler["arena" .. i].ClassIcon.Texture:SetTexture(info.handler["arena" .. i].tempSpecIcon)
+                                                    else
+                                                        info.handler["arena" .. i].ClassIcon.Texture:SetTexture(info.handler.classIcons[info.handler["arena" .. i].tempClass])
+                                                    end
+                                                end
+                                            end
+                                            info.handler:Test()
+                                        end,
+                                    },
+                                    prioImportantOverDefensives = {
+                                        order = 2,
+                                        name = L["Option_PrioImportantOverDefensives"],
+                                        desc = L["Option_PrioImportantOverDefensives_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        hidden = not isMidnight,
+                                        get = function(info) return info.handler.db.profile.prioImportantOverDefensives end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.prioImportantOverDefensives = val
+                                            info.handler:UpdateAuraPrioImportant()
+                                        end,
+                                    },
+                                    disableAurasOnClassIcon = {
+                                        order = 3,
+                                        name = L["Option_DisableAurasOnClassIcon"],
+                                        type = "toggle",
+                                        width = "full",
+                                        desc = L["ClassIcon_DontShowAuras_Desc"],
+                                        disabled = function(info) return info.handler.db.profile.hideClassIcon end,
+                                        get = function(info) return info.handler.db.profile.disableAurasOnClassIcon end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.disableAurasOnClassIcon = val
+                                            for i = 1, info.handler.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                if frame then
+                                                    frame:SetUnitAuraRegistration()
+                                                end
+                                            end
+                                            info.handler:Test()
+                                        end,
+                                    },
+                                    replaceHealerIcon = {
+                                        order = 4,
+                                        name = L["Option_ReplaceHealerIcon"],
+                                        type = "toggle",
+                                        width = "full",
+                                        desc = L["Icon_ReplaceHealerWithHealerIcon_Desc"],
+                                        get = function(info) return info.handler.db.profile.replaceHealerIcon end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.replaceHealerIcon = val
+                                            info.handler:Test()
+                                        end,
+                                    },
+                                    hideClassIcon = {
+                                        order = 5,
+                                        name = L["Option_HideClassIcon"],
+                                        type = "toggle",
+                                        width = "full",
+                                        desc = L["Option_HideClassIcon_Desc"],
+                                        get = function(info) return info.handler.db.profile.hideClassIcon end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.hideClassIcon = val
+                                            for i = 1, info.handler.maxArenaOpponents do
+                                                local frame = info.handler["arena" .. i]
+                                                if frame then
+                                                    frame:SetUnitAuraRegistration()
+                                                    if val then
+                                                        frame.ClassIcon.Texture:SetTexture(nil)
+                                                        frame.ClassIcon.Cooldown:Clear()
+                                                    end
+                                                end
+                                            end
+                                            info.handler:Test()
+                                        end,
+                                    },
+                                    showDecimalsClassIcon = {
+                                        order = 6,
+                                        name = L["Option_ShowDecimalsOnClassIcon"],
+                                        desc = L["Option_ShowDecimalsOnClassIcon_Desc"],
+                                        type = "toggle",
+                                        width = 1.4,
+                                        get = function(info) return info.handler.db.profile.showDecimalsClassIcon end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.showDecimalsClassIcon = val
+                                            info.handler:SetupCustomCD()
+                                        end
+                                    },
+                                    decimalThreshold = {
+                                        order = 7,
+                                        name = L["Option_DecimalThreshold"],
+                                        desc = L["Cooldown_ShowDecimalsThreshold_Desc"],
+                                        type = "range",
+                                        min = 1,
+                                        max = 10,
+                                        step = 0.1,
+                                        width = 0.75,
+                                        disabled = function(info) return not info.handler.db.profile.showDecimalsClassIcon end,
+                                        get = function(info) return info.handler.db.profile.decimalThreshold or 6 end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.decimalThreshold = val
+                                            info.handler:UpdateDecimalThreshold()
+                                            info.handler:SetupCustomCD()
                                         end
                                     },
                                 },

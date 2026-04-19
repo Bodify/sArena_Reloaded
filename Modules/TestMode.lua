@@ -518,6 +518,7 @@ function sArenaMixin:Test()
     local replaceClassIcon = db.profile.layoutSettings[db.profile.currentLayout].replaceClassIcon
     local hideSpecIcon = db.profile.layoutSettings[db.profile.currentLayout].hideSpecIcon
     local hideClassIcon = db.profile.hideClassIcon
+    local onlyShowAuras = db.profile.onlyShowAuras
     local colorTrinket = db.profile.colorTrinket
     local modernCastbars = db.profile.layoutSettings[db.profile.currentLayout].castBar.useModernCastbars
     local keepDefaultModernTextures = db.profile.layoutSettings[db.profile.currentLayout].castBar.keepDefaultModernTextures
@@ -694,6 +695,12 @@ function sArenaMixin:Test()
 
         -- Class Icon and Spec Icon + Spec Name
         if hideClassIcon then
+            frame.ClassIcon.Texture:SetTexture(nil)
+            frame.ClassIcon.Cooldown:Clear()
+            if frame.ClassIconMsq then
+                frame.ClassIconMsq:Hide()
+            end
+        elseif onlyShowAuras then
             local ccSpells = {408, 2139, 33786, 118, 122}
             local ccIndex = ((i - 1) % #ccSpells) + 1
             local spellTexture = GetSpellTexture(ccSpells[ccIndex])
@@ -758,11 +765,13 @@ function sArenaMixin:Test()
         frame.SpecNameText:SetShown(db.profile.layoutSettings[db.profile.currentLayout].showSpecManaText)
         frame:UpdateSpecNameColor()
 
-        local randomDur = math.random(5, 35)
-        frame.ClassIcon.Cooldown:SetCooldown(currTime, randomDur)
-        if isMidnight then
-            frame.ClassIcon.Cooldown.durationObj = C_DurationUtil.CreateDuration()
-            frame.ClassIcon.Cooldown.durationObj:SetTimeFromStart(currTime, randomDur)
+        if not hideClassIcon then
+            local randomDur = math.random(5, 35)
+            frame.ClassIcon.Cooldown:SetCooldown(currTime, randomDur)
+            if isMidnight then
+                frame.ClassIcon.Cooldown.durationObj = C_DurationUtil.CreateDuration()
+                frame.ClassIcon.Cooldown.durationObj:SetTimeFromStart(currTime, randomDur)
+            end
         end
 
         if db.profile.showArenaNumber then

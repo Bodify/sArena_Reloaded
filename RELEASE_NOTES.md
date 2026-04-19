@@ -1,3 +1,11 @@
+# sArena Reloaded 2.4.6
+## New
+- Hide Class Icon setting. Hide it entirely, no class or aura.
+## Tweak
+- Split all the global Class Icon settings into its own section so it's easier to navigate.
+- Raise frame level of Widget: Target/Focus border so it shows above MiniCC icons.
+- Fix Shadowsight timer for Midnight. (Wont accurately detect pickup, only spawn time then auto hide after 35 sec. Not active in Solo Shuffle)
+
 # sArena Reloaded 2.4.5
 ## New
 - New Range Check settings in Global. You can now enable icons/colors/transparency settings for range and set a specific range depending on the spell you pick. (Global -> Range Check)

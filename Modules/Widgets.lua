@@ -152,8 +152,6 @@ function sArenaFrameMixin:SetupTargetFocusBorder()
     local borderSize = 1
     local offset = 0
 
-    border:SetFrameLevel(self:GetFrameLevel() + 8)
-
     border.top:SetIgnoreParentScale(true)
     border.right:SetIgnoreParentScale(true)
     border.bottom:SetIgnoreParentScale(true)

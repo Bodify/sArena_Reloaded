@@ -26,10 +26,460 @@ end
 
 function sArenaFrameMixin:SetUnitAuraRegistration()
     local db = self.parent and self.parent.db
-    if db and db.profile.disableAurasOnClassIcon then
+    if db and (db.profile.disableAurasOnClassIcon or db.profile.hideClassIcon) then
+        self.disabledAuras = true
         self:UnregisterEvent("UNIT_AURA")
     else
+        self.disabledAuras = nil
         self:RegisterUnitEvent("UNIT_AURA", self.unit)
+    end
+end
+
+function sArenaMixin:ResetShadowsightTimer()
+    if self.shadowsightTicker then
+        self.shadowsightTicker:Cancel()
+        self.shadowsightTicker = nil
+    end
+    if self.ShadowsightTimer then
+        if self.ShadowsightTimer.Text then
+            self.ShadowsightTimer.Text:SetText("")
+        end
+        self.ShadowsightTimer:Hide()
+    end
+    self.shadowsightTimers = {0, 0}
+    self.shadowsightAvailable = 2
+end
+
+function sArenaMixin:StartShadowsightTimer(time)
+    if self.shadowsightTicker then
+        self.shadowsightTicker:Cancel()
+        self.shadowsightTicker = nil
+    end
+
+    self.ShadowsightTimer:ClearAllPoints()
+    if UIWidgetTopCenterContainerFrame then
+        self.ShadowsightTimer:SetParent(UIWidgetTopCenterContainerFrame)
+        self.ShadowsightTimer:SetPoint("TOP", UIWidgetTopCenterContainerFrame, "BOTTOM", 0, 5)
+    else
+        self.ShadowsightTimer:SetPoint("TOP", UIParent, "TOP", 0, -100)
+    end
+
+    self.ShadowsightTimer:Show()
+
+    local currentTime = GetTime()
+    if isMidnight then
+        -- On Midnight, just track spawn time and when to hide (35s after spawn)
+        self.shadowsightTimers[1] = currentTime + time -- Time when eyes spawn
+        self.shadowsightTimers[2] = currentTime + time + 35 -- Time to hide (35s after spawn)
+        self.shadowsightAvailable = 0
+    else
+        self.shadowsightTimers[1] = currentTime + time
+        self.shadowsightTimers[2] = currentTime + time
+        self.shadowsightAvailable = 0
+    end
+
+    self.shadowsightTicker = C_Timer.NewTicker(0.1, function()
+        self:UpdateShadowsightDisplay()
+    end)
+end
+
+function sArenaMixin:OnShadowsightTaken()
+    local currentTime = GetTime()
+    local resetTime = currentTime + self.shadowsightResetTime
+
+    if self.shadowsightTimers[1] <= 1 and self.shadowsightTimers[2] <= 1 then
+        self.shadowsightTimers[1] = resetTime
+        self.shadowsightTimers[2] = 0
+
+        if not self.shadowsightTicker then
+            self.ShadowsightTimer:ClearAllPoints()
+            if UIWidgetTopCenterContainerFrame then
+                self.ShadowsightTimer:SetParent(UIWidgetTopCenterContainerFrame)
+                self.ShadowsightTimer:SetPoint("TOP", UIWidgetTopCenterContainerFrame, "BOTTOM", 0, -10)
+            else
+                self.ShadowsightTimer:SetPoint("TOP", UIParent, "TOP", 0, -100)
+            end
+            self.ShadowsightTimer:Show()
+
+            self.shadowsightTicker = C_Timer.NewTicker(0.1, function()
+                self:UpdateShadowsightDisplay()
+            end)
+        end
+    else
+        if self.shadowsightAvailable > 0 then
+            self.shadowsightAvailable = self.shadowsightAvailable - 1
+        end
+
+        if self.shadowsightTimers[1] <= currentTime then
+            self.shadowsightTimers[1] = resetTime
+        elseif self.shadowsightTimers[2] <= currentTime then
+            self.shadowsightTimers[2] = resetTime
+        end
+    end
+
+    self:UpdateShadowsightDisplay()
+end
+
+function sArenaMixin:UpdateShadowsightDisplay()
+    local currentTime = GetTime()
+
+    if isMidnight then
+        -- On Midnight: Show countdown until spawn, then hide after 35 seconds
+        local spawnTime = self.shadowsightTimers[1]
+        local hideTime = self.shadowsightTimers[2]
+
+        if currentTime >= hideTime then
+            -- Hide after 35 seconds from spawn
+            self:ResetShadowsightTimer()
+            return
+        elseif currentTime >= spawnTime then
+            local iconTexture = "|T136155:15:15|t"
+            self.ShadowsightTimer.Text:SetText(L["Shadowsight_Ready"] .. " " .. iconTexture .. " " .. iconTexture)
+        else
+            local timeLeft = math.ceil(spawnTime - currentTime)
+            self.ShadowsightTimer.Text:SetText(string.format(L["Shadowsight_SpawnsIn"], timeLeft))
+        end
+        return
+    end
+
+    local availableCount = 0
+    local shortestTimer = math.huge
+
+    for i = 1, 2 do
+        if self.shadowsightTimers[i] <= currentTime then
+            availableCount = availableCount + 1
+        else
+            shortestTimer = math.min(shortestTimer, self.shadowsightTimers[i])
+        end
+    end
+
+    self.shadowsightAvailable = availableCount
+
+    local iconTexture = "|T136155:15:15|t"
+    local text = ""
+
+    if availableCount == 2 then
+        text = "Shadowsights Ready " .. iconTexture .. " " .. iconTexture
+    elseif availableCount == 1 then
+        text = "Shadowsight Ready " .. iconTexture
+    elseif shortestTimer < math.huge then
+        local timeLeft = math.ceil(shortestTimer - currentTime)
+        text = string.format("Shadowsight spawns in %d sec", timeLeft)
+    else
+        text = "Shadowsight"
+    end
+
+    self.ShadowsightTimer.Text:SetText(text)
+end
+
+function sArenaFrameMixin:SetTextureCrop(texture, crop, type)
+    if not texture then return end
+    if type == "aura" then
+        texture:SetTexCoord(0.03, 0.97, 0.03, 0.93)
+    elseif type == "healer" then
+        texture:SetTexCoord(0.205, 0.765, 0.22, 0.745)
+    else
+        if crop then
+            texture:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        else
+            if type == "class" and self.parent.db and ((self.parent.db.profile.currentLayout == "BlizzRetail") or (self.parent.db.profile.currentLayout == "BlizzArena")) then -- TODO: Fix this mess
+                texture:SetTexCoord(0.05, 0.95, 0.1, 0.9)
+            else
+                texture:SetTexCoord(0, 1, 0, 1)
+            end
+        end
+    end
+end
+
+function sArenaMixin:SetupGrayTrinket()
+    for i = 1, self.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        local cooldown = frame.Trinket.Cooldown
+        cooldown:HookScript("OnCooldownDone", function()
+            frame.Trinket.Texture:SetDesaturated(false)
+        end)
+        local dispelCooldown = frame.Dispel.Cooldown
+        dispelCooldown:HookScript("OnCooldownDone", function()
+            if (frame.Dispel.spellID or 1) ~= 527 then
+                frame.Dispel.Texture:SetDesaturated(false)
+            end
+        end)
+    end
+end
+
+function sArenaMixin:DarkMode()
+    return self.db.profile.darkMode
+end
+
+function sArenaMixin:DarkModeColor()
+    return self.db.profile.darkModeValue
+end
+
+function sArenaFrameMixin:DarkModeFrame()
+    if not self.parent:DarkMode() then return end
+
+    local darkModeColor = self.parent:DarkModeColor()
+    local lighter = darkModeColor + 0.1
+    local shouldDesaturate = self.parent.db.profile.darkModeDesaturate
+    local skipClassIcon = self.parent.db.profile.classColorFrameTexture
+
+    local frameTexture = self.frameTexture
+    local specBorder = self.SpecIcon.Border
+    local trinketBorder = self.Trinket.Border
+    local trinketCircleBorder = self.Trinket.CircleBorder
+    local racialBorder = self.Racial.Border
+    local dispelBorder = self.Dispel.Border
+    local castBorder = self.CastBar.Border
+    local classIconBorder = self.ClassIcon.Texture.Border
+    local castBackground = self.CastBar.Background
+
+    if frameTexture then
+        frameTexture:SetDesaturated(shouldDesaturate)
+        frameTexture:SetVertexColor(darkModeColor, darkModeColor, darkModeColor)
+    end
+    if specBorder then
+        specBorder:SetDesaturated(shouldDesaturate)
+        specBorder:SetVertexColor(darkModeColor, darkModeColor, darkModeColor)
+        if self.parent.db.profile.currentLayout == "BlizzCompact" then
+            local darkerCol = darkModeColor - 0.25
+            specBorder:SetVertexColor(darkerCol, darkerCol, darkerCol)
+        else
+            specBorder:SetVertexColor(darkModeColor, darkModeColor, darkModeColor)
+        end
+    end
+    if classIconBorder and not skipClassIcon then
+        classIconBorder:SetDesaturated(shouldDesaturate)
+        classIconBorder:SetVertexColor(darkModeColor, darkModeColor, darkModeColor)
+    end
+    if castBorder then
+        castBorder:SetDesaturated(shouldDesaturate)
+        castBorder:SetVertexColor(darkModeColor, darkModeColor, darkModeColor)
+    end
+    if castBackground then
+        castBackground:SetDesaturated(shouldDesaturate)
+        castBackground:SetVertexColor(darkModeColor, darkModeColor, darkModeColor)
+    end
+    if trinketBorder then
+        trinketBorder:SetDesaturated(shouldDesaturate)
+        trinketBorder:SetVertexColor(lighter, lighter, lighter)
+    end
+    if trinketCircleBorder then
+        trinketCircleBorder:SetDesaturated(shouldDesaturate)
+        trinketCircleBorder:SetVertexColor(darkModeColor, darkModeColor, darkModeColor)
+    end
+    if racialBorder then
+        racialBorder:SetDesaturated(shouldDesaturate)
+        racialBorder:SetVertexColor(lighter, lighter, lighter)
+    end
+    if dispelBorder then
+        dispelBorder:SetDesaturated(shouldDesaturate)
+        dispelBorder:SetVertexColor(lighter, lighter, lighter)
+    end
+
+end
+
+function sArenaFrameMixin:ClassColorFrameTexture()
+    if not self.parent.db.profile.classColorFrameTexture then return end
+
+    local class = self.class or self.tempClass
+    local color = RAID_CLASS_COLORS[class]
+
+    if not color then return end
+
+    local onlyClassIcon = self.parent.db.profile.classColorFrameTextureOnlyClassIcon and self.parent.db.profile.currentLayout == "BlizzCompact"
+    local healerGreen = self.parent.db.profile.classColorFrameTextureHealerGreen
+    local isHealerGreen = healerGreen and self.isHealer
+
+    local finalColor = color
+    if isHealerGreen then
+        finalColor = { r = 0, g = 1, b = 0 }
+    end
+
+    local frameTexture = self.frameTexture
+    local specBorder = self.SpecIcon.Border
+    local trinketBorder = self.Trinket.Border
+    local racialBorder = self.Racial.Border
+    local dispelBorder = self.Dispel.Border
+    local castBorder = self.CastBar.Border
+    local classIconBorder = self.ClassIcon.Texture.Border
+
+    if classIconBorder then
+        classIconBorder:SetDesaturated(true)
+        classIconBorder:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+    end
+
+    if onlyClassIcon then
+        local isDarkMode = self.parent:DarkMode()
+        local darkModeColor = isDarkMode and self.parent:DarkModeColor() or 1
+        local lighter = isDarkMode and (darkModeColor + 0.1) or 1
+        local shouldDesaturate = isDarkMode and self.parent.db.profile.darkModeDesaturate or false
+
+        if frameTexture then
+            frameTexture:SetDesaturated(shouldDesaturate)
+            frameTexture:SetVertexColor(darkModeColor, darkModeColor, darkModeColor)
+        end
+        if specBorder then
+            specBorder:SetDesaturated(isDarkMode and shouldDesaturate or (self.parent.db.profile.currentLayout == "BlizzCompact"))
+            if self.parent.db.profile.currentLayout == "BlizzCompact" then
+                local specCol = isDarkMode and (darkModeColor - 0.25) or 0
+                specBorder:SetVertexColor(specCol, specCol, specCol)
+            else
+                specBorder:SetVertexColor(darkModeColor, darkModeColor, darkModeColor)
+            end
+        end
+        if castBorder then
+            castBorder:SetDesaturated(shouldDesaturate)
+            castBorder:SetVertexColor(darkModeColor, darkModeColor, darkModeColor)
+        end
+        if trinketBorder then
+            trinketBorder:SetDesaturated(shouldDesaturate)
+            trinketBorder:SetVertexColor(lighter, lighter, lighter)
+        end
+        if racialBorder then
+            racialBorder:SetDesaturated(shouldDesaturate)
+            racialBorder:SetVertexColor(lighter, lighter, lighter)
+        end
+        if dispelBorder then
+            dispelBorder:SetDesaturated(shouldDesaturate)
+            dispelBorder:SetVertexColor(lighter, lighter, lighter)
+        end
+    else
+        if frameTexture then
+            frameTexture:SetDesaturated(true)
+            frameTexture:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+        end
+        if specBorder then
+            specBorder:SetDesaturated(true)
+            specBorder:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+        end
+        if castBorder then
+            castBorder:SetDesaturated(true)
+            castBorder:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+        end
+        if trinketBorder then
+            trinketBorder:SetDesaturated(true)
+            local lighter_r = math.min(1, finalColor.r + 0.2)
+            local lighter_g = math.min(1, finalColor.g + 0.2)
+            local lighter_b = math.min(1, finalColor.b + 0.2)
+            trinketBorder:SetVertexColor(lighter_r, lighter_g, lighter_b)
+        end
+        if racialBorder then
+            racialBorder:SetDesaturated(true)
+            local lighter_r = math.min(1, finalColor.r + 0.2)
+            local lighter_g = math.min(1, finalColor.g + 0.2)
+            local lighter_b = math.min(1, finalColor.b + 0.2)
+            racialBorder:SetVertexColor(lighter_r, lighter_g, lighter_b)
+        end
+        if dispelBorder then
+            dispelBorder:SetDesaturated(true)
+            local lighter_r = math.min(1, finalColor.r + 0.2)
+            local lighter_g = math.min(1, finalColor.g + 0.2)
+            local lighter_b = math.min(1, finalColor.b + 0.2)
+            dispelBorder:SetVertexColor(lighter_r, lighter_g, lighter_b)
+        end
+    end
+
+    if self.PixelBorders and self.parent.showPixelBorder then
+        local pixelBorders = self.PixelBorders
+        if pixelBorders.main then
+            pixelBorders.main:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+        end
+        if pixelBorders.classIcon then
+            pixelBorders.classIcon:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+        end
+        if pixelBorders.trinket then
+            pixelBorders.trinket:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+        end
+        if pixelBorders.racial then
+            pixelBorders.racial:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+        end
+        if pixelBorders.dispel then
+            pixelBorders.dispel:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+        end
+        if self.SpecIcon and self.SpecIcon.specIcon then
+            self.SpecIcon.specIcon:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+        end
+        if self.CastBar then
+            if self.CastBar.castBar then
+                self.CastBar.castBar:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+            end
+            if self.CastBar.castBarIcon then
+                self.CastBar.castBarIcon:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+            end
+        end
+    end
+end
+
+function sArenaFrameMixin:ResetPixelBorders()
+    if self.PixelBorders and self.parent.showPixelBorder then
+        local pixelBorders = self.PixelBorders
+
+        if pixelBorders.main then
+            pixelBorders.main:SetVertexColor(0, 0, 0)
+        end
+        if pixelBorders.classIcon then
+            pixelBorders.classIcon:SetVertexColor(0, 0, 0)
+        end
+        if pixelBorders.trinket then
+            pixelBorders.trinket:SetVertexColor(0, 0, 0)
+        end
+        if pixelBorders.racial then
+            pixelBorders.racial:SetVertexColor(0, 0, 0)
+        end
+        if pixelBorders.dispel then
+            pixelBorders.dispel:SetVertexColor(0, 0, 0)
+        end
+        if self.SpecIcon and self.SpecIcon.specIcon then
+            self.SpecIcon.specIcon:SetVertexColor(0, 0, 0)
+        end
+        if self.CastBar then
+            if self.CastBar.castBar then
+                self.CastBar.castBar:SetVertexColor(0, 0, 0)
+            end
+            if self.CastBar.castBarIcon then
+                self.CastBar.castBarIcon:SetVertexColor(0, 0, 0)
+            end
+        end
+    end
+end
+
+function sArenaFrameMixin:UpdateFrameColors()
+    if self.parent.db.profile.classColorFrameTexture then
+        self:ClassColorFrameTexture()
+    elseif self.parent:DarkMode() then
+        self:DarkModeFrame()
+        self:ResetPixelBorders()
+    else
+        if self.frameTexture then
+            self.frameTexture:SetDesaturated(false)
+            self.frameTexture:SetVertexColor(1, 1, 1)
+        end
+        if self.SpecIcon.Border then
+            if self.parent.db.profile.currentLayout == "BlizzCompact" then
+                self.SpecIcon.Border:SetDesaturated(true)
+                self.SpecIcon.Border:SetVertexColor(0, 0, 0)
+            else
+                self.SpecIcon.Border:SetDesaturated(false)
+                self.SpecIcon.Border:SetVertexColor(1, 1, 1)
+            end
+        end
+        if self.ClassIcon.Texture.Border then
+            self.ClassIcon.Texture.Border:SetDesaturated(false)
+            self.ClassIcon.Texture.Border:SetVertexColor(1, 1, 1)
+        end
+        if self.CastBar.Border then
+            self.CastBar.Border:SetDesaturated(false)
+            self.CastBar.Border:SetVertexColor(1, 1, 1)
+        end
+        if self.Trinket.Border then
+            self.Trinket.Border:SetDesaturated(false)
+            self.Trinket.Border:SetVertexColor(1, 1, 1)
+        end
+        if self.Racial.Border then
+            self.Racial.Border:SetDesaturated(false)
+            self.Racial.Border:SetVertexColor(1, 1, 1)
+        end
+        self:ResetPixelBorders()
     end
 end
 
