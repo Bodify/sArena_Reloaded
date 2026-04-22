@@ -1,3 +1,11 @@
+# sArena Reloaded 2.4.7
+## Tweak
+- Remove Masque categories for "Castbar" (not the Icon, but the bar itself) and "Frame". I don't think these are needed or wanted but if you were using them let me know.
+- Added "Minimalist" texture as option due to demand.
+## Bugfix
+- Fix mistake in Masque support code after earlier refactor causing a lua error now.
+- Fix Masque support showing Masque border on Dispel Icons in Midnight (which shouldve been hidden since dispels are not supported on Midnight)
+
 # sArena Reloaded 2.4.6
 ## New
 - Hide Class Icon setting. Hide it entirely, no class or aura.
