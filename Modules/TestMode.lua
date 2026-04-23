@@ -527,9 +527,14 @@ function sArenaMixin:Test()
         and widgetSettings.partyTargetIndicators.enabled
         and widgetSettings.partyTargetIndicators.partyOnArena
         and widgetSettings.partyTargetIndicators.partyOnArena.enabled
+    local partyTargetTextOn = widgetSettings.partyTargetText
+        and widgetSettings.partyTargetText.enabled
+        and widgetSettings.partyTargetText.partyOnArena
+        and widgetSettings.partyTargetText.partyOnArena.enabled
     local targetIndicatorOn = widgetSettings.targetIndicator.enabled
     local focusIndicatorOn = widgetSettings.focusIndicator.enabled
     local combatIndicatorOn = widgetSettings.combatIndicator.enabled
+    local healerIndicatorOn = widgetSettings.healerIndicator and widgetSettings.healerIndicator.enabled
 
     local ri = self.db.profile.rangeCheck
     local rangeCheckOn = ri and ri.enabled
@@ -652,11 +657,15 @@ function sArenaMixin:Test()
             end
         end
 
+        -- Show target text on arena frames
+        frame:UpdateArenaTargetTextTestMode()
+
         if i > 2 and frame.TargetFocusBorder then
             frame.TargetFocusBorder:Hide()
         end
 
         frame.WidgetOverlay.combatIndicator:SetShown(combatIndicatorOn)
+        frame.WidgetOverlay.healerIndicator:SetShown(healerIndicatorOn and (frame.isHealer == true))
 
         if rangeCheckOn then
             local showIcon = (rangeMode == "icon" or rangeMode == "both")
@@ -1292,6 +1301,8 @@ function sArenaMixin:Test()
         end
     end
 
+    self:UpdateArenaTargetTextOnPartyFramesTestMode()
+
     if not self.TestTitle then
         local f = CreateFrame("Frame")
         self.TestTitle = f
@@ -1328,6 +1339,16 @@ function sArenaMixin:Test()
 
         self.TestTitle:SetScript("OnHide", function(frame)
             self.testMode = nil
+            for i = 1, self.maxArenaOpponents do
+                local frame = self["arena" .. i]
+                if frame then
+                    frame:SetAuraHighlightActive()
+                    if frame.WidgetOverlay and frame.WidgetOverlay.arenaTargetText then
+                        frame.WidgetOverlay.arenaTargetText:Hide()
+                    end
+                end
+            end
+            self:RefreshAllAuraHighlights()
             for i = 1, 5 do
                 local partyFrame = self:GetPartyFrame(i)
                 if partyFrame and partyFrame.WidgetOverlay then
@@ -1335,6 +1356,9 @@ function sArenaMixin:Test()
                         local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
                         indicator:Hide()
                         indicator:SetAlpha(0)
+                    end
+                    if partyFrame.WidgetOverlay.partyTargetText then
+                        partyFrame.WidgetOverlay.partyTargetText:Hide()
                     end
                 end
             end
@@ -1368,6 +1392,16 @@ function sArenaMixin:Test()
             if frame then
                 frame:Hide()
             end
+        end
+    end
+
+    self:RefreshAllAuraHighlights()
+    local auraCategories = { "cc", "important", "defensive" }
+    for i = 1, self.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        if frame then
+            local category = auraCategories[((i - 1) % #auraCategories) + 1]
+            frame:SetAuraHighlightActive(category)
         end
     end
 end

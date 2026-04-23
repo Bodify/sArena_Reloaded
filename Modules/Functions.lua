@@ -1195,8 +1195,6 @@ function sArenaMixin:InitializeMidnightDRFrames()
                 drTextImmune:SetAlpha(0)
                 drTextFrame.DRTextImmune = drTextImmune
 
-                sArenaDRFrame.DRSeverity = 1
-
                 local blizzDRFrame = blizzDRFrames[drIndex]
                 if blizzDRFrame and blizzDRFrame.Icon then
                     sArenaDRFrame.blizzFrame = blizzDRFrame
@@ -1208,14 +1206,14 @@ function sArenaMixin:InitializeMidnightDRFrames()
                     hooksecurefunc(blizzDRFrame, "Show", function()
                         sArenaDRFrame:Show()
                         arenaFrame:UpdateDRPositions()
-                        sArenaDRFrame.DRSeverity = sArenaDRFrame.DRSeverity + 1
+                        sArenaDRFrame.DRSeverity = 1
                     end)
 
                     hooksecurefunc(blizzDRFrame, "Hide", function()
                         sArenaDRFrame.Icon:SetTexture(nil)
                         sArenaDRFrame.Cooldown:Clear()
                         sArenaDRFrame:Hide()
-                        sArenaDRFrame.DRSeverity = 1
+                        sArenaDRFrame.DRSeverity = 0
                         arenaFrame:UpdateDRPositions()
                     end)
 
@@ -1238,14 +1236,19 @@ function sArenaMixin:InitializeMidnightDRFrames()
                         sArenaDRFrame:Show()
 
                         if not self.db.profile.disableInstantDRCooldown then
+                            local drBugFixMidnight = self.db.profile.drBugFixMidnight
+                            local drBugFixLonger = drBugFixMidnight and self.db.profile.drBugFixLonger
                             if sArenaDRFrame.DRSeverity == 1 then
-                                sArenaDRFrame.Cooldown:SetCooldown(GetTime(), 20)
+                                local duration = drBugFixLonger and 23.7 or drBugFixMidnight and 22.5 or 20
+                                sArenaDRFrame.Cooldown:SetCooldown(GetTime(), duration)
                                 sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
-                                sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), 20)
+                                sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), duration)
+                                sArenaDRFrame.DRSeverity = 2
                             else
-                                sArenaDRFrame.Cooldown:SetCooldown(GetTime(), 18)
+                                local duration = drBugFixLonger and 19.7 or drBugFixMidnight and 19.1 or 18
+                                sArenaDRFrame.Cooldown:SetCooldown(GetTime(), duration)
                                 sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
-                                sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), 18)
+                                sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), duration)
                             end
                         end
 

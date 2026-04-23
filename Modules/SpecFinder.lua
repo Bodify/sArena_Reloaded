@@ -23,6 +23,8 @@ function sArenaFrameMixin:CheckForSpecSpell(spellID)
     self.specName = detectedSpec
     self.isHealer = self.parent.healerSpecNames[detectedSpec] or false
     self.specTexture = classSpecs[detectedSpec]
+    self:UpdateAuraHighlightEnabled()
+    self:UpdateHealerStatus()
 
     self.SpecNameText:SetText(detectedSpec)
     local db = self.parent.db

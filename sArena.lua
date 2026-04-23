@@ -610,8 +610,10 @@ function sArenaMixin:OnEvent(event, ...)
         for i = 1, self.maxArenaOpponents do
             local frame = self["arena" .. i]
             frame:UpdateArenaTargets(frame.unit)
+            frame:UpdateArenaTargetText(frame.unit)
         end
         self:UpdateArenaTargetsOnPartyFrames()
+        self:UpdateArenaTargetTextOnPartyFrames()
 
     elseif (event == "PLAYER_LOGIN") then
         if isMidnight then
@@ -641,6 +643,7 @@ function sArenaMixin:OnEvent(event, ...)
         self:SetMouseState(instanceType ~= "arena")
         self.testMode = nil
         self.arenaMatchStarted = nil
+        if self.RefreshAllAuraHighlights then self:RefreshAllAuraHighlights() end
 
         if noEarlyFrames then
             self.seenArenaUnits = {}
@@ -661,6 +664,7 @@ function sArenaMixin:OnEvent(event, ...)
 
         self:SetupCustomCD()
         self:UpdateArenaTargetsOnPartyFrames()
+        self:UpdateArenaTargetTextOnPartyFrames()
 
         if (instanceType == "arena") then
             self:PrintConflictMessage()
@@ -876,6 +880,9 @@ function sArenaMixin:SetLayout(_, layout)
         frame:ResetLayout()
         self.layouts[layout]:Initialize(frame)
         frame:SetupTargetFocusBorder()
+        frame:CreateAuraHighlight()
+        frame:UpdateAuraHighlightLayout()
+        frame:RefreshAuraHighlight()
         frame:UpdatePlayer(UnitExists(frame.unit) and "seen" or "unseen")
         frame:UpdateClassIconCooldownReverse()
         frame:UpdateTrinketRacialCooldownReverse()
@@ -1243,6 +1250,7 @@ function sArenaFrameMixin:OnLoad()
     self.WidgetOverlay.targetIndicator.Texture:SetAtlas("TargetCrosshairs")
     self.WidgetOverlay.focusIndicator.Texture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\Waypoint-MapPin-Untracked.tga")
     self.WidgetOverlay.combatIndicator.Texture:SetAtlas("Food")
+    self.WidgetOverlay.healerIndicator.Texture:SetAtlas("bags-icon-addslots")
     for i = 1, 4 do
         local pt = self.WidgetOverlay["partyTarget" .. i]
         pt.Texture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga")
@@ -1496,6 +1504,7 @@ function sArenaFrameMixin:Initialize()
     self.parent:SetupDrag(self.Dispel, self.Dispel, "dispel", "UpdateDispelSettings")
 
     self.parent:SetupDrag(self.WidgetOverlay.combatIndicator, self.WidgetOverlay.combatIndicator, "combatIndicator", nil, "widget")
+    self.parent:SetupDrag(self.WidgetOverlay.healerIndicator, self.WidgetOverlay.healerIndicator, "healerIndicator", nil, "widget")
     self.parent:SetupDrag(self.WidgetOverlay.targetIndicator, self.WidgetOverlay.targetIndicator, "targetIndicator", nil, "widget")
     self.parent:SetupDrag(self.WidgetOverlay.focusIndicator, self.WidgetOverlay.focusIndicator, "focusIndicator", nil, "widget")
     self.parent:SetupDrag(self.WidgetOverlay.inRangeIcon, self.WidgetOverlay.inRangeIcon, "rangeCheck", nil, "global", "inRange")
@@ -1660,6 +1669,7 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
     self.WidgetOverlay:Show()
     self:UpdateCombatStatus(unit)
     self:UpdateArenaTargets(unit)
+    self:UpdateArenaTargetText(unit)
     self:UpdateTarget(unit)
     self:UpdateFocus(unit)
 
@@ -1800,6 +1810,7 @@ function sArenaFrameMixin:GetClass()
         self.specName = nil
         self.specID = nil
         self.isHealer = nil
+        self:UpdateAuraHighlightEnabled()
         self.SpecIcon:Hide()
         self.SpecNameText:SetText("")
     elseif (not self.class) then
@@ -1815,6 +1826,8 @@ function sArenaFrameMixin:GetClass()
                     self.specID = specID
                     self.specName = specName
                     self.isHealer = self.parent.healerSpecIDs[specID] or false
+                    self:UpdateAuraHighlightEnabled()
+                    self:UpdateHealerStatus()
                     self.SpecNameText:SetText(specName)
                     self.SpecNameText:SetShown(db.profile.layoutSettings[db.profile.currentLayout].showSpecManaText)
                     self:UpdateSpecNameColor()

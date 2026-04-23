@@ -10,6 +10,7 @@
     <Include file="Ace3\AceConfig-3.0\AceConfig-3.0.xml"/>
     <Script file="Ace3\Libs\LibDeflate\LibDeflate.lua"/>
     <Script file="Ace3\Libs\LibSerialize\LibSerialize.lua"/>
+    <Include file="Ace3\Libs\LibCustomGlow-1.0\LibCustomGlow-1.0.xml"/>
 
     <Script file="sArena_Init.lua"/>
     <Include file="Locales\locales.xml"/>
@@ -26,6 +27,7 @@
     <Script file="sArena.lua"/>
     <Script file="Modules\TestMode.lua"/>
     <Script file="Modules\Widgets.lua"/>
+    <Script file="Modules\AuraHighlight.lua"/>
     <Script file="Modules\RangeCheck.lua"/>
     <Script file="Modules\Fonts.lua"/>
     <Script file="Modules\Textures.lua"/>
@@ -291,7 +293,7 @@
                     </Cooldown>
                 </Frames>
             </Frame>
-            <Frame parentKey="SpecIcon" frameLevel="12" enablemouse="true" movable="true">
+            <Frame parentKey="SpecIcon" frameStrata="HIGH" frameLevel="12" enablemouse="true" movable="true">
                 <Layers>
                     <Layer level="ARTWORK" textureSubLevel="2">
                         <Texture parentKey="Texture" setAllPoints="true"/>
@@ -315,6 +317,11 @@
                     <Frame parentKey="combatIndicator" inherits="sArenaWidgetFrameTemplate">
                         <KeyValues>
                             <KeyValue key="atlas" value="Food" type="string"/>
+                        </KeyValues>
+                    </Frame>
+                    <Frame parentKey="healerIndicator" inherits="sArenaWidgetFrameTemplate">
+                        <KeyValues>
+                            <KeyValue key="atlas" value="bags-icon-addslots" type="string"/>
                         </KeyValues>
                     </Frame>
                     <Frame parentKey="partyTarget1" inherits="sArenaWidgetFrameTemplate">

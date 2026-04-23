@@ -36,6 +36,7 @@ sArenaMixin.defaultSettings = {
         showDecimalsClassIcon = true,
         decimalThreshold = 6,
         colorDRCooldownText = false,
+        drBugFixMidnight = true,
         --darkMode = (BetterBlizzFramesDB and BetterBlizzFramesDB.darkModeUi) or C_AddOns.IsAddOnLoaded("FrameColor") or nil,
         forceShowTrinketOnHuman = not sArenaMixin.isRetail and true or nil,
         shadowSightTimer = (sArenaMixin.isTBC or sArenaMixin.isWrath) and true or nil,
@@ -88,6 +89,16 @@ sArenaMixin.defaultSettings = {
         clickAttributes = {
             ["Left"] = { button = "1", action = "target" },
             ["Right"] = { button = "2", action = "focus" },
+        },
+        auraHighlight = {
+            enabled = false,
+            onlyOnHealer = false,
+            cc        = { enabled = true, color = {1, 0.87, 0,    1} },
+            important = { enabled = true, color = {0, 1,    0,    1} },
+            defensive = { enabled = true, color = {1, 0.66, 0.95, 1} },
+            glowClassIcon  = { enabled = true },
+            pixelBorder    = { enabled = true,  lines = 8, frequency = 0.2, length = 15, thickness = 2 },
+            pixelClassIcon = { enabled = false, lines = 8, frequency = 0.2, length = 15, thickness = 2 },
         },
     }
 }

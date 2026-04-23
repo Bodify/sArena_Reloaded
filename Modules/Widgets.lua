@@ -37,7 +37,9 @@ function sArenaMixin:RegisterWidgetEvents()
         end
 
         local pti = widgetSettings.partyTargetIndicators
-        if pti and pti.enabled and ((pti.partyOnArena and pti.partyOnArena.enabled) or (pti.arenaOnParty and pti.arenaOnParty.enabled)) then
+        local ptt = widgetSettings.partyTargetText
+        if (pti and pti.enabled and ((pti.partyOnArena and pti.partyOnArena.enabled) or (pti.arenaOnParty and pti.arenaOnParty.enabled)))
+        or (ptt and ptt.enabled and ((ptt.partyOnArena and ptt.partyOnArena.enabled) or (ptt.arenaOnParty and ptt.arenaOnParty.enabled))) then
             self:RegisterEvent("UNIT_TARGET")
         end
 
@@ -71,6 +73,7 @@ function sArenaMixin:UpdateWidgetSettings(db, info, val)
 
 
         if db.combatIndicator then frame.WidgetOverlay.combatIndicator:SetScale(db.combatIndicator.scale or 1) end
+        if db.healerIndicator then frame.WidgetOverlay.healerIndicator:SetScale(db.healerIndicator.scale or 1) end
         if db.targetIndicator then frame.WidgetOverlay.targetIndicator:SetScale(db.targetIndicator.scale or 1) end
         if db.focusIndicator then frame.WidgetOverlay.focusIndicator:SetScale(db.focusIndicator.scale or 1) end
         if db.partyTargetIndicators then
@@ -80,6 +83,12 @@ function sArenaMixin:UpdateWidgetSettings(db, info, val)
             end
         end
 
+        frame:PositionArenaTargetText()
+        if self.testMode then
+            frame:UpdateArenaTargetTextTestMode()
+        else
+            frame:UpdateArenaTargetText(frame.unit)
+        end
         frame:UpdateTargetFocusBorderVisibility()
 
         -- Only try to update orientation if called from config (with info parameter)
@@ -99,6 +108,12 @@ function sArenaMixin:UpdateWidgetSettings(db, info, val)
     end
 
     self:UpdateArenaTargetsOnPartyFrames()
+    self:PositionArenaTargetTextOnPartyFrames()
+    if self.testMode then
+        self:UpdateArenaTargetTextOnPartyFramesTestMode()
+    else
+        self:UpdateArenaTargetTextOnPartyFrames()
+    end
 end
 
 function sArenaFrameMixin:UpdateCombatStatus(unit)
@@ -109,6 +124,24 @@ function sArenaFrameMixin:UpdateCombatStatus(unit)
         return
     end
     self.WidgetOverlay.combatIndicator:SetShown((unit and not UnitAffectingCombat(unit) and not self.DeathIcon:IsShown()))
+end
+
+function sArenaFrameMixin:UpdateHealerStatus()
+    local db = self.parent and self.parent.db
+    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
+    if not widgetSettings or not widgetSettings.healerIndicator or not widgetSettings.healerIndicator.enabled then
+        self.WidgetOverlay.healerIndicator:Hide()
+        return
+    end
+    self.WidgetOverlay.healerIndicator:SetShown(self.isHealer == true and not self.DeathIcon:IsShown())
+end
+
+local function UnitIsProbablyUnit(unit1, unit2)
+    if not (UnitExists(unit1) and UnitExists(unit2)) then return end
+
+    return select(2, UnitClass(unit1)) == select(2, UnitClass(unit2))
+       and UnitRace(unit1) == UnitRace(unit2)
+       and UnitSex(unit1) == UnitSex(unit2)
 end
 
 function sArenaFrameMixin:UpdateTarget(unit)
@@ -403,6 +436,226 @@ function sArenaFrameMixin:UpdateTargetFocusBorderVisibility()
     end
 end
 
+function sArenaFrameMixin:CreateArenaTargetText()
+    local overlay = self.WidgetOverlay
+    if overlay.arenaTargetText then return end
+    local textFrame = CreateFrame("Frame", nil, overlay)
+    textFrame:SetAllPoints()
+    textFrame:SetFrameLevel(overlay:GetFrameLevel() + 20)
+    local fs = textFrame:CreateFontString(nil, "OVERLAY")
+    local nf, _, nflag = self.Name:GetFont()
+    fs:SetFont(nf or self.parent.pFont, 10, nflag or "OUTLINE")
+    fs:SetShadowColor(0, 0, 0, 1)
+    fs:SetShadowOffset(1, -1)
+    fs:SetIgnoreParentAlpha(true)
+    fs:SetText("")
+    overlay.arenaTargetTextFrame = textFrame
+    overlay.arenaTargetText = fs
+end
+
+function sArenaFrameMixin:PositionArenaTargetText()
+    self:CreateArenaTargetText()
+    local db = self.parent.db
+    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
+    local ptt = widgetSettings and widgetSettings.partyTargetText
+    local poa = ptt and ptt.partyOnArena
+    local fs = self.WidgetOverlay.arenaTargetText
+    if not ptt or not ptt.enabled or not poa or not poa.enabled then
+        fs:SetText("")
+        return
+    end
+    local fontSize = poa.fontSize or 10
+    local anchorMap = { LEFT = "TOPLEFT", CENTER = "TOP", RIGHT = "TOPRIGHT" }
+    local anchor = anchorMap[poa.anchor] or "TOPRIGHT"
+    local nf, _, nflag = self.Name:GetFont()
+    fs:SetFont(nf or self.parent.pFont, fontSize, nflag or "OUTLINE")
+    fs:ClearAllPoints()
+    fs:SetPoint(anchor, self.HealthBar, anchor, poa.posX or 0, poa.posY or 0)
+end
+
+function sArenaFrameMixin:UpdateArenaTargetText(unit)
+    local fs = self.WidgetOverlay.arenaTargetText
+    if not fs then return end
+    local db = self.parent.db
+    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
+    local ptt = widgetSettings and widgetSettings.partyTargetText
+    local poa = ptt and ptt.partyOnArena
+    if not ptt or not ptt.enabled or not poa or not poa.enabled then
+        fs:SetText("")
+        return
+    end
+    if not unit or not UnitExists(unit) then
+        fs:SetText("")
+        return
+    end
+    local targetUnit = unit .. "target"
+    local targetName = UnitName(targetUnit)
+    if targetName then
+        local class = select(2, UnitClass(targetUnit))
+        if class and RAID_CLASS_COLORS[class] then
+            local color = RAID_CLASS_COLORS[class]
+            fs:SetTextColor(color.r, color.g, color.b)
+        else
+            fs:SetTextColor(1, 1, 1)
+        end
+        fs:SetText(targetName)
+    else
+        fs:SetText("")
+    end
+end
+
+function sArenaFrameMixin:UpdateArenaTargetTextTestMode()
+    local fs = self.WidgetOverlay.arenaTargetText
+    if not fs then return end
+    local db = self.parent.db
+    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
+    local ptt = widgetSettings and widgetSettings.partyTargetText
+    local poa = ptt and ptt.partyOnArena
+    if not ptt or not ptt.enabled or not poa or not poa.enabled then
+        fs:SetText("")
+        return
+    end
+    local name = UnitName("player")
+    local _, class = UnitClass("player")
+    if class and RAID_CLASS_COLORS[class] then
+        local color = RAID_CLASS_COLORS[class]
+        fs:SetTextColor(color.r, color.g, color.b)
+    else
+        fs:SetTextColor(1, 1, 1)
+    end
+    fs:SetText(name)
+end
+
+function sArenaMixin:CreatePartyFrameTargetText(partyFrame)
+    if not partyFrame.WidgetOverlay then
+        local overlay = CreateFrame("Frame", nil, partyFrame)
+        overlay:SetAllPoints()
+        overlay:SetFrameStrata("HIGH")
+        overlay:SetFrameLevel(partyFrame:GetFrameLevel() + 10)
+        partyFrame.WidgetOverlay = overlay
+    end
+    local overlay = partyFrame.WidgetOverlay
+    if overlay.partyTargetText then return end
+    local textFrame = CreateFrame("Frame", nil, overlay)
+    textFrame:SetAllPoints()
+    textFrame:SetFrameLevel(overlay:GetFrameLevel() + 20)
+    local fs = textFrame:CreateFontString(nil, "OVERLAY")
+    local refName = self["arena1"] and self["arena1"].Name
+    local nf, _, nflag = refName and refName:GetFont()
+    fs:SetFont(nf or self.pFont, 10, nflag or "OUTLINE")
+    fs:SetShadowColor(0, 0, 0, 1)
+    fs:SetShadowOffset(1, -1)
+    fs:SetIgnoreParentAlpha(true)
+    fs:SetText("")
+    overlay.partyTargetTextFrame = textFrame
+    overlay.partyTargetText = fs
+end
+
+function sArenaMixin:PositionArenaTargetTextOnPartyFrames()
+    local db = self.db
+    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
+    local ptt = widgetSettings and widgetSettings.partyTargetText
+    local aop = ptt and ptt.arenaOnParty
+    if not ptt or not ptt.enabled or not aop or not aop.enabled then
+        for i = 1, 5 do
+            local partyFrame = self:GetPartyFrame(i)
+            if partyFrame and partyFrame.WidgetOverlay and partyFrame.WidgetOverlay.partyTargetText then
+                partyFrame.WidgetOverlay.partyTargetText:SetText("")
+            end
+        end
+        return
+    end
+    local fontSize = aop.fontSize or 10
+    local anchorMap = { LEFT = "TOPLEFT", CENTER = "TOP", RIGHT = "TOPRIGHT" }
+    local anchor = anchorMap[aop.anchor] or "TOPRIGHT"
+    local posX = aop.posX or 0
+    local posY = aop.posY or 0
+    for i = 1, 5 do
+        local partyFrame = self:GetPartyFrame(i)
+        if partyFrame then
+            self:CreatePartyFrameTargetText(partyFrame)
+            local fs = partyFrame.WidgetOverlay.partyTargetText
+            local refName = self["arena1"] and self["arena1"].Name
+            local nf, _, nflag = refName and refName:GetFont()
+            fs:SetFont(nf or self.pFont, fontSize, nflag or "OUTLINE")
+            local healthBar = partyFrame.healthBar or partyFrame.HealthBar or partyFrame.healthbar
+            local anchor_parent = healthBar or partyFrame
+            fs:ClearAllPoints()
+            fs:SetPoint(anchor, anchor_parent, anchor, posX, posY)
+        end
+    end
+end
+
+function sArenaMixin:UpdateArenaTargetTextOnPartyFrames()
+    local db = self.db
+    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
+    local ptt = widgetSettings and widgetSettings.partyTargetText
+    local aop = ptt and ptt.arenaOnParty
+    if not ptt or not ptt.enabled or not aop or not aop.enabled then
+        for i = 1, 5 do
+            local partyFrame = self:GetPartyFrame(i)
+            if partyFrame and partyFrame.WidgetOverlay and partyFrame.WidgetOverlay.partyTargetText then
+                partyFrame.WidgetOverlay.partyTargetText:SetText("")
+            end
+        end
+        return
+    end
+    for i = 1, 5 do
+        local partyFrame = self:GetPartyFrame(i)
+        if partyFrame and partyFrame.WidgetOverlay then
+            local fs = partyFrame.WidgetOverlay.partyTargetText
+            if fs then
+                local partyUnit = partyFrame.unit or partyFrame:GetAttribute("unit")
+                if partyUnit and UnitExists(partyUnit) then
+                    local targetUnit = partyUnit .. "target"
+                    local targetName = UnitName(targetUnit)
+                    if targetName then
+                        local class = select(2, UnitClass(targetUnit))
+                        if class and RAID_CLASS_COLORS[class] then
+                            local color = RAID_CLASS_COLORS[class]
+                            fs:SetTextColor(color.r, color.g, color.b)
+                        else
+                            fs:SetTextColor(1, 1, 1)
+                        end
+                        fs:SetText(targetName)
+                    else
+                        fs:SetText("")
+                    end
+                else
+                    fs:SetText("")
+                end
+            end
+        end
+    end
+end
+
+function sArenaMixin:UpdateArenaTargetTextOnPartyFramesTestMode()
+    local db = self.db
+    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
+    local ptt = widgetSettings and widgetSettings.partyTargetText
+    local aop = ptt and ptt.arenaOnParty
+    if not ptt or not ptt.enabled or not aop or not aop.enabled then return end
+    local numArena = self.maxArenaOpponents or 3
+    for i = 1, 5 do
+        local partyFrame = self:GetPartyFrame(i)
+        if partyFrame and partyFrame.WidgetOverlay then
+            local fs = partyFrame.WidgetOverlay.partyTargetText
+            if fs then
+                local pick = self["arena" .. math.random(numArena)]
+                local name = pick and pick.tempName or "Target"
+                local class = pick and pick.tempClass
+                if class and RAID_CLASS_COLORS[class] then
+                    local color = RAID_CLASS_COLORS[class]
+                    fs:SetTextColor(color.r, color.g, color.b)
+                else
+                    fs:SetTextColor(1, 1, 1)
+                end
+                fs:SetText(name)
+            end
+        end
+    end
+end
+
 function sArenaFrameMixin:UpdateArenaTargets(unit)
     local db = self.parent.db
     local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
@@ -422,7 +675,7 @@ function sArenaFrameMixin:UpdateArenaTargets(unit)
         for i = 1, 4 do
             local partyUnit = "party" .. i
             local indicator = self.WidgetOverlay["partyTarget" .. i]
-            local isTarget = UnitIsUnit(partyUnit .. "target", unit)
+            local isTarget = UnitIsProbablyUnit(partyUnit .. "target", unit)--UnitIsUnit(partyUnit .. "target", unit)
             local class = select(2, UnitClass(partyUnit))
             if class then
                 local color = RAID_CLASS_COLORS[class]
@@ -507,7 +760,8 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
             local partyFrame = self:GetPartyFrame(i)
             if partyFrame and partyFrame.WidgetOverlay then
                 for j = 1, self.maxArenaOpponents do
-                    partyFrame.WidgetOverlay["arenaTarget" .. j]:Hide()
+                    local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
+                    if indicator then indicator:Hide() end
                 end
             end
         end
@@ -544,7 +798,7 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
                     for j = 1, self.maxArenaOpponents do
                         local arenaUnit = "arena" .. j
                         local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
-                        local isTarget = UnitExists(arenaUnit) and UnitIsUnit(arenaUnit .. "target", partyUnit)
+                        local isTarget = UnitIsProbablyUnit(arenaUnit .. "target", partyUnit)--UnitExists(arenaUnit) and UnitIsUnit(arenaUnit .. "target", partyUnit)
                         local class = select(2, UnitClass(arenaUnit))
                         if class then
                             local color = RAID_CLASS_COLORS[class]

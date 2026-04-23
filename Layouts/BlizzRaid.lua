@@ -74,6 +74,11 @@ layout.defaultSettings = {
             posY = 0,
             scale = 1,
         },
+        healerIndicator = {
+            posX = 0,
+            posY = 0,
+            scale = 1,
+        },
         targetIndicator = {
             enabled = true,
             posX = 9,
@@ -114,6 +119,22 @@ layout.defaultSettings = {
                 scale = 1,
                 direction = "LEFT",
                 spacing = 0,
+            },
+        },
+        partyTargetText = {
+            partyOnArena = {
+                enabled = true,
+                anchor = "RIGHT",
+                fontSize = 10,
+                posX = 0,
+                posY = 0,
+            },
+            arenaOnParty = {
+                enabled = true,
+                anchor = "RIGHT",
+                fontSize = 10,
+                posX = 0,
+                posY = 0,
             },
         },
     },
@@ -566,6 +587,15 @@ function layout:UpdateOrientation(frame)
             frame.WidgetOverlay.combatIndicator:SetScale(w.combatIndicator.scale or 1)
             frame.WidgetOverlay.combatIndicator:SetPoint("CENTER", frame.HealthBar, "CENTER",
                 (w.combatIndicator.posX or 0), (w.combatIndicator.posY or 0))
+        end
+
+        -- Healer Indicator
+        if w.healerIndicator then
+            frame.WidgetOverlay.healerIndicator:ClearAllPoints()
+            frame.WidgetOverlay.healerIndicator:SetSize(17, 17)
+            frame.WidgetOverlay.healerIndicator:SetScale(w.healerIndicator.scale or 1)
+            frame.WidgetOverlay.healerIndicator:SetPoint("TOP", frame.SpecIcon, "BOTTOM",
+                (w.healerIndicator.posX or 0), (w.healerIndicator.posY or 0) - 2)
         end
 
         -- Target Indicator

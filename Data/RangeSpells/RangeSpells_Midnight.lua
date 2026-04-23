@@ -14,6 +14,8 @@ sArenaMixin.rangeTextures = {
     ["perks-border-square-gold"] = "|A:perks-border-square-gold:14:14|a Icon 11",
     ["bags-newitem"] = "|A:bags-newitem:14:14|a Icon 12",
     ["bags-glow-artifact"] = "|A:bags-glow-artifact:14:14|a Icon 13",
+    ["GM-icon-visible-hover"] = "|A:GM-icon-visible-hover:14:14|a Icon 14",
+    ["GM-icon-visibleDis-hover"] = "|A:GM-icon-visibleDis-hover:14:14|a Icon 15",
 
     [""] = L["Widget_RangeCheck_PresetNone"],
     ["custom"] = L["Widget_RangeCheck_CustomAtlas"],
@@ -33,6 +35,8 @@ sArenaMixin.rangeTexturesSorting = {
     "perks-border-square-gold",
     "bags-newitem",
     "bags-glow-artifact",
+    "GM-icon-visible-hover",
+    "GM-icon-visibleDis-hover",
     "",
     "custom",
 }

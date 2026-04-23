@@ -111,7 +111,7 @@ function sArenaFrameMixin:FindAura()
         return
     end
     local unit = self.unit
-    local currentSpellID, currentDuration, currentExpirationTime, currentTexture, currentApplications
+    local currentSpellID, currentDuration, currentExpirationTime, currentTexture, currentApplications, currentAuraCategory
     local currentPriority, currentRemaining = 0, 0
 
     if self.currentInterruptSpellID then
@@ -132,15 +132,17 @@ function sArenaFrameMixin:FindAura()
             if not aura then break end
 
             local spellID = aura.spellId
-            local priority = auraList[spellID]
+            local keyAura = auraList[spellID]
 
             -- TBC Spec Detection: Check if this buff indicates a spec
             if noEarlyFrames and i == 1 then -- Only check buffs (HELPFUL)
                 self:CheckForSpecSpell(spellID)
             end
 
-            if priority then
+            if keyAura then
 
+                local priority = keyAura[1]
+                local auraCategory = keyAura[2]
                 local duration = aura.duration or 0
                 local expirationTime = aura.expirationTime or 0
                 local texture = aura.icon
@@ -185,6 +187,7 @@ function sArenaFrameMixin:FindAura()
                     currentPriority = priority
                     currentRemaining = remaining
                     currentApplications = applications
+                    currentAuraCategory = auraCategory
                 end
             end
         end
@@ -203,6 +206,7 @@ function sArenaFrameMixin:FindAura()
                 currentPriority = stancePriority
                 currentRemaining = 0
                 currentApplications = nil
+                currentAuraCategory = nil
             end
         end
     end
@@ -213,14 +217,17 @@ function sArenaFrameMixin:FindAura()
         self.currentAuraDuration = currentDuration
         self.currentAuraTexture = currentTexture
         self.currentAuraApplications = currentApplications
+        self.currentAuraCategory = currentAuraCategory
     else
         self.currentAuraSpellID = nil
         self.currentAuraStartTime = 0
         self.currentAuraDuration = 0
         self.currentAuraTexture = nil
         self.currentAuraApplications = nil
+        self.currentAuraCategory = nil
     end
 
+    self:SetAuraHighlightActive(currentAuraCategory)
     self:UpdateAuraStacks()
     self:UpdateClassIcon()
 end

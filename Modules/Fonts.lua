@@ -66,6 +66,9 @@ function sArenaMixin:UpdateFonts()
                             f.CastBar.ArenaTargetText:SetFont(tPath, cbSize - 2, tFlags)
                         end
                     end
+                    if f.WidgetOverlay and f.WidgetOverlay.arenaTargetText then
+                        applyFont(f.WidgetOverlay.arenaTargetText, og.ArenaTargetWidgetText)
+                    end
                 end
             end
             self.ogFonts = nil
@@ -130,6 +133,7 @@ function sArenaMixin:UpdateFonts()
                     CastBarText = captureFont(frame.CastBar and frame.CastBar.Text),
                     CastBarIDText = captureFont(frame.CastBar and frame.CastBar.ArenaIDText),
                     CastBarTargetText = captureFont(frame.CastBar and frame.CastBar.ArenaTargetText),
+                    ArenaTargetWidgetText = captureFont(frame.WidgetOverlay and frame.WidgetOverlay.arenaTargetText),
                 }
             end
             setFont(frame.Name, frameFontPath)
@@ -152,6 +156,9 @@ function sArenaMixin:UpdateFonts()
                 if tPath and cbSize then
                     frame.CastBar.ArenaTargetText:SetFont(tPath, cbSize - 2, tFlags)
                 end
+            end
+            if frame.WidgetOverlay and frame.WidgetOverlay.arenaTargetText then
+                setFont(frame.WidgetOverlay.arenaTargetText, frameFontPath)
             end
         end
     end
