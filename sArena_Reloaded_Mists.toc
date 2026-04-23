@@ -1,4 +1,4 @@
-## Interface: 50502
+## Interface: 50503
 ## Title: sArena |cffff8000Reloaded|r |T135884:16:16|t
 ## Notes: Enhanced Arena Frames
 ## Version: @project-version@
