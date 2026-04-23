@@ -1466,7 +1466,6 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
         self:UpdateHealPrediction()
         self:UpdateAbsorb()
         self:UpdatePlayer(UnitExists(self.unit) and "seen" or "unseen")
-        --self:SetAlpha((noEarlyFrames and (UnitExists(self.unit) and 1 or stealthAlpha)) or (UnitIsVisible(self.unit) and 1 or stealthAlpha))
         self.HealthBar:SetAlpha(1)
         if self.parent.TestTitle then
             self.parent.TestTitle:Hide()
@@ -2348,9 +2347,6 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                 end
                 castBar.changedBarColor = true
             elseif colors.enabled then
-                -- if self.isMoP then
-                --     castBar:SetStatusBarTexture(castBar.barType == "uninterruptable" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Uninterruptable" or castBar.barType == "channel" and "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Channel" or "Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-CastingBar-Filling-Standard")
-                -- end
                 if castBarTexture then
                     castBarTexture:SetDesaturated(true)
                 end
@@ -2410,9 +2406,6 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
             end
         else
             local textureToUse = self.castTexture
-            -- if castBar.barType == "uninterruptable" and self.castUninterruptibleTexture then
-            --     textureToUse = self.castUninterruptibleTexture
-            -- end
             castBar:SetStatusBarTexture(textureToUse or "Interface\\RaidFrame\\Raid-Bar-Hp-Fill")
             if stoppedCast then
                 castBarTexture:SetDesaturated(false)
