@@ -1,3 +1,8 @@
+# sArena Reloaded 2.4.7b
+## Tweak
+- Add back Masque support for Frame & Castbar (the bar itself) as a subsetting in Global -> Misc at the bottom (off by default).
+- Fix test mode title text being anchored to the wrong frame when growth direction of arena frames was set to up.
+
 # sArena Reloaded 2.4.7
 ## New
 - Aura Highlight: Shows a glow/pixel highlight on arena frames during CC/Defensives/Important auras. (Global -> Aura Highlights). Classics: For classics this offers much more customizeability but I want to keep it similar to Midnight so whats expected from it is the same. If you have feedback on the spells on TBC/Wrath/MoP please let me hear it!
