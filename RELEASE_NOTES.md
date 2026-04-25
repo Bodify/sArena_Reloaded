@@ -1,8 +1,14 @@
+# sArena Reloaded 2.4.7c
+## Tweak
+- Added Arena Target Indicator support for ElvUI, Cell, Grid2, DandersFrames, VuhDo and default Blizzard non-raidstyle PartyFrames. If theres an addon you miss let me know.
+- Aura logic reworked a little bit so Aura Highlights can now work alone on its own if Class Icon is hidden or Auras on Class Icon is disabled.
+- Aura Highlight around Class Icon disabled while "Hide Class Icon" is enabled.
+![sArenaAuraHighlight](https://github.com/user-attachments/assets/0aa1e574-7de5-434f-9fb0-7a18e9a224d1)
+
 # sArena Reloaded 2.4.7b
 ## Tweak
 - Add back Masque support for Frame & Castbar (the bar itself) as a subsetting in Global -> Misc at the bottom (off by default).
 - Fix test mode title text being anchored to the wrong frame when growth direction of arena frames was set to up.
-![sArenaAuraHighlight](https://github.com/user-attachments/assets/0aa1e574-7de5-434f-9fb0-7a18e9a224d1)
 
 # sArena Reloaded 2.4.7
 ## New

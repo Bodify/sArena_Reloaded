@@ -202,8 +202,11 @@ function sArenaFrameMixin:ApplyAuraHighlight(category)
     if not highlight then return end
     local cfg = category and highlight.cfg and highlight.cfg[category]
 
+    local db = self.parent and self.parent.db
+    local hideClassIcon = db and db.profile and db.profile.hideClassIcon
+
     local classGlow = highlight.ClassIconGlow
-    if cfg and cfg.glowIcon then
+    if cfg and cfg.glowIcon and not hideClassIcon then
         local c = cfg.color
         classGlow.Texture:SetVertexColor(c[1], c[2], c[3], c[4] or 1)
         classGlow:Show()
@@ -218,7 +221,7 @@ function sArenaFrameMixin:ApplyAuraHighlight(category)
     end
 
     LCG.PixelGlow_Stop(highlight.ClassIconPixelGlow)
-    if cfg and cfg.piEnabled then
+    if cfg and cfg.piEnabled and not hideClassIcon then
         LCG.PixelGlow_Start(highlight.ClassIconPixelGlow, cfg.color,
             cfg.piLines, cfg.piFreq, cfg.piLen, cfg.piThick, 0, 0, false)
     end
@@ -286,6 +289,7 @@ function sArenaMixin:RefreshAllAuraHighlights()
             frame:UpdateAuraHighlightLayout()
             frame:UpdateAuraHighlightEnabled()
             frame:RefreshAuraHighlight()
+            frame:SetUnitAuraRegistration()
         end
     end
 end

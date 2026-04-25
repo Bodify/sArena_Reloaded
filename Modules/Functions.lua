@@ -10,9 +10,39 @@ local L = sArenaMixin.L
 local LSM = LibStub("LibSharedMedia-3.0")
 local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
 
+local function FindPartyFrame(i)
+    if C_AddOns.IsAddOnLoaded("DandersFrames") then
+        return _G["DandersPartyHeaderUnitButton" .. i]
+    elseif C_AddOns.IsAddOnLoaded("ElvUI") then
+        return _G["ElvUF_PartyGroup1UnitButton" .. i]
+    elseif C_AddOns.IsAddOnLoaded("Cell") then
+        return _G["CellPartyFrameHeaderUnitButton" .. i]
+    elseif C_AddOns.IsAddOnLoaded("Grid2") then
+        return _G["Grid2LayoutHeader1UnitButton" .. i]
+    elseif C_AddOns.IsAddOnLoaded("VuhDo") then
+        return _G["Vd1H" .. i]
+    else
+        local EM = EditModeManagerFrame
+        if EM and EM.UseRaidStylePartyFrames and EM:UseRaidStylePartyFrames() then
+            return _G["CompactPartyFrameMember" .. i] or _G["CompactRaidFrame" .. i]
+        else
+            if C_CVar.GetCVarBool("useCompactPartyFrames") then
+                return _G["CompactPartyFrameMember" .. i] or _G["CompactRaidFrame" .. i]
+            else
+                return _G["PartyMemberFrame" .. i] or _G["PartyFrame"]["MemberFrame" .. i]
+            end
+        end
+    end
+end
+
+function sArenaMixin:UpdatePartyFrameReferences()
+    for i = 1, 4 do
+        self["partyFrame" .. i] = FindPartyFrame(i)
+    end
+end
+
 function sArenaMixin:GetPartyFrame(i)
-    --EditModeManagerFrame:UseRaidStylePartyFrames()
-    return _G["CompactPartyFrameMember" .. i] or _G["CompactRaidFrame" .. i]
+    return self["partyFrame" .. i] or FindPartyFrame(i)
 end
 
 function sArenaMixin:GetSpecNameByID(specId)
@@ -26,7 +56,12 @@ end
 
 function sArenaFrameMixin:SetUnitAuraRegistration()
     local db = self.parent and self.parent.db
-    if db and (db.profile.disableAurasOnClassIcon or db.profile.hideClassIcon) then
+    if not db then return end
+
+    local classIconWantsAuras = not (db.profile.disableAurasOnClassIcon or db.profile.hideClassIcon)
+    local highlightWantsAuras = db.profile.auraHighlight and db.profile.auraHighlight.enabled
+
+    if not classIconWantsAuras and not highlightWantsAuras then
         self.disabledAuras = true
         self:UnregisterEvent("UNIT_AURA")
     else

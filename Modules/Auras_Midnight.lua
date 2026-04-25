@@ -117,7 +117,10 @@ function sArenaFrameMixin:FindAura(updateInfo)
         end
     end
 
-    if spellID then
+    local profile = self.parent and self.parent.db and self.parent.db.profile
+    local hideOnIcon = profile and (profile.disableAurasOnClassIcon or profile.hideClassIcon)
+
+    if spellID and not hideOnIcon then
         self.currentAuraSpellID = spellID
         self.currentAuraDurationObj = C_UnitAuras.GetAuraDuration(unit, auraInstanceID)
         self.currentAuraTexture = texture

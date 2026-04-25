@@ -137,7 +137,7 @@ function sArenaFrameMixin:UpdateHealerStatus()
 end
 
 local function UnitIsProbablyUnit(unit1, unit2)
-    if not (UnitExists(unit1) and UnitExists(unit2)) then return end
+    if not UnitExists(unit1) or not UnitExists(unit2) then return end
 
     return select(2, UnitClass(unit1)) == select(2, UnitClass(unit2))
        and UnitRace(unit1) == UnitRace(unit2)

@@ -211,7 +211,10 @@ function sArenaFrameMixin:FindAura()
         end
     end
 
-    if currentSpellID then
+    local profile = self.parent and self.parent.db and self.parent.db.profile
+    local hideOnIcon = profile and (profile.disableAurasOnClassIcon or profile.hideClassIcon)
+
+    if currentSpellID and not hideOnIcon then
         self.currentAuraSpellID = currentSpellID
         self.currentAuraStartTime = currentExpirationTime - currentDuration
         self.currentAuraDuration = currentDuration

@@ -639,6 +639,7 @@ function sArenaMixin:OnEvent(event, ...)
     elseif (event == "PLAYER_ENTERING_WORLD") then
         local _, instanceType = IsInInstance()
         self.isInArena = (instanceType == "arena")
+        self:UpdatePartyFrameReferences()
         self:UpdateBlizzArenaFrameVisibility(instanceType)
         self:SetMouseState(instanceType ~= "arena")
         self.testMode = nil
@@ -1647,12 +1648,7 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
     end
 
     self:GetClass()
-
-    if db and db.profile.disableAurasOnClassIcon then
-        self:UpdateClassIcon()
-    else
-        self:FindAura()
-    end
+    self:FindAura()
 
     if (unitEvent and unitEvent ~= "seen") or (UnitGUID(self.unit) == nil) then
         self:SetMysteryPlayer()
