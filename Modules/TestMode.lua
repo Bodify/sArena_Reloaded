@@ -551,16 +551,13 @@ function sArenaMixin:Test()
     local targetUseBoth = ti and ti.enabled and ti.useBorderWithIcon
     local focusUseBoth = fi and fi.enabled and fi.useBorderWithIcon
 
-    local topFrame
     local numUnits = math.min(self.testUnits or self.maxArenaOpponents, self.maxArenaOpponents)
+    local layoutGrowthDirection = db.profile.layoutSettings[db.profile.currentLayout].growthDirection
+    local topFrame = (layoutGrowthDirection == 2) and self["arena" .. numUnits] or self["arena1"]
 
     for i = 1, numUnits do
         local frame = self["arena" .. i]
         local data = shuffledPlayers[i]
-
-        if i == 1 then
-            topFrame = frame
-        end
 
         if self.masqueOn and frame.masqueHidden then
             if frame.FrameMsq then frame.FrameMsq:Show() end
