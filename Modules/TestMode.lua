@@ -563,10 +563,10 @@ function sArenaMixin:Test()
         end
 
         if self.masqueOn and frame.masqueHidden then
-            --frame.FrameMsq:Show()
+            if frame.FrameMsq then frame.FrameMsq:Show() end
             frame.ClassIconMsq:Show()
             frame.SpecIconMsq:Show()
-            --frame.CastBarMsq:Show()
+            if frame.CastBarMsq then frame.CastBarMsq:Show() end
             if frame.CastBar.MSQ then
                 frame.CastBar.MSQ:Show()
                 frame.CastBar.Icon:Hide()
@@ -1242,10 +1242,10 @@ function sArenaMixin:Test()
         frame:UpdateStatusTextVisible()
 
         if self.masqueOn and not db.profile.enableMasque and frame.FrameMsq then
-            --frame.FrameMsq:Hide()
+            frame.FrameMsq:Hide()
             frame.ClassIconMsq:Hide()
             frame.SpecIconMsq:Hide()
-            --frame.CastBarMsq:Hide()
+            if frame.CastBarMsq then frame.CastBarMsq:Hide() end
             if frame.CastBar.MSQ then
                 frame.CastBar.MSQ:Hide()
                 frame.CastBar.Icon:Show()

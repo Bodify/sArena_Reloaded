@@ -5995,13 +5995,34 @@ else
                                         name = L["Option_EnableMasqueSupport"],
                                         desc = L["Masque_Support_Desc"],
                                         type = "toggle",
-                                        width = "full",
+                                        width = 1.1,
                                         get = function(info) return info.handler.db.profile.enableMasque end,
                                         set = function(info, val)
                                             info.handler.db.profile.enableMasque = val
                                             info.handler:AddMasqueSupport()
                                             info.handler:Test()
                                         end
+                                    },
+                                    enableMasqueExtra = {
+                                        order = 1.3,
+                                        name = L["Option_EnableMasqueExtraSupport"],
+                                        desc = L["Masque_Extra_Support_Desc"],
+                                        type = "toggle",
+                                        width = "normal",
+                                        disabled = function(info) return not info.handler.db.profile.enableMasque end,
+                                        confirm = function(info, val) info.handler.db.profile.enableMasqueExtra = val; return L["Masque_Extra_Reload_Desc"] end,
+                                        get = function(info) return info.handler.db.profile.enableMasqueExtra end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.enableMasqueExtra = val
+                                            sArena_ReloadedDB.reOpenOptions = true
+                                            ReloadUI()
+                                        end
+                                    },
+                                    masqueSpacer = {
+                                        order = 1.3,
+                                        type = "description",
+                                        name = "",
+                                        width = "full",
                                     },
                                     removeUnequippedTrinketTexture = {
                                         order = 2,

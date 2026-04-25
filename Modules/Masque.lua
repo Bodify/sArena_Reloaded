@@ -18,8 +18,8 @@ function sArenaMixin:AddMasqueSupport()
     local sArenaRacial = Masque:Group("sArena |cffff8000Reloaded|r |T135884:13:13|t", "Racial")
     local sArenaDispel = not self.isMidnight and Masque:Group("sArena |cffff8000Reloaded|r |T135884:13:13|t", "Dispel")
     local sArenaDRs = Masque:Group("sArena |cffff8000Reloaded|r |T135884:13:13|t", "DRs")
-    --local sArenaFrame = Masque:Group("sArena |cffff8000Reloaded|r |T135884:13:13|t", "Frame")
-    --local sArenaCastbar = Masque:Group("sArena |cffff8000Reloaded|r |T135884:13:13|t", "Castbar")
+    local sArenaFrame = self.db.profile.enableMasqueExtra and Masque:Group("sArena |cffff8000Reloaded|r |T135884:13:13|t", "Frame")
+    local sArenaCastbar = self.db.profile.enableMasqueExtra and Masque:Group("sArena |cffff8000Reloaded|r |T135884:13:13|t", "Castbar")
     local sArenaCastbarIcon = Masque:Group("sArena |cffff8000Reloaded|r |T135884:13:13|t", "Castbar Icon")
 
     function self:RefreshMasque()
@@ -31,7 +31,8 @@ function sArenaMixin:AddMasqueSupport()
             sArenaDispel:ReSkin(true)
         end
         sArenaDRs:ReSkin(true)
-        --sArenaFrame:ReSkin(true)
+        if sArenaFrame then sArenaFrame:ReSkin(true) end
+        if sArenaCastbar then sArenaCastbar:ReSkin(true) end
         sArenaCastbarIcon:ReSkin(true)
     end
 
@@ -57,11 +58,13 @@ function sArenaMixin:AddMasqueSupport()
 
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        -- frame.FrameMsq = CreateFrame("Frame", nil, frame)
-        -- frame.FrameMsq:SetFrameStrata("MEDIUM")
-        -- frame.FrameMsq:SetFrameLevel(19)
-        -- frame.FrameMsq:SetPoint("TOPLEFT", frame.HealthBar, "TOPLEFT", 0, 0)
-        -- frame.FrameMsq:SetPoint("BOTTOMRIGHT", frame.PowerBar, "BOTTOMRIGHT", 0, 0)
+        if not frame.FrameMsq and sArenaFrame then
+            frame.FrameMsq = CreateFrame("Frame", nil, frame)
+            frame.FrameMsq:SetFrameStrata("MEDIUM")
+            frame.FrameMsq:SetFrameLevel(19)
+            frame.FrameMsq:SetPoint("TOPLEFT", frame.HealthBar, "TOPLEFT", 0, 0)
+            frame.FrameMsq:SetPoint("BOTTOMRIGHT", frame.PowerBar, "BOTTOMRIGHT", 0, 0)
+        end
 
         frame.ClassIconMsq = CreateFrame("Frame", nil, frame)
         frame.ClassIconMsq:SetFrameStrata("MEDIUM")
@@ -90,11 +93,13 @@ function sArenaMixin:AddMasqueSupport()
             frame.DispelMsq:SetAllPoints(frame.Dispel)
         end
 
-        -- frame.CastBarMsq = CreateFrame("Frame", nil, frame.CastBar)
-        -- frame.CastBarMsq:SetFrameStrata("HIGH")
-        -- frame.CastBarMsq:SetAllPoints(frame.CastBar)
+        if not frame.CastBarMsq and sArenaCastbar then
+            frame.CastBarMsq = CreateFrame("Frame", nil, frame.CastBar)
+            frame.CastBarMsq:SetFrameStrata("HIGH")
+            frame.CastBarMsq:SetAllPoints(frame.CastBar)
+        end
 
-        --addToMasque(frame.FrameMsq, sArenaFrame)
+        if frame.FrameMsq then addToMasque(frame.FrameMsq, sArenaFrame) end
         addToMasque(frame.ClassIconMsq, sArenaClass)
         addToMasque(frame.SpecIconMsq, sArenaSpecIcon)
         addToMasque(frame.TrinketMsq, sArenaTrinket)
@@ -102,7 +107,7 @@ function sArenaMixin:AddMasqueSupport()
         if sArenaDispel then
             addToMasque(frame.DispelMsq, sArenaDispel)
         end
-        --addToMasque(frame.CastBarMsq, sArenaCastbar)
+        if frame.CastBarMsq then addToMasque(frame.CastBarMsq, sArenaCastbar) end
         MsqSkinIcon(frame.CastBar, sArenaCastbarIcon)
 
         frame.CastBar.MSQ:SetFrameStrata("DIALOG")
