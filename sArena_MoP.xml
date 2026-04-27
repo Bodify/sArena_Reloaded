@@ -286,7 +286,7 @@
                     </Cooldown>
                 </Frames>
             </Frame>
-            <Frame parentKey="SpecIcon" frameLevel="12" enablemouse="true" movable="true">
+            <Frame parentKey="SpecIcon" frameStrata="MEDIUM" frameLevel="50" enablemouse="true" movable="true">
                 <Layers>
                     <Layer level="ARTWORK" textureSubLevel="2">
                         <Texture parentKey="Texture" setAllPoints="true"/>
