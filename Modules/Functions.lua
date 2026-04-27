@@ -21,6 +21,22 @@ local function FindPartyFrame(i)
         return _G["Grid2LayoutHeader1UnitButton" .. i]
     elseif C_AddOns.IsAddOnLoaded("VuhDo") then
         return _G["Vd1H" .. i]
+	elseif (C_AddOns.IsAddOnLoaded("ShadowedUnitFrames") and ShadowUF.db) then
+		-- Checking if player is shown in party group by selecting the "Show Player in party" option
+		local showPlayerInParty = ShadowUF.db.profile.units.party.showPlayer
+		-- If player is shown in party, just return default SUF PartyFrames
+		if showPlayerInParty then
+			return _G["SUFHeaderpartyUnitButton" .. i]
+		end
+		-- Otherwise, there's no player frame in the SUF Partyframes group
+		-- Still need to verify that playerframe exists, users can disable playerframe for party and use some other playerframe addon
+		-- In which case we wouldn't be able to support it (since we don't know what they use for playerframe), but at least it wouldnt throw errors
+		if (_G["SUFUnitplayer"] and i == 1) then
+			return _G["SUFUnitplayer"]
+		end
+		-- Every other partymember will be shifted upwards by 1, SUF would basically start at frame2
+        -- From testing, the sorting order doesnt matter, SUF still calls them sequentially from 1 to 4
+		return _G["SUFHeaderpartyUnitButton" .. i - 1]
     else
         local EM = EditModeManagerFrame
         if EM and EM.UseRaidStylePartyFrames and EM:UseRaidStylePartyFrames() then
