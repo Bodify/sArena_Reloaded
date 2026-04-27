@@ -1,3 +1,7 @@
+# sArena Reloaded 2.4.7d
+### Tweak
+- Update Dissonance profle (www.twitch.tv/dissonancewow)
+
 # sArena Reloaded 2.4.7c
 ## Tweak
 - Added Arena Target Indicator support for ElvUI, Cell, Grid2, DandersFrames, VuhDo and default Blizzard non-raidstyle PartyFrames. If theres an addon you miss let me know.
