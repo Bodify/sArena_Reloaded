@@ -910,6 +910,7 @@ function sArenaMixin:SetLayout(_, layout)
     self:UpdateCDTextVisibility()
     self:UpdateCastbarVisibility()
     self:ApplyAllClickActions()
+    self:UpdateCooldownSwipeColor()
 
     self.optionsTable.args.layoutSettingsGroup.args = self.layouts[layout].optionsTable and self.layouts[layout].optionsTable or emptyLayoutOptionsTable
     LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")

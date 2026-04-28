@@ -1598,3 +1598,30 @@ function sArenaFrameMixin:NormalEmpoweredCastbar()
 
     castBar.empoweredFix = true
 end
+
+function sArenaMixin:UpdateCooldownSwipeColor()
+    local color = self.db.profile.cooldownSwipeColor or { 0, 0, 0, 0.55 }
+    local r, g, b, a = color[1] or 0, color[2] or 0, color[3] or 0, color[4] or 0.55
+
+    for i = 1, self.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        if frame then
+            frame.ClassIcon.Cooldown:SetSwipeColor(r, g, b, a)
+            frame.Trinket.Cooldown:SetSwipeColor(r, g, b, a)
+            frame.Racial.Cooldown:SetSwipeColor(r, g, b, a)
+            if frame.Dispel and frame.Dispel.Cooldown then
+                frame.Dispel.Cooldown:SetSwipeColor(r, g, b, a)
+            end
+
+            local useDrFrames = frame.drFrames ~= nil
+            local drList = frame.drFrames or self.drCategories
+            local drCount = drList and #drList or 0
+            for n = 1, drCount do
+                local dr = useDrFrames and drList[n] or frame[drList[n]]
+                if dr and dr.Cooldown then
+                    dr.Cooldown:SetSwipeColor(r, g, b, a)
+                end
+            end
+        end
+    end
+end

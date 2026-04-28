@@ -63,6 +63,7 @@ sArenaMixin.defaultSettings = {
         },
         layoutSettings = {},
         invertClassIconCooldown = true,
+        cooldownSwipeColor = { 0, 0, 0, 0.55 },
         stealthAlpha = 0.4,
         rangeCheckSpellsPerSpec = {},
         rangeCheck = {

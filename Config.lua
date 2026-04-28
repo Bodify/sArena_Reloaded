@@ -4589,6 +4589,9 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
     local disableDRSwipe = self.db.profile.disableDRSwipe
     local reverseDR = self.db.profile.invertDRCooldown
 
+    local swipeColor = self.db.profile.cooldownSwipeColor or { 0, 0, 0, 0.55 }
+    local swipeR, swipeG, swipeB, swipeA = swipeColor[1] or 0, swipeColor[2] or 0, swipeColor[3] or 0, swipeColor[4] or 0.55
+
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         if not frame then return end
@@ -4616,7 +4619,7 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
                 local borderSize = (db.drBorderGlowOff and 1.5) or (db.brightDRBorder and 1) or db.borderSize or 1
                 dr.Border:SetPoint("TOPLEFT", dr, "TOPLEFT", -borderSize, borderSize)
                 dr.Border:SetPoint("BOTTOMRIGHT", dr, "BOTTOMRIGHT", borderSize, -borderSize)
-                dr.Cooldown:SetSwipeColor(0, 0, 0, 0.55)
+                dr.Cooldown:SetSwipeColor(swipeR, swipeG, swipeB, swipeA)
 
                 local text = dr.Cooldown.Text
                 local fontToUse = text.fontFile
@@ -5816,6 +5819,25 @@ else
                                 type = "group",
                                 inline = true,
                                 args = {
+                                    cooldownSwipeColor = {
+                                        order = -1,
+                                        name = L["Option_CooldownSwipeColor"],
+                                        desc = L["Option_CooldownSwipeColor_Desc"],
+                                        type = "color",
+                                        hasAlpha = true,
+                                        get = function(info)
+                                            local c = info.handler.db.profile.cooldownSwipeColor or { 0, 0, 0, 0.55 }
+                                            return c[1] or 0, c[2] or 0, c[3] or 0, c[4] or 0.55
+                                        end,
+                                        set = function(info, r, g, b, a)
+                                            info.handler.db.profile.cooldownSwipeColor = { r, g, b, a }
+                                            info.handler:UpdateCooldownSwipeColor()
+                                            local layoutdb = info.handler.layoutdb
+                                            if layoutdb and layoutdb.dr then
+                                                info.handler:UpdateDRSettings(layoutdb.dr)
+                                            end
+                                        end,
+                                    },
                                     disableSwipeEdge = {
                                         order = 0,
                                         name = L["Option_DisableCooldownSwipeEdge"],
