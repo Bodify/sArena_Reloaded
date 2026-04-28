@@ -297,7 +297,7 @@
                 </Layers>
             </Frame>
 
-            <Frame parentKey="WidgetOverlay" frameLevel="10" setAllPoints="true">
+            <Frame parentKey="WidgetOverlay" frameStrata="MEDIUM" frameLevel="50" setAllPoints="true">
                 <Frames>
                     <Frame parentKey="targetIndicator" inherits="sArenaWidgetFrameTemplate">
                         <KeyValues>
