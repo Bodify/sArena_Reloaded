@@ -671,43 +671,25 @@ function sArenaFrameMixin:UpdateArenaTargets(unit)
 
     if not unit or not UnitExists(unit) then return end
 
-    if isMidnight then
-        for i = 1, 4 do
-            local partyUnit = "party" .. i
-            local indicator = self.WidgetOverlay["partyTarget" .. i]
-            local isTarget = UnitIsProbablyUnit(partyUnit .. "target", unit)--UnitIsUnit(partyUnit .. "target", unit)
-            local class = select(2, UnitClass(partyUnit))
+    local targets = {}
+    local UnitIsUnitSafe = isMidnight and UnitIsProbablyUnit or UnitIsUnit
+    for i = 1, 4 do
+        if UnitIsUnitSafe("party" .. i .. "target", unit) then
+            table.insert(targets, "party" .. i)
+        end
+    end
+
+    for i = 1, 4 do
+        local indicator = self.WidgetOverlay["partyTarget" .. i]
+        if targets[i] then
+            local class = select(2, UnitClass(targets[i]))
             if class then
                 local color = RAID_CLASS_COLORS[class]
                 indicator.Texture:SetVertexColor(color.r, color.g, color.b)
             end
-            if isTarget ~= nil then
-                indicator:Show()
-                indicator:SetAlphaFromBoolean(isTarget, 1, 0)
-            else
-                indicator:Hide()
-            end
-        end
-    else
-        local targets = {}
-        for i = 1, 4 do
-            if UnitIsUnit("party" .. i .. "target", unit) then
-                table.insert(targets, "party" .. i)
-            end
-        end
-
-        for i = 1, 4 do
-            local indicator = self.WidgetOverlay["partyTarget" .. i]
-            if targets[i] then
-                local class = select(2, UnitClass(targets[i]))
-                if class then
-                    local color = RAID_CLASS_COLORS[class]
-                    indicator.Texture:SetVertexColor(color.r, color.g, color.b)
-                end
-                indicator:Show()
-            else
-                indicator:Hide()
-            end
+            indicator:Show()
+        else
+            indicator:Hide()
         end
     end
 end
@@ -792,30 +774,13 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
                     indicator:SetAlpha(1)
                 end
             else
-            local partyUnit = partyFrame.unit or partyFrame:GetAttribute("unit")
-            if partyUnit and UnitExists(partyUnit) then
-                if isMidnight then
-                    for j = 1, self.maxArenaOpponents do
-                        local arenaUnit = "arena" .. j
-                        local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
-                        local isTarget = UnitIsProbablyUnit(arenaUnit .. "target", partyUnit)--UnitExists(arenaUnit) and UnitIsUnit(arenaUnit .. "target", partyUnit)
-                        local class = select(2, UnitClass(arenaUnit))
-                        if class then
-                            local color = RAID_CLASS_COLORS[class]
-                            indicator.Texture:SetVertexColor(color.r, color.g, color.b)
-                        end
-                        if isTarget ~= nil then
-                            indicator:Show()
-                            indicator:SetAlphaFromBoolean(isTarget, 1, 0)
-                        else
-                            indicator:Hide()
-                        end
-                    end
-                else
+                local partyUnit = partyFrame.unit or partyFrame:GetAttribute("unit")
+                if partyUnit and UnitExists(partyUnit) then
                     local attackers = {}
+                    local UnitIsUnitSafe = isMidnight and UnitIsProbablyUnit or UnitIsUnit
                     for j = 1, self.maxArenaOpponents do
                         local arenaUnit = "arena" .. j
-                        if UnitExists(arenaUnit) and UnitIsUnit(arenaUnit .. "target", partyUnit) then
+                        if UnitExists(arenaUnit) and UnitIsUnitSafe(arenaUnit .. "target", partyUnit) then
                             table.insert(attackers, arenaUnit)
                         end
                     end
@@ -833,12 +798,11 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
                             indicator:Hide()
                         end
                     end
+                else
+                    for j = 1, self.maxArenaOpponents do
+                        partyFrame.WidgetOverlay["arenaTarget" .. j]:Hide()
+                    end
                 end
-            else
-                for j = 1, self.maxArenaOpponents do
-                    partyFrame.WidgetOverlay["arenaTarget" .. j]:Hide()
-                end
-            end
             end
         end
     end
