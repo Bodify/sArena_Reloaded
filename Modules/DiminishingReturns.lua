@@ -1,4 +1,6 @@
 local drCategories = sArenaMixin.drCategories
+local isMidnight = sArenaMixin.isMidnight
+local L = sArenaMixin.L
 
 function sArenaFrameMixin:ResetDRCooldownTextColors()
 	local useDrFrames = self.drFrames ~= nil
@@ -68,13 +70,26 @@ function sArenaFrameMixin:ResetDR()
 	end
 end
 
-if sArenaMixin.isMidnight then return end
+local drTime = (isMidnight and 16.1) or 20
+function sArenaMixin:UpdateDRTimeSetting()
+	if isMidnight and not self.db.profile.drResetTimeFixMidnight then
+		self.db.profile.drResetTime = 16.1
+		self.db.profile.drResetTimeFixMidnight = true
+		StaticPopupDialogs["SARENA_DR_LEEWAY_ADJUSTMENT"] = {
+			text = sArenaMixin.popupHeader .. L["DR_LeewayAdjustment_Info"],
+			button1 = OKAY,
+			timeout = 0,
+			whileDead = true,
+		}
+		C_Timer.After(5, function()
+			StaticPopup_Show("SARENA_DR_LEEWAY_ADJUSTMENT")
+		end)
+	end
+    drTime = self.db.profile.drResetTime or (isMidnight and 16.1 or 20)
+end
 
-local isRetail = sArenaMixin.isRetail
--- DR's are static 18 seconds on Retail and dynamic 15-20 on MoP.
--- 0.5 leeway is added for Retail
--- Can be changed in gui, /sarena
-local drTime = (isRetail and 18.5) or 20 -- ^^^^^^^^^^^^
+if isMidnight then return end
+
 local drList = sArenaMixin.drList
 local severityColor = {
 	[1] = { 0, 1, 0, 1 },
@@ -84,15 +99,6 @@ local severityColor = {
 
 local GetTime = GetTime
 local GetSpellTexture = GetSpellTexture or C_Spell.GetSpellTexture
-
-function sArenaMixin:UpdateDRTimeSetting()
-	if not self.db.profile.drResetTimeFix then
-		self.db.profile.drResetTime = (isRetail and 18.5 or 20)
-		self.db.profile.drResetTimeFix = true
-		self.db.profile.drResetTimeDEL = nil
-	end
-    drTime = self.db.profile.drResetTime or (isRetail and 18.5 or 20)
-end
 
 function sArenaFrameMixin:FindDR(combatEvent, spellID)
 	local category = drList[spellID]

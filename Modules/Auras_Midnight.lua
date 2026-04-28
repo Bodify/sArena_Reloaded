@@ -58,6 +58,7 @@ end
 function sArenaFrameMixin:FindAura(updateInfo)
     if self.disabledAuras then
         self:UpdateClassIcon()
+        self:SetAuraHighlightActive()
         return
     end
     if not UnitExists(self.unit) then

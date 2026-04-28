@@ -1157,7 +1157,7 @@ function sArenaMixin:UpdateCastbarVisibility()
     if hide then
         self.hiddenCastbars = true
         for i = 1, self.maxArenaOpponents do
-            local frame = isMidnight and _G["sArenaEnemyFrame" .. i] or self["arena" .. i]
+            local frame = self["arena" .. i]
             if frame and frame.CastBar then
                 frame.CastBar:SetParent(self.hiddenFrame)
                 if isMidnight and frame.midnightCastBarMoveFrame then
@@ -1169,7 +1169,7 @@ function sArenaMixin:UpdateCastbarVisibility()
         if not self.hiddenCastbars then return end
         self.hiddenCastbars = nil
         for i = 1, self.maxArenaOpponents do
-            local frame = isMidnight and _G["sArenaEnemyFrame" .. i] or self["arena" .. i]
+            local frame = self["arena" .. i]
             if frame and frame.CastBar then
                 frame.CastBar:SetParent(frame)
                 if isMidnight and frame.midnightCastBarMoveFrame then
@@ -1261,6 +1261,15 @@ function sArenaMixin:InitializeMidnightDRFrames()
                     end)
 
                     hooksecurefunc(blizzDRFrame, "Hide", function()
+                        if sArenaDRFrame.Cooldown:IsShown() then return end
+                        sArenaDRFrame.Icon:SetTexture(nil)
+                        sArenaDRFrame.Cooldown:Clear()
+                        sArenaDRFrame:Hide()
+                        sArenaDRFrame.DRSeverity = 0
+                        arenaFrame:UpdateDRPositions()
+                    end)
+
+                    sArenaDRFrame.Cooldown:HookScript("OnCooldownDone", function()
                         sArenaDRFrame.Icon:SetTexture(nil)
                         sArenaDRFrame.Cooldown:Clear()
                         sArenaDRFrame:Hide()
@@ -1270,9 +1279,9 @@ function sArenaMixin:InitializeMidnightDRFrames()
 
                     hooksecurefunc(blizzDRFrame.Cooldown, "SetCooldown", function(_, start, duration)
                         sArenaDRFrame:Show()
-                        sArenaDRFrame.Cooldown:SetCooldown(GetTime(), 16.1)
+                        sArenaDRFrame.Cooldown:SetCooldown(GetTime(), self.db.profile.drResetTime or 16.1)
                         sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
-                        sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), 16.1)
+                        sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), self.db.profile.drResetTime or 16.1)
                     end)
 
                     local green = CreateColor(0, 1, 0, 1)
@@ -1296,7 +1305,7 @@ function sArenaMixin:InitializeMidnightDRFrames()
                                 sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), duration)
                                 sArenaDRFrame.DRSeverity = 2
                             else
-                                local duration = drBugFixLonger and 19.7 or drBugFixMidnight and 19.1 or 18
+                                local duration = drBugFixLonger and 19.9 or drBugFixMidnight and 19.3 or 18
                                 sArenaDRFrame.Cooldown:SetCooldown(GetTime(), duration)
                                 sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
                                 sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), duration)

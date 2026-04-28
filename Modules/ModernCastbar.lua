@@ -19,7 +19,7 @@ function sArenaMixin:ModernOrClassicCastbar()
 
     if isMidnight then
         for i = 1, self.maxArenaOpponents do
-            local frame = _G["sArenaEnemyFrame" .. i]
+            local frame = self["arena" .. i]
             local newBar = frame.CastBar
 
             if useModern then
@@ -90,7 +90,7 @@ function sArenaMixin:ModernOrClassicCastbar()
                 self:UpdateFonts()
             end
             local fontName, s = frame.CastBar.Text:GetFont()
-            frame.CastBar.Text:SetFont(fontName, s, "THINOUTLINE")
+            frame.CastBar.Text:SetFont(fontName, s, "OUTLINE")
             self:SetupDrag(frame.CastBar, frame.CastBar, "castBar", "UpdateCastBarSettings")
             frame.CastBar:SetFrameLevel(7)
         end
@@ -98,7 +98,7 @@ function sArenaMixin:ModernOrClassicCastbar()
         local currentLayout = self.layouts[db.profile.currentLayout]
         if currentLayout and currentLayout.UpdateOrientation then
             for i = 1, self.maxArenaOpponents do
-                local frame = _G["sArenaEnemyFrame" .. i]
+                local frame = self["arena" .. i]
                 if frame then
                     currentLayout:UpdateOrientation(frame)
                 end
@@ -106,7 +106,7 @@ function sArenaMixin:ModernOrClassicCastbar()
         end
     else
         for i = 1, self.maxArenaOpponents do
-            local frame = _G["sArenaEnemyFrame" .. i]
+            local frame = self["arena" .. i]
             if (frame and useModern) or frame.CastBar.__modernHooked then
                 local unit = "arena"..i
                 self:ApplyCastbarStyle(frame, unit, useModern, simpleCastbar)
@@ -115,7 +115,7 @@ function sArenaMixin:ModernOrClassicCastbar()
                     self:UpdateFonts()
                 end
                 local fontName, s = frame.CastBar.Text:GetFont()
-                frame.CastBar.Text:SetFont(fontName, s, "THINOUTLINE")
+                frame.CastBar.Text:SetFont(fontName, s, "OUTLINE")
                 self:SetupDrag(frame.CastBar, frame.CastBar, "castBar", "UpdateCastBarSettings")
                 frame.CastBar:SetFrameLevel(7)
             end
@@ -124,7 +124,7 @@ function sArenaMixin:ModernOrClassicCastbar()
         local currentLayout = self.layouts[db.profile.currentLayout]
         if currentLayout and currentLayout.UpdateOrientation then
             for i = 1, self.maxArenaOpponents do
-                local frame = _G["sArenaEnemyFrame" .. i]
+                local frame = self["arena" .. i]
                 if frame then
                     currentLayout:UpdateOrientation(frame)
                 end
@@ -358,10 +358,7 @@ end
 local function GetCastbarTargetName(unit)
     if isMidnight then
         local name = UnitSpellTargetName(unit)
-        if not name then
-            name = UnitName(unit .. "target")
-        end
-        if not name then return nil, nil end
+        if not name then return end
 
         local class = UnitSpellTargetClass(unit)
         if not class then
@@ -370,14 +367,14 @@ local function GetCastbarTargetName(unit)
         return name, class
     else
         local name = UnitName(unit .. "target")
-        if not name then return nil, nil end
+        if not name then return end
         local _, class = UnitClass(unit .. "target")
         return name, class
     end
 end
 
 local function GetColoredTargetString(name, class)
-    if not name then return nil end
+    if not name then return end
     if class then
         local color = C_ClassColor and C_ClassColor.GetClassColor(class) or RAID_CLASS_COLORS[class]
         if color then

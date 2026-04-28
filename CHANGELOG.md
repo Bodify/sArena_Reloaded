@@ -1,3 +1,12 @@
+# sArena Reloaded 2.4.9
+### New
+- Midnight: Added back DR leeway adjustments (due to Blizzard bug). Tldr is Blizzards DR frames can sometimes be inaccurate by around 0.3sec. This lets you set a safer value than the original intended 16 seconds. By default its set to 16.1 but 16.3 might be safer. (Global -> Diminishing Returns)
+### Tweak
+- Tweak frame strata & levels of stuff.
+- Make sure statusbar text is hidden between shuffle rounds on all frames.
+### Bugfix
+- Fix Aura Highlights potentially getting stuck on between shuffle rounds in spawn room if class icon was set to hidden.
+
 # sArena Reloaded 2.4.8
 ### New
 - Cooldown Swipe Color setting (Global -> Cooldown Swipe Color)

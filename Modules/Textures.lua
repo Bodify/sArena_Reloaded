@@ -11,7 +11,7 @@ function sArenaMixin:CheckClassStacking()
 
     -- Count all players by class and track which classes have healers
     for i = 1, self.maxArenaOpponents do
-        local frame = _G["sArenaEnemyFrame"..i]
+        local frame = self["arena"..i]
         if frame.class then
             classCount[frame.class] = (classCount[frame.class] or 0) + 1
             if frame.isHealer then
@@ -77,7 +77,7 @@ function sArenaMixin:UpdateTextures()
     self:UpdateCastbarColors()
 
     for i = 1, self.maxArenaOpponents do
-        local frame = _G["sArenaEnemyFrame" .. i]
+        local frame = self["arena" .. i]
         local textureToUse = dpsTexture
 
         if frame.isHealer then

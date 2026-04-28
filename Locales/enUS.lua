@@ -587,7 +587,11 @@ L["Masque_Extra_Reload_Desc"] = sArenaMixin.popupHeader.."This setting requires 
 L["Option_RemoveUnEquippedTrinketTexture"] = "Remove Un-Equipped Trinket Texture"
 L["Option_DesaturateTrinketCD"] = "Desaturate Trinket CD"
 L["Option_DesaturateDispelCD"] = "Desaturate Dispel CD"
+L["DR_LeewayAdjustment_Title"] = "|cffff8000Important Read|r"
+L["DR_LeewayAdjustment_Info"] = "|A:services-icon-warning:20:20|a |cffff8800Important read|r |A:services-icon-warning:20:20|a\nAdded DR leeway adjustments to settings (Global -> Diminishing Returns).\n\nSeems to be a Blizzard bug on Midnight that DR reset time sometimes can be off by around 0.1-0.3 seconds.\n\nsArena's default will be 16.1s but 16.3s might be the safest bet.\n\nIf you havent noticed any issues no need to change anything. If you have then consider increasing this setting.\n\nIdk man, Midnight."
 L["Option_DRResetTime"] = "DR Reset Time"
+L["Option_DRResetTime_Desc_Midnight"] = "Blizzard uses a 16 seconds timer from when a CC ends to reset the DR.\n\nBy default sArena has a 0.1 leeway added so a total of 16.1 seconds.\n\nThis is mainly to work around a Blizzard bug of DR's sometimes not properly resetting exactly at 16 seconds but also to allow a little bit of leeway generally speaking."
+L["Option_DRResetTime_Desc"] = "Blizzard uses a dynamic timer for DR resets, ranging between 15 and 20 seconds.\n\nSetting this to 20 seconds is the safest option, but you can lower it slightly (e.g., 18.5) for more aggressive tracking."
 L["Option_ShowDecimalsOnDRs"] = "Show Decimals on DR's"
 L["Option_ColorDRCooldownText"] = "Color DR Cooldown Text by Severity"
 L["Option_ColorDRCooldownText_Desc"] = "Colors the DR cooldown countdown text based on diminishing return severity.\n\n|cff00ff00Green|r for ½ diminish\n|cffffff00Yellow|r for ¼ diminish\n|cffff0000Red|r for immune"
@@ -701,7 +705,7 @@ L["Reload_Warning"] = "|A:services-icon-warning:20:20|a |cffff3300Reload Require
 L["Reload_Explanation"] = "sArena requires \"Arena Frames\" enabled in Edit Mode.\n\nThey have been enabled for you automatically now, but the UI requires a reload to avoid issues.\n|cff888888(The default arena frames will not show, just needs to be enabled)|r"
 L["Error_EditModeAccountSettings"] = "Could not find Edit Mode Account Settings. Risk of sArena not working properly. Report to @bodify"
 L["ElvUI_ArenaFrames_Fix"] = "ElvUI was configured to disable the default arena frames, which causes issues with sArena Reloaded. This has been corrected automatically but a reload is required for it to take effect."
-L["DR_MidnightDisclaimer"] = "|A:services-icon-warning:20:20|a |cffff8800The DR system on Midnight is a temporary solution until I have time to work on a better one. The current system comes with a lot of restrictions due to Midnight and some sliders and settings are disabled and grayed out because of that.|r |A:services-icon-warning:20:20|a\n\nIf you want to change DR icons you will have to do that via texture replacements atm. For info on that check pinned messages in the sArena Reloaded channel on my Discord (link on CurseForge)."
+L["DR_MidnightDisclaimer"] = "|A:services-icon-warning:20:20|a |cffff8800If you want to change DR icons you will have to do that via texture replacements atm. For info on that check pinned messages in the sArena Reloaded channel on my Discord (link on CurseForge)|r |A:services-icon-warning:20:20|a"
 
 ---------------------------------------
 -- Click Actions

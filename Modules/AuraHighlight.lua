@@ -51,16 +51,16 @@ function sArenaFrameMixin:CreateAuraHighlight()
     local classIcon = self.ClassIcon
 
     local highlight = CreateFrame("Frame", nil, self)
-    highlight:SetFrameStrata("HIGH")
-    highlight:SetFrameLevel(8)
+    highlight:SetFrameStrata("MEDIUM")
+    highlight:SetFrameLevel(49)
     self.AuraHighlights = highlight
 
     local classIconGlow = CreateFrame("Frame", nil, highlight)
-    classIconGlow:SetFrameStrata("HIGH")
-    classIconGlow:SetFrameLevel(8)
+    classIconGlow:SetFrameStrata("MEDIUM")
+    classIconGlow:SetFrameLevel(49)
     classIconGlow:Hide()
 
-    local tex = classIconGlow:CreateTexture(nil, "OVERLAY", nil, 7)
+    local tex = classIconGlow:CreateTexture(nil, "OVERLAY", nil, 6)
     tex:SetTexture(defaultHighlightTexture)
     tex:SetAllPoints(classIconGlow)
     tex:SetDesaturated(true)
@@ -68,14 +68,14 @@ function sArenaFrameMixin:CreateAuraHighlight()
     highlight.ClassIconGlow = classIconGlow
 
     local classIconPixelGlow = CreateFrame("Frame", nil, highlight)
-    classIconPixelGlow:SetFrameStrata("HIGH")
-    classIconPixelGlow:SetFrameLevel(0)
+    classIconPixelGlow:SetFrameStrata("MEDIUM")
+    classIconPixelGlow:SetFrameLevel(48)
     classIconPixelGlow:SetAllPoints(classIcon)
     highlight.ClassIconPixelGlow = classIconPixelGlow
 
     local framePixelGlow = CreateFrame("Frame", nil, self)
-    framePixelGlow:SetFrameStrata("HIGH")
-    framePixelGlow:SetFrameLevel(0)
+    framePixelGlow:SetFrameStrata("MEDIUM")
+    framePixelGlow:SetFrameLevel(48)
     framePixelGlow:SetPoint("TOPLEFT", self.HealthBar, "TOPLEFT", 0, 0)
     framePixelGlow:SetPoint("BOTTOMRIGHT", self.PowerBar, "BOTTOMRIGHT", 0, 0)
     highlight.FramePixelGlow = framePixelGlow

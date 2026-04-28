@@ -6501,19 +6501,6 @@ else
                         name = L["Category_DiminishingReturns"],
                         type = "group",
                         args = {
-                            midnightDisclaimer = {
-                                order = 0,
-                                type = "description",
-                                name = isMidnight and L["DR_MidnightDisclaimer"] or "",
-                                fontSize = "medium",
-                                hidden = function() return not isMidnight end,
-                            },
-                            midnightDisclaimerSpacer = {
-                                order = 0.1,
-                                type = "description",
-                                name = " ",
-                                hidden = function() return not isMidnight end,
-                            },
                             drOptions = {
                                 order = 1,
                                 type = "group",
@@ -6523,17 +6510,14 @@ else
                                     drResetTime = {
                                         order = 1,
                                         name = L["Option_DRResetTime"],
-                                        hidden = function() return isMidnight end,
-                                        desc = isRetail and
-                                        "Blizzard no longer uses a dynamic timer for DR resets, it is 18 seconds\n\nBy default sArena has a 0.5 leeway added so a total of 18.5 seconds." or
-                                        "Blizzard uses a dynamic timer for DR resets, ranging between 15 and 20 seconds.\n\nSetting this to 20 seconds is the safest option, but you can lower it slightly (e.g., 18.5) for more aggressive tracking.",
+                                        desc = isMidnight and L["Option_DRResetTime_Desc_Midnight"] or L["Option_DRResetTime_Desc"],
                                         type = "range",
-                                        min = isRetail and 18 or 15,
-                                        max = 20,
+                                        min = isMidnight and 16 or 15,
+                                        max = isMidnight and 16.5 or 20,
                                         step = 0.1,
                                         width = "normal",
                                         get = function(info)
-                                            return info.handler.db.profile.drResetTime or (isRetail and 18.5 or 20)
+                                            return info.handler.db.profile.drResetTime or (isMidnight and 16.1 or 20)
                                         end,
                                         set = function(info, val)
                                             info.handler.db.profile.drResetTime = val
@@ -6545,7 +6529,6 @@ else
                                         type = "description",
                                         name = " ",
                                         width = "full",
-                                        hidden = function() return isMidnight end,
                                     },
                                     showDecimalsDR = {
                                         order = 2,
@@ -6790,6 +6773,13 @@ else
                                 type = "group",
                                 inline = true,
                                 args = {
+                                    midnightDisclaimer = {
+                                        order = 0,
+                                        type = "description",
+                                        name = isMidnight and L["DR_MidnightDisclaimer"] or "",
+                                        fontSize = "medium",
+                                        hidden = function() return not isMidnight end,
+                                    },
                                     drStaticIcons = {
                                         order = 1,
                                         name = L["Option_EnableStaticIcons"],

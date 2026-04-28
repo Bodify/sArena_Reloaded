@@ -186,7 +186,7 @@
         </Frames>
     </Frame>
 
-    <Frame name="sArenaWidgetFrameTemplate" enablemouse="true" movable="true" virtual="true" hidden="true">
+    <Frame name="sArenaWidgetFrameTemplate" frameStrata="MEDIUM" frameLevel="100" enablemouse="true" movable="true" virtual="true" hidden="true">
         <Layers>
             <Layer level="OVERLAY">
                 <Texture parentKey="Texture" setAllPoints="true"/>

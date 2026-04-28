@@ -41,7 +41,7 @@ function sArenaMixin:UpdateFonts()
         local og = self.ogFonts
         if og then
             for i = 1, self.maxArenaOpponents do
-                local f = _G["sArenaEnemyFrame"..i]
+                local f = self["arena"..i]
                 if f then
                     applyFont(f.Name,        og.Name)
                     applyFont(f.HealthText,  og.HealthText)
@@ -49,7 +49,7 @@ function sArenaMixin:UpdateFonts()
                     applyFont(f.PowerText,   og.PowerText)
                     applyFont(f.CastBar and f.CastBar.Text, og.CastBarText)
                     local fontName, s, o = f.CastBar.Text:GetFont()
-                    f.CastBar.Text:SetFont(fontName, s, "THINOUTLINE")
+                    f.CastBar.Text:SetFont(fontName, s, "OUTLINE")
                     if f.CastBar and f.CastBar.ArenaIDText then
                         applyFont(f.CastBar.ArenaIDText, og.CastBarIDText)
                         local _, cbSize = f.CastBar.Text:GetFont()
@@ -74,10 +74,10 @@ function sArenaMixin:UpdateFonts()
             self.ogFonts = nil
         else
             for i = 1, self.maxArenaOpponents do
-                local f = _G["sArenaEnemyFrame"..i]
+                local f = self["arena"..i]
                 if f then
                     local fontName, s, o = f.CastBar.Text:GetFont()
-                    f.CastBar.Text:SetFont(fontName, s, "THINOUTLINE")
+                    f.CastBar.Text:SetFont(fontName, s, "OUTLINE")
                 end
             end
         end

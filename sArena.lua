@@ -800,11 +800,10 @@ function sArenaMixin:Initialize()
     if not conflictType then
         self:InterruptTracker()
         self:DatabaseCleanup(db)
-        if not isMidnight then
-            self:UpdateDRTimeSetting()
-        else
+        if isMidnight then
             self:UpdateAuraPrioImportant()
         end
+        self:UpdateDRTimeSetting()
         self:UpdateDecimalThreshold()
         self:UpdateNoTrinketTexture()
         self:UpdateStealthAlpha()
@@ -1258,7 +1257,6 @@ function sArenaFrameMixin:OnLoad()
         pt.Texture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga")
         pt.Texture:SetDesaturated(true)
     end
-    self.WidgetOverlay.targetIndicator:SetFrameLevel(15)
     self.Trinket:SetFrameLevel(7)
 
     self.DispelStacks:SetParent(self.Dispel.Overlay)
@@ -2127,7 +2125,7 @@ function sArenaFrameMixin:ResetLayout()
     f = self.CastBar
     f.Icon:SetTexCoord(0, 1, 0, 1)
     local fontName,s,o = f.Text:GetFont()
-    f.Text:SetFont(fontName, s, "THINOUTLINE")
+    f.Text:SetFont(fontName, s, "OUTLINE")
 
     self.TexturePool:ReleaseAll()
 end
@@ -2173,10 +2171,8 @@ local function FormatLargeNumbers(value)
 end
 
 function sArenaFrameMixin:SetStatusText(unit)
-    if (self.hideStatusText) then
-        self.HealthText:SetFontObject("SystemFont_Shadow_Small2")
+    if (self.hideStatusText) or not (self.parent.engagedInMatch or self.parent.arenaMatchStarted) then
         self.HealthText:SetText("")
-        self.PowerText:SetFontObject("SystemFont_Shadow_Small2")
         self.PowerText:SetText("")
         return
     end
