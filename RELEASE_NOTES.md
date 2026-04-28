@@ -1,3 +1,12 @@
+# sArena Reloaded 2.4.8
+### New
+- Cooldown Swipe Color setting (Global -> Cooldown Swipe Color)
+### Tweak
+- Support for ShadowedUnitFrames partyframes for Party/Arena Targets by void-ow@GitHub. Thank you!
+- Update Dissonance profle (www.twitch.tv/dissonancewow)
+- Tweak Spec Icon Button and Widgets FrameStrata & Levels (to avoid it showing on top of talent frame for example)
+- Midnight: Tweak handling of Party/Arena Targets so icons properly stack in one direction (no gaps or starting in wrong end)
+
 # sArena Reloaded 2.4.7c
 ## Tweak
 - Added Arena Target Indicator support for ElvUI, Cell, Grid2, DandersFrames, VuhDo and default Blizzard non-raidstyle PartyFrames. If theres an addon you miss let me know.
