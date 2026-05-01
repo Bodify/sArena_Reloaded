@@ -1309,7 +1309,7 @@ function sArenaMixin:Test()
         t:SetFontObject("GameFontHighlightLarge")
         t:SetFont(self.pFont, 12, "OUTLINE")
         t:SetText("|T132961:16|t "..L["Drag_Hint"])
-        t:SetPoint("BOTTOM", topFrame, "TOP", 17, 17)
+        f.Hint = t
 
         local bg = f:CreateTexture(nil, "BACKGROUND", nil, -1)
         bg:SetPoint("TOPLEFT", t, "TOPLEFT", -6, 4)
@@ -1364,6 +1364,8 @@ function sArenaMixin:Test()
         self:SetupDrag(self.TestTitle, self, nil, "UpdateFrameSettings")
     end
 
+    self.TestTitle.Hint:ClearAllPoints()
+    self.TestTitle.Hint:SetPoint("BOTTOM", topFrame, "TOP", 17, 17)
     self.TestTitle:Show()
 
     self:UpdateTextures()
