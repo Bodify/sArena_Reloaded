@@ -141,6 +141,7 @@ function sArenaFrameMixin:FindAura()
 
             if keyAura then
 
+                -- Number check to allow old custom code using [spellID] = priority to still work.
                 local priority = type(keyAura) == "number" and keyAura or keyAura[1]
                 local auraCategory = type(keyAura) == "table" and keyAura[2] or nil
                 local duration = aura.duration or 0
