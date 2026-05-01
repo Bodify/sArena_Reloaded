@@ -108,6 +108,19 @@ function sArenaFrameMixin:UpdateTrinket()
                                 end
                             end
                         end
+
+                        if db and db.profile.trinketUseGlow and (not db.profile.trinketUseGlowHealerOnly or self.isHealer) then
+                            local LCG = LibStub("LibCustomGlow-1.0", true)
+                            if LCG then
+                                local glowColor = db.profile.trinketUseGlowColorEnabled and db.profile.trinketUseGlowColor or nil
+                                LCG.ButtonGlow_Start(self.Trinket, glowColor)
+                                if self.trinketGlowTimer then self.trinketGlowTimer:Cancel() end
+                                self.trinketGlowTimer = C_Timer.NewTimer(1, function()
+                                    LCG.ButtonGlow_Stop(self.Trinket)
+                                    self.trinketGlowTimer = nil
+                                end)
+                            end
+                        end
                     end
                     if self.updateRacialOnTrinketSlot then
                         local racialDuration = self:GetRacialDuration()

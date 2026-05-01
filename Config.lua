@@ -6368,6 +6368,122 @@ else
                                     },
                                 },
                             },
+                            trinketGlow = {
+                                order = 1.5,
+                                name = L["Option_TrinketGlow"],
+                                type = "group",
+                                inline = true,
+                                args = {
+                                    trinketUseGlow = {
+                                        order = 1,
+                                        name = L["Option_TrinketUseGlow"],
+                                        desc = L["Option_TrinketUseGlow_Desc"],
+                                        type = "toggle",
+                                        width = 1.1,
+                                        get = function(info) return info.handler.db.profile.trinketUseGlow end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.trinketUseGlow = val
+                                            if val then
+                                                local LCG = LibStub("LibCustomGlow-1.0", true)
+                                                if LCG then
+                                                    local color = info.handler.db.profile.trinketUseGlowColorEnabled and info.handler.db.profile.trinketUseGlowColor or nil
+                                                    local healerOnly = info.handler.db.profile.trinketUseGlowHealerOnly
+                                                    for i = 1, info.handler.maxArenaOpponents do
+                                                        local frame = info.handler["arena" .. i]
+                                                        if frame and frame.Trinket and frame.Trinket:IsVisible() and (not healerOnly or frame.isHealer) then
+                                                            LCG.ButtonGlow_Start(frame.Trinket, color)
+                                                            if frame.trinketGlowTimer then frame.trinketGlowTimer:Cancel() end
+                                                            frame.trinketGlowTimer = C_Timer.NewTimer(1, function()
+                                                                LCG.ButtonGlow_Stop(frame.Trinket)
+                                                                frame.trinketGlowTimer = nil
+                                                            end)
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        end,
+                                    },
+                                    trinketUseGlowHealerOnly = {
+                                        order = 2,
+                                        name = L["Option_TrinketUseGlowHealerOnly"],
+                                        desc = L["Option_TrinketUseGlowHealerOnly_Desc"],
+                                        type = "toggle",
+                                        width = "normal",
+                                        disabled = function(info) return not info.handler.db.profile.trinketUseGlow end,
+                                        get = function(info) return info.handler.db.profile.trinketUseGlowHealerOnly end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.trinketUseGlowHealerOnly = val
+                                        end,
+                                    },
+                                    spacer = {
+                                        order = 2.5,
+                                        type = "description",
+                                        name = "",
+                                    },
+                                    trinketUseGlowColorEnabled = {
+                                        order = 3,
+                                        name = L["Option_TrinketUseGlowColorEnabled"],
+                                        desc = L["Option_TrinketUseGlowColorEnabled_Desc"],
+                                        type = "toggle",
+                                        width = "normal",
+                                        disabled = function(info) return not info.handler.db.profile.trinketUseGlow end,
+                                        get = function(info) return info.handler.db.profile.trinketUseGlowColorEnabled end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.trinketUseGlowColorEnabled = val
+                                            if info.handler.db.profile.trinketUseGlow then
+                                                local LCG = LibStub("LibCustomGlow-1.0", true)
+                                                if LCG then
+                                                    local healerOnly = info.handler.db.profile.trinketUseGlowHealerOnly
+                                                    local glowColor = val and info.handler.db.profile.trinketUseGlowColor or nil
+                                                    for i = 1, info.handler.maxArenaOpponents do
+                                                        local frame = info.handler["arena" .. i]
+                                                        if frame and frame.Trinket and frame.Trinket:IsVisible() and (not healerOnly or frame.isHealer) then
+                                                            LCG.ButtonGlow_Start(frame.Trinket, glowColor)
+                                                            if frame.trinketGlowTimer then frame.trinketGlowTimer:Cancel() end
+                                                            frame.trinketGlowTimer = C_Timer.NewTimer(1, function()
+                                                                LCG.ButtonGlow_Stop(frame.Trinket)
+                                                                frame.trinketGlowTimer = nil
+                                                            end)
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        end,
+                                    },
+                                    trinketUseGlowColor = {
+                                        order = 4,
+                                        name = L["Option_TrinketUseGlowColor"],
+                                        type = "color",
+                                        hasAlpha = true,
+                                        width = "normal",
+                                        disabled = function(info) return not info.handler.db.profile.trinketUseGlow or not info.handler.db.profile.trinketUseGlowColorEnabled end,
+                                        get = function(info)
+                                            local c = info.handler.db.profile.trinketUseGlowColor or { 1, 1, 1, 1 }
+                                            return c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 1
+                                        end,
+                                        set = function(info, r, g, b, a)
+                                            info.handler.db.profile.trinketUseGlowColor = { r, g, b, a }
+                                            if info.handler.db.profile.trinketUseGlow then
+                                                local LCG = LibStub("LibCustomGlow-1.0", true)
+                                                if LCG then
+                                                    local healerOnly = info.handler.db.profile.trinketUseGlowHealerOnly
+                                                    for i = 1, info.handler.maxArenaOpponents do
+                                                        local frame = info.handler["arena" .. i]
+                                                        if frame and frame.Trinket and frame.Trinket:IsVisible() and (not healerOnly or frame.isHealer) then
+                                                            LCG.ButtonGlow_Start(frame.Trinket, { r, g, b, a })
+                                                            if frame.trinketGlowTimer then frame.trinketGlowTimer:Cancel() end
+                                                            frame.trinketGlowTimer = C_Timer.NewTimer(1, function()
+                                                                LCG.ButtonGlow_Stop(frame.Trinket)
+                                                                frame.trinketGlowTimer = nil
+                                                            end)
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        end,
+                                    },
+                                },
+                            },
                             trinketColors = {
                                 order = 2,
                                 name = L["Option_ColorTrinket"],

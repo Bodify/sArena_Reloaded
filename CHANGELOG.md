@@ -1,3 +1,9 @@
+# sArena Reloaded 2.5.0
+## New
+- Trinket Glow: Adds a glow animation around the Trinket icon when it gets used. Settings in Global -> Trinket,
+## Tweak
+- Tweak lingo about Glad Tracker requirement being 2400 when its supposed to be 2300.
+
 # sArena Reloaded 2.4.9b
 ## New
 - Midnight: Glad Tracker (same as in BetterBlizzFrames). This will add tracking of your Arena/Shuffle/BG elite achievements to your honor panel and display number of wins and required for the achievement. One win above elite rating is required for it to display. It is enabled by default but can be turned off at the very bottom of Global -> Arena Frames -> Misc.

@@ -43,6 +43,7 @@ sArenaMixin.defaultSettings = {
         healerTrinketSoundName = "Lossa Trinket",
         healerTrinketSoundFileID = 0,
         trinketSoundChannel = "Master",
+        trinketUseGlowColor = { 1, 1, 1, 1 },
         darkModeValue = 0.2,
         desaturateTrinketCD = true,
         desaturateDispelCD = true,

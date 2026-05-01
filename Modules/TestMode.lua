@@ -843,6 +843,19 @@ function sArenaMixin:Test()
             frame.Trinket.Texture:SetDesaturated(false)
         end
 
+        if db.profile.trinketUseGlow and (not db.profile.trinketUseGlowHealerOnly or frame.isHealer) then
+            local LCG = LibStub("LibCustomGlow-1.0", true)
+            if LCG and frame.Trinket then
+                local glowColor = db.profile.trinketUseGlowColorEnabled and db.profile.trinketUseGlowColor or nil
+                LCG.ButtonGlow_Start(frame.Trinket, glowColor)
+                if frame.trinketGlowTimer then frame.trinketGlowTimer:Cancel() end
+                frame.trinketGlowTimer = C_Timer.NewTimer(1, function()
+                    LCG.ButtonGlow_Stop(frame.Trinket)
+                    frame.trinketGlowTimer = nil
+                end)
+            end
+        end
+
         frame.updateRacialOnTrinketSlot = shouldSwapRacialToTrinket
         local shouldShowRacial = false
 
