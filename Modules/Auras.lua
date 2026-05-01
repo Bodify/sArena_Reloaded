@@ -141,8 +141,8 @@ function sArenaFrameMixin:FindAura()
 
             if keyAura then
 
-                local priority = keyAura[1]
-                local auraCategory = keyAura[2]
+                local priority = type(keyAura) == "number" and keyAura or keyAura[1]
+                local auraCategory = type(keyAura) == "table" and keyAura[2] or nil
                 local duration = aura.duration or 0
                 local expirationTime = aura.expirationTime or 0
                 local texture = aura.icon
