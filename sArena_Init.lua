@@ -46,6 +46,7 @@ sArenaMixin.defaultSettings = {
         darkModeValue = 0.2,
         desaturateTrinketCD = true,
         desaturateDispelCD = true,
+        gladTracker = true,
         darkModeDesaturate = true,
         statusText = {
             alwaysShow = true,

@@ -6017,7 +6017,7 @@ else
                                         name = L["Option_EnableMasqueSupport"],
                                         desc = L["Masque_Support_Desc"],
                                         type = "toggle",
-                                        width = 1.1,
+                                        width = 1,
                                         get = function(info) return info.handler.db.profile.enableMasque end,
                                         set = function(info, val)
                                             info.handler.db.profile.enableMasque = val
@@ -6026,7 +6026,7 @@ else
                                         end
                                     },
                                     enableMasqueExtra = {
-                                        order = 1.3,
+                                        order = 1.2,
                                         name = L["Option_EnableMasqueExtraSupport"],
                                         desc = L["Masque_Extra_Support_Desc"],
                                         type = "toggle",
@@ -6039,12 +6039,6 @@ else
                                             sArena_ReloadedDB.reOpenOptions = true
                                             ReloadUI()
                                         end
-                                    },
-                                    masqueSpacer = {
-                                        order = 1.3,
-                                        type = "description",
-                                        name = "",
-                                        width = "full",
                                     },
                                     removeUnequippedTrinketTexture = {
                                         order = 2,
@@ -6089,6 +6083,18 @@ else
                                         get = function(info) return info.handler.db.profile.disableOvershields end,
                                         set = function(info, val)
                                             info.handler.db.profile.disableOvershields = val
+                                        end
+                                    },
+                                    gladTracker = {
+                                        order = 2.4,
+                                        name = L["Option_GladTracker"],
+                                        desc = L["Option_GladTracker_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        get = function(info) return info.handler.db.profile.gladTracker end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.gladTracker = val
+                                            info.handler:GladTracker()
                                         end
                                     },
                                 },

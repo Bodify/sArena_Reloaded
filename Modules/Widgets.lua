@@ -139,9 +139,9 @@ end
 local function UnitIsProbablyUnit(unit1, unit2)
     if not UnitExists(unit1) or not UnitExists(unit2) then return end
 
-    return select(2, UnitClass(unit1)) == select(2, UnitClass(unit2))
+    return UnitClassBase(unit1) == UnitClassBase(unit2)
        and UnitRace(unit1) == UnitRace(unit2)
-       and UnitSex(unit1) == UnitSex(unit2)
+       and UnitHonorLevel(unit1) == UnitHonorLevel(unit2)
 end
 
 function sArenaFrameMixin:UpdateTarget(unit)

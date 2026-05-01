@@ -179,6 +179,8 @@ L["Option_TrinketCircleBorder"] = "Trinket Circle Border"
 L["Option_TrinketCircleBorder_Desc"] = "Enable circular border for trinket icons"
 L["Option_DisableOvershields"] = "Disable Overshields"
 L["Option_DisableOvershields_Desc"] = "Disable absorbs showing backwards onto healthbar when absorbs exceeds max hp"
+L["Option_GladTracker"] = "Gladiator Tracker"
+L["Option_GladTracker_Desc"] = "Show gladiator/legend/strategist win progress on the Honor/Conquest panel where you queue. Requires one win above 2400 to show."
 
 ---------------------------------------
 -- Cast Bars
@@ -201,7 +203,7 @@ L["Castbar_ShowID"] = "Show Castbar ID"
 L["Castbar_ShowID_Desc"] = "Show castbar arenaID on the castbar to quickly distinguish which arena units castbar it is"
 L["Castbar_ShowTarget"] = "Show Castbar Targets"
 L["Castbar_ShowTarget_Desc"] = "Target text can be inaccurate on Classics. Only Midnight has new API showing the true target of a spell cast and on Classics it just checks who the player is targeting but a macro will circumvent that."
-L["Castbar_ShowTarget_Desc_Midnight"] = "Show the true target name of who the spell is being cast on on castbars."
+L["Castbar_ShowTarget_Desc_Midnight"] = "Show the true target name of who the spell is being cast on on castbars.\n\nTweak position and options in \"Text Settings\" section."
 L["Castbar_HighlightCastsOnMe"] = "Highlight Casts on Me"
 L["Castbar_HighlightCastsOnMe_Desc"] = "Highlight the castbar border when the enemy is casting a spell targeting you."
 L["Castbar_AnchorTargetInside"] = "Anchor text inside castbar"

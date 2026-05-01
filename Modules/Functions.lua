@@ -1180,6 +1180,33 @@ function sArenaMixin:UpdateCastbarVisibility()
     end
 end
 
+function sArenaMixin:UpdateCooldownSwipeColor()
+    local color = self.db.profile.cooldownSwipeColor or { 0, 0, 0, 0.55 }
+    local r, g, b, a = color[1] or 0, color[2] or 0, color[3] or 0, color[4] or 0.55
+
+    for i = 1, self.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        if frame then
+            frame.ClassIcon.Cooldown:SetSwipeColor(r, g, b, a)
+            frame.Trinket.Cooldown:SetSwipeColor(r, g, b, a)
+            frame.Racial.Cooldown:SetSwipeColor(r, g, b, a)
+            if frame.Dispel and frame.Dispel.Cooldown then
+                frame.Dispel.Cooldown:SetSwipeColor(r, g, b, a)
+            end
+
+            local useDrFrames = frame.drFrames ~= nil
+            local drList = frame.drFrames or self.drCategories
+            local drCount = drList and #drList or 0
+            for n = 1, drCount do
+                local dr = useDrFrames and drList[n] or frame[drList[n]]
+                if dr and dr.Cooldown then
+                    dr.Cooldown:SetSwipeColor(r, g, b, a)
+                end
+            end
+        end
+    end
+end
+
 -- Midnight only
 if not isMidnight then return end
 
@@ -1608,29 +1635,102 @@ function sArenaFrameMixin:NormalEmpoweredCastbar()
     castBar.empoweredFix = true
 end
 
-function sArenaMixin:UpdateCooldownSwipeColor()
-    local color = self.db.profile.cooldownSwipeColor or { 0, 0, 0, 0.55 }
-    local r, g, b, a = color[1] or 0, color[2] or 0, color[3] or 0, color[4] or 0.55
+function sArenaMixin:GladTracker()
+    if not (self.isMidnight and self.db and self.db.profile.gladTracker) or (self.gladTrackerOn or (BBF and BBF.GladTrackerOn)) then return end
 
-    for i = 1, self.maxArenaOpponents do
-        local frame = self["arena" .. i]
-        if frame then
-            frame.ClassIcon.Cooldown:SetSwipeColor(r, g, b, a)
-            frame.Trinket.Cooldown:SetSwipeColor(r, g, b, a)
-            frame.Racial.Cooldown:SetSwipeColor(r, g, b, a)
-            if frame.Dispel and frame.Dispel.Cooldown then
-                frame.Dispel.Cooldown:SetSwipeColor(r, g, b, a)
+    local function SetupGladTracker()
+        local function GetAchievementProgress(achievementID)
+            local num = GetAchievementNumCriteria(achievementID)
+            for i = 1, num do
+                local _, _, _, qty, req = GetAchievementCriteriaInfo(achievementID, i)
+                if req and req > 0 then
+                    return qty or 0, req
+                end
+            end
+            return 0, 0
+        end
+
+        -- map rows -> {id, name}
+        local tracked = {
+            [ConquestFrame.Arena3v3]         = { id = 61188, name = "Gladiator" },
+            [ConquestFrame.RatedSoloShuffle] = { id = 61190, name = "Legend" },
+            [ConquestFrame.RatedBGBlitz]     = { id = 61194, name = "Strategist" },
+        }
+
+        local function BuildTooltip(holder)
+            GameTooltip:SetOwner(holder, "ANCHOR_RIGHT")
+            GameTooltip:ClearLines()
+
+            local qty = holder._qty or 0
+            local req = holder._req or 0
+
+            if req > 0 and qty >= req then
+                local playerName = UnitName("player")
+                GameTooltip:AddLine(("%s %s!"):format(holder._name or "?", playerName), 1, 0.82, 0, true)
+                GameTooltip:AddLine("Has a nice ring to it, doesn't it?", 1, 1, 1, true)
+            else
+                GameTooltip:AddLine(("%d/%d %s Wins"):format(qty, req, holder._name or "?"), 1, 0.82, 0, true)
             end
 
-            local useDrFrames = frame.drFrames ~= nil
-            local drList = frame.drFrames or self.drCategories
-            local drCount = drList and #drList or 0
-            for n = 1, drCount do
-                local dr = useDrFrames and drList[n] or frame[drList[n]]
-                if dr and dr.Cooldown then
-                    dr.Cooldown:SetSwipeColor(r, g, b, a)
+            GameTooltip:AddLine("|cff777777By sArena Reloaded|r", 1, 1, 1, true)
+            GameTooltip:Show()
+        end
+
+        local function EnsureHolder(frame)
+            if frame.bbfGladWinTracker then return frame.bbfGladWinTracker end
+            local holder = CreateFrame("Button", nil, frame)
+            holder:SetPoint("LEFT", frame.CurrentRating, "RIGHT", 8, 0)
+            holder:SetAlpha(0.7)
+            holder:EnableMouse(true)
+            holder.text = holder:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+            holder.text:SetPoint("LEFT")
+            holder:SetScript("OnEnter", function(self) BuildTooltip(self) end)
+            holder:SetScript("OnLeave", function() GameTooltip:Hide() end)
+            frame.bbfGladWinTracker = holder
+            return holder
+        end
+
+        local function UpdateTrackedProgress()
+            for frame, data in pairs(tracked) do
+                if frame then
+                    local holder = EnsureHolder(frame)
+                    local qty, req = GetAchievementProgress(data.id)
+
+                    if req > 0 and qty > 0 then
+                        holder._qty, holder._req, holder._name = qty, req, data.name
+                        holder.text:SetText(qty .. "/" .. req)
+                        holder:SetSize(holder.text:GetStringWidth(), holder.text:GetStringHeight())
+                        holder:Show()
+                        if holder:IsMouseOver() then
+                            BuildTooltip(holder)
+                        end
+                    else
+                        holder.text:SetText("")
+                        holder._qty, holder._req, holder._name = 0, req or 0, data.name
+                        holder:SetSize(1, 1)
+                        if holder:IsMouseOver() then GameTooltip:Hide() end
+                        holder:Hide()
+                    end
                 end
             end
         end
+
+        ConquestFrame:HookScript("OnShow", UpdateTrackedProgress)
+        UpdateTrackedProgress()
     end
+
+    if C_AddOns.IsAddOnLoaded("Blizzard_PVPUI") then
+        SetupGladTracker()
+    else
+        local loader = CreateFrame("Frame")
+        loader:RegisterEvent("ADDON_LOADED")
+        loader:SetScript("OnEvent", function(self, _, addon)
+            if addon == "Blizzard_PVPUI" then
+                self:UnregisterEvent("ADDON_LOADED")
+                SetupGladTracker()
+            end
+        end)
+    end
+
+    self.gladTrackerOn = true
 end

@@ -1,10 +1,17 @@
+# sArena Reloaded 2.4.9b
+## New
+- Midnight: Glad Tracker (same as in BetterBlizzFrames). This will add tracking of your Arena/Shuffle/BG elite achievements to your honor panel and display number of wins and required for the achievement. One win above 2400 is required for it to display. It is enabled by default but can be turned off at the very bottom of Global -> Arena Frames -> Misc.
+## Bugfix
+- Fix new Cooldown Swipe Color setting on Classic versions of WoW causing a lua error due to the function accidentally being left out on Classic versions.
+- Fix potential errors caused from old custom code tweaking sArena's aura priority.
+
 # sArena Reloaded 2.4.9
-### New
+## New
 - Midnight: Added back DR leeway adjustments (due to Blizzard bug). Tldr is Blizzards DR frames can sometimes be inaccurate by around 0.3sec. This lets you set a safer value than the original intended 16 seconds. By default its set to 16.1 but 16.3 might be safer. (Global -> Diminishing Returns)
-### Tweak
+## Tweak
 - Tweak frame strata & levels of stuff.
 - Make sure statusbar text is hidden between shuffle rounds on all frames.
-### Bugfix
+## Bugfix
 - Fix Aura Highlights potentially getting stuck on between shuffle rounds in spawn room if class icon was set to hidden.
 
 # sArena Reloaded 2.4.8

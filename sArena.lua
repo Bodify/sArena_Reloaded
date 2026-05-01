@@ -620,6 +620,7 @@ function sArenaMixin:OnEvent(event, ...)
             C_CVar.SetCVar("spellDiminishPVPEnemiesEnabled", "1")
             self:EnsureArenaFramesEnabled()
             self:RegisterCVarListener()
+            self:GladTracker()
         end
         self:Initialize()
         if self:ConflictCheck() then return end
