@@ -256,6 +256,8 @@ function sArenaFrameMixin:UpdateAuraHighlightEnabled()
         end
         self:ApplyAuraHighlight()
     end
+
+    self:RefreshAuraHighlight()
 end
 
 function sArenaFrameMixin:RefreshAuraHighlight()
@@ -288,7 +290,6 @@ function sArenaMixin:RefreshAllAuraHighlights()
             frame:CreateAuraHighlight()
             frame:UpdateAuraHighlightLayout()
             frame:UpdateAuraHighlightEnabled()
-            frame:RefreshAuraHighlight()
             frame:SetUnitAuraRegistration()
         end
     end
