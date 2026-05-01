@@ -180,7 +180,7 @@ L["Option_TrinketCircleBorder_Desc"] = "Enable circular border for trinket icons
 L["Option_DisableOvershields"] = "Disable Overshields"
 L["Option_DisableOvershields_Desc"] = "Disable absorbs showing backwards onto healthbar when absorbs exceeds max hp"
 L["Option_GladTracker"] = "Gladiator Tracker"
-L["Option_GladTracker_Desc"] = "Show gladiator/legend/strategist win progress on the Honor/Conquest panel where you queue. Requires one win above 2400 to show."
+L["Option_GladTracker_Desc"] = "Show gladiator/legend/strategist win progress on the Honor/Conquest panel where you queue. Requires one win above elite rating to show."
 
 ---------------------------------------
 -- Cast Bars

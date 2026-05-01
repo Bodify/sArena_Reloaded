@@ -1,6 +1,6 @@
 # sArena Reloaded 2.4.9b
 ## New
-- Midnight: Glad Tracker (same as in BetterBlizzFrames). This will add tracking of your Arena/Shuffle/BG elite achievements to your honor panel and display number of wins and required for the achievement. One win above 2400 is required for it to display. It is enabled by default but can be turned off at the very bottom of Global -> Arena Frames -> Misc.
+- Midnight: Glad Tracker (same as in BetterBlizzFrames). This will add tracking of your Arena/Shuffle/BG elite achievements to your honor panel and display number of wins and required for the achievement. One win above elite rating is required for it to display. It is enabled by default but can be turned off at the very bottom of Global -> Arena Frames -> Misc.
 ## Bugfix
 - Fix new Cooldown Swipe Color setting on Classic versions of WoW causing a lua error due to the function accidentally being left out on Classic versions.
 - Fix potential errors caused from old custom code tweaking sArena's aura priority.
