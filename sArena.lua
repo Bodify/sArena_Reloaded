@@ -718,7 +718,7 @@ function sArenaMixin:OnEvent(event, ...)
             C_Timer.After(0.5, function()
                 self:HandleArenaStart()
             end)
-            if db.profile.shadowSightTimer and not IsSoloShuffle() then
+            if db and db.profile.shadowSightTimer and not IsSoloShuffle() then
                 self:StartShadowsightTimer(self.shadowsightStartTime)
             end
         end
@@ -731,7 +731,7 @@ function sArenaMixin:OnEvent(event, ...)
         end
     elseif event == "PVP_MATCH_STATE_CHANGED" or event == "PVP_MATCH_ACTIVE" then
         self:CheckMatchStatus(event)
-        if db.profile.shadowSightTimer and self.engagedInMatch and not IsSoloShuffle() then
+        if db and db.profile.shadowSightTimer and self.engagedInMatch and not IsSoloShuffle() then
             self:StartShadowsightTimer(self.shadowsightStartTime)
         end
     end
@@ -2189,7 +2189,7 @@ function sArenaFrameMixin:SetStatusText(unit)
     local pp = UnitPower(unit)
     local ppMax = UnitPowerMax(unit)
 
-    if (db.profile.statusText.usePercentage) then
+    if (db and db.profile.statusText.usePercentage) then
         if isMidnight then
             self.HealthText:SetFormattedText("%0.f%%", UnitHealthPercent(unit, nil, CurveConstants.ScaleTo100))
             self.PowerText:SetFormattedText("%0.f%%", UnitPowerPercent(unit, nil, nil, CurveConstants.ScaleTo100))
@@ -2207,7 +2207,7 @@ function sArenaFrameMixin:SetStatusText(unit)
             end
         end
     else
-        if db.profile.statusText.formatNumbers then
+        if (db and db.profile.statusText.formatNumbers) then
             if isMidnight then
                 self.HealthText:SetText(AbbreviateLargeNumbers(hp))
                 self.PowerText:SetText(AbbreviateLargeNumbers(pp))
@@ -2223,9 +2223,11 @@ function sArenaFrameMixin:SetStatusText(unit)
 end
 
 function sArenaFrameMixin:UpdateStatusTextVisible()
-    self.HealthText:SetShown(db.profile.statusText.alwaysShow)
-    self.PowerText:SetShown(db.profile.statusText.alwaysShow)
-    self.PowerText:SetAlpha(db.profile.hidePowerText and 0 or 1)
+    if db then
+        self.HealthText:SetShown(db.profile.statusText.alwaysShow)
+        self.PowerText:SetShown(db.profile.statusText.alwaysShow)
+        self.PowerText:SetAlpha(db.profile.hidePowerText and 0 or 1)
+    end
 end
 
 function sArenaMixin:CastbarOnEvent(castBar, event)
