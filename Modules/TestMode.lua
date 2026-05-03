@@ -9,6 +9,7 @@ local isTBC = sArenaMixin.isTBC
 local L = sArenaMixin.L
 local GetSpellTexture = GetSpellTexture or C_Spell.GetSpellTexture
 local LSM = LibStub("LibSharedMedia-3.0")
+local LCG = LibStub("LibCustomGlow-1.0", true)
 
 -- Older clients dont show opponents in spawn
 local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
@@ -844,25 +845,17 @@ function sArenaMixin:Test()
         end
 
         if db.profile.trinketUseGlow and (not db.profile.trinketUseGlowHealerOnly or frame.isHealer) then
-            local LCG = LibStub("LibCustomGlow-1.0", true)
-            if LCG and frame.Trinket then
-                local glowColor = db.profile.trinketUseGlowColorEnabled and db.profile.trinketUseGlowColor or nil
-                LCG.ButtonGlow_Start(frame.Trinket, glowColor)
-                if frame.trinketGlowTimer then frame.trinketGlowTimer:Cancel() end
-                frame.trinketGlowTimer = C_Timer.NewTimer(1, function()
-                    LCG.ButtonGlow_Stop(frame.Trinket)
-                    frame.trinketGlowTimer = nil
-                end)
-            end
+            local glowColor = db.profile.trinketUseGlowColorEnabled and db.profile.trinketUseGlowColor or nil
+            LCG.ButtonGlow_Start(frame.Trinket, glowColor)
+            if frame.trinketGlowTimer then frame.trinketGlowTimer:Cancel() end
+            frame.trinketGlowTimer = C_Timer.NewTimer(1, function()
+                LCG.ButtonGlow_Stop(frame.Trinket)
+                frame.trinketGlowTimer = nil
+            end)
         end
 
         frame.updateRacialOnTrinketSlot = shouldSwapRacialToTrinket
-        local shouldShowRacial = false
-
-        if data.race and db.profile.racialCategories and db.profile.racialCategories[data.race] then
-            shouldShowRacial = true
-        end
-
+        local shouldShowRacial = (data.race and db.profile.racialCategories and db.profile.racialCategories[data.race]) or false
         if shouldReplaceHumanRacial then
             frame.Racial.Texture:SetTexture(133452)
             frame.Racial.Cooldown:SetCooldown(currTime, math.random(5, 35))

@@ -8,6 +8,7 @@ local isMidnight = sArenaMixin.isMidnight
 local isTBC = sArenaMixin.isTBC
 local L = sArenaMixin.L
 local LSM = LibStub("LibSharedMedia-3.0")
+local LCG = LibStub("LibCustomGlow-1.0", true)
 local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
 
 local function FindPartyFrame(i)
@@ -1326,13 +1327,18 @@ function sArenaMixin:InitializeMidnightDRFrames()
                             local drBugFixMidnight = self.db.profile.drBugFixMidnight
                             local drBugFixLonger = drBugFixMidnight and self.db.profile.drBugFixLonger
                             if sArenaDRFrame.DRSeverity == 1 then
-                                local duration = drBugFixLonger and 23.7 or drBugFixMidnight and 22.5 or 20
+                                -- drResetTime + longest CC (6) + 20% roar duration extender + 0.5 leeway
+                                local duration = (drBugFixLonger and (self.db.profile.drResetTime + (6 * 1.2) + 0.5))
+                                    or (drBugFixMidnight and (self.db.profile.drResetTime + 6 + 0.5))
+                                    or (self.db.profile.drResetTime + 4)
                                 sArenaDRFrame.Cooldown:SetCooldown(GetTime(), duration)
                                 sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
                                 sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), duration)
                                 sArenaDRFrame.DRSeverity = 2
                             else
-                                local duration = drBugFixLonger and 19.9 or drBugFixMidnight and 19.3 or 18
+                                local duration = (drBugFixLonger and (self.db.profile.drResetTime + (3 * 1.2) + 0.5))
+                                    or (drBugFixMidnight and (self.db.profile.drResetTime + 3 + 0.5))
+                                    or (self.db.profile.drResetTime + 2)
                                 sArenaDRFrame.Cooldown:SetCooldown(GetTime(), duration)
                                 sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
                                 sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), duration)
@@ -1418,16 +1424,13 @@ function sArenaFrameMixin:HookMidnightTrinket()
                 end
 
                 if db and db.profile.trinketUseGlow and (not db.profile.trinketUseGlowHealerOnly or self.isHealer) then
-                    local LCG = LibStub("LibCustomGlow-1.0", true)
-                    if LCG then
-                        local glowColor = db.profile.trinketUseGlowColorEnabled and db.profile.trinketUseGlowColor or nil
-                        LCG.ButtonGlow_Start(self.Trinket, glowColor)
-                        if self.trinketGlowTimer then self.trinketGlowTimer:Cancel() end
-                        self.trinketGlowTimer = C_Timer.NewTimer(1, function()
-                            LCG.ButtonGlow_Stop(self.Trinket)
-                            self.trinketGlowTimer = nil
-                        end)
-                    end
+                    local glowColor = db.profile.trinketUseGlowColorEnabled and db.profile.trinketUseGlowColor or nil
+                    LCG.ButtonGlow_Start(self.Trinket, glowColor)
+                    if self.trinketGlowTimer then self.trinketGlowTimer:Cancel() end
+                    self.trinketGlowTimer = C_Timer.NewTimer(1, function()
+                        LCG.ButtonGlow_Stop(self.Trinket)
+                        self.trinketGlowTimer = nil
+                    end)
                 end
 
                 -- Update shared Racial CD
