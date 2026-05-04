@@ -549,11 +549,11 @@ function sArenaFrameMixin:RegisterFrameEvents()
     self:RegisterUnitEvent("UNIT_POWER_UPDATE", unit)
     self:RegisterUnitEvent("UNIT_MAXPOWER", unit)
     self:RegisterUnitEvent("UNIT_DISPLAYPOWER", unit)
+    self:RegisterUnitEvent("UNIT_ABSORB_AMOUNT_CHANGED", unit)
+    self:RegisterUnitEvent("UNIT_HEAL_ABSORB_AMOUNT_CHANGED", unit)
     self:SetUnitAuraRegistration()
 
     if not isMidnight then
-        self:RegisterUnitEvent("UNIT_ABSORB_AMOUNT_CHANGED", unit)
-        self:RegisterUnitEvent("UNIT_HEAL_ABSORB_AMOUNT_CHANGED", unit)
         self:RegisterEvent("ARENA_CROWD_CONTROL_SPELL_UPDATE")
     end
 end
@@ -1210,6 +1210,15 @@ end
 
 -- Midnight only
 if not isMidnight then return end
+
+function sArenaFrameMixin:HookPlayerConnectionStatus()
+    -- UNIT_CONNECT doesnt trigger for arena frames. Update on status text update instead.
+    local blizzArenaFrame = _G["CompactArenaFrameMember" .. self:GetID()]
+    hooksecurefunc(blizzArenaFrame.statusText, "SetText", function()
+        self.DisconnectedIcon:SetShown(not UnitIsConnected(self.unit))
+    end)
+end
+
 
 function sArenaMixin:RegisterCVarListener()
     if self.cvarListenerRegistered then return end

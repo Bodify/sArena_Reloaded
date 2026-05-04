@@ -28,6 +28,7 @@
     <Script file="Modules\TestMode.lua"/>
     <Script file="Modules\Widgets.lua"/>
     <Script file="Modules\AuraHighlight.lua"/>
+    <Script file="Modules\Absorbs.lua"/>
     <Script file="Modules\RangeCheck.lua"/>
     <Script file="Modules\Fonts.lua"/>
     <Script file="Modules\Textures.lua"/>
