@@ -18,7 +18,7 @@ function sArenaFrameMixin:ResetDRCooldownTextColors()
 	end
 end
 
-function sArenaFrameMixin:UpdateDRPositions()
+function sArenaFrameMixin:UpdateDRPositions(includeHidden)
 	local layoutdb = self.parent.layoutdb
 	local numActive = 0
 	local prevFrame
@@ -29,7 +29,7 @@ function sArenaFrameMixin:UpdateDRPositions()
 
 	for i = 1, #frames do
 		local frame = useDrFrames and frames[i] or self[frames[i]]
-		if frame and frame:IsShown() then
+		if frame and (includeHidden or frame:IsShown()) then
 			frame:ClearAllPoints()
 			if numActive == 0 then
 				local offset = (self.parent.drBaseSize or 28) / 2
@@ -75,15 +75,17 @@ function sArenaMixin:UpdateDRTimeSetting()
 	if isMidnight and not self.db.profile.drResetTimeFixMidnight then
 		self.db.profile.drResetTime = 16.1
 		self.db.profile.drResetTimeFixMidnight = true
-		StaticPopupDialogs["SARENA_DR_LEEWAY_ADJUSTMENT"] = {
-			text = sArenaMixin.popupHeader .. L["DR_LeewayAdjustment_Info"],
-			button1 = OKAY,
-			timeout = 0,
-			whileDead = true,
-		}
-		C_Timer.After(5, function()
-			StaticPopup_Show("SARENA_DR_LEEWAY_ADJUSTMENT")
-		end)
+		if not self.isFirstUse then
+			StaticPopupDialogs["SARENA_DR_LEEWAY_ADJUSTMENT"] = {
+				text = sArenaMixin.popupHeader .. L["DR_LeewayAdjustment_Info"],
+				button1 = OKAY,
+				timeout = 0,
+				whileDead = true,
+			}
+			C_Timer.After(5, function()
+				StaticPopup_Show("SARENA_DR_LEEWAY_ADJUSTMENT")
+			end)
+		end
 	end
     drTime = self.db.profile.drResetTime or (isMidnight and 16.1 or 20)
 end

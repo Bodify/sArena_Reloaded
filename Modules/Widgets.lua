@@ -534,6 +534,7 @@ function sArenaMixin:CreatePartyFrameTargetText(partyFrame)
         overlay:SetFrameLevel(partyFrame:GetFrameLevel() + 10)
         partyFrame.WidgetOverlay = overlay
     end
+    partyFrame.WidgetOverlay:SetParent(partyFrame)
     local overlay = partyFrame.WidgetOverlay
     if overlay.partyTargetText then return end
     local textFrame = CreateFrame("Frame", nil, overlay)
@@ -695,7 +696,10 @@ function sArenaFrameMixin:UpdateArenaTargets(unit)
 end
 
 function sArenaMixin:CreatePartyFrameIndicators(partyFrame)
-    if partyFrame.WidgetOverlay then return end
+    if partyFrame.WidgetOverlay then
+        partyFrame.WidgetOverlay:SetParent(partyFrame)
+        return
+    end
 
     local overlay = CreateFrame("Frame", nil, partyFrame)
     overlay:SetAllPoints()

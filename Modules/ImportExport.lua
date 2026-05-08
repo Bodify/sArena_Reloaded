@@ -209,7 +209,154 @@ function sArenaMixin:ImportProfile(encodedString, customProfileName, externalSou
     return true
 end
 
+local PREVIEW_PROFILE_NAME = "PreviewProfile..."
+local profileDecodeCache = {}
+
+local function decodeProfileString(encodedString)
+    if not encodedString then return nil end
+    local cached = profileDecodeCache[encodedString]
+    if cached ~= nil then
+        if cached == false then return nil end
+        return cached
+    end
+
+    local trimmed = encodedString:match("^%s*(.-)%s*$")
+    if not trimmed or not trimmed:match("^!sArena:.+:sArena!$") then
+        profileDecodeCache[encodedString] = false
+        return nil
+    end
+
+    local encoded = trimmed:match("^!sArena:(.+):sArena!$")
+    if not encoded or encoded:find("!") then
+        profileDecodeCache[encodedString] = false
+        return nil
+    end
+
+    local compressed = LibDeflate:DecodeForPrint(encoded)
+    if not compressed then
+        profileDecodeCache[encodedString] = false
+        return nil
+    end
+
+    local serialized = LibDeflate:DecompressDeflate(compressed)
+    if not serialized then
+        profileDecodeCache[encodedString] = false
+        return nil
+    end
+
+    local ok, importTable = LibSerialize:Deserialize(serialized)
+    if not ok or type(importTable) ~= "table"
+        or importTable.dataType ~= "sArenaProfile"
+        or type(importTable.data) ~= "table"
+    then
+        profileDecodeCache[encodedString] = false
+        return nil
+    end
+
+    profileDecodeCache[encodedString] = importTable.data
+    return importTable.data
+end
+
+function sArenaMixin:GetProfileLayoutName(encodedString)
+    local data = decodeProfileString(encodedString)
+    return data and data.currentLayout or nil
+end
+
+function sArenaMixin:PreviewProfile(encodedString)
+    if InCombatLockdown() then return false end
+    if not (self.db and sArena_ReloadedDB and sArena_ReloadedDB.profiles) then
+        return false
+    end
+
+    local data = decodeProfileString(encodedString)
+    if not data then return false end
+
+    local currentKey = self.db:GetCurrentProfile()
+
+    if currentKey == PREVIEW_PROFILE_NAME
+        and sArena_ReloadedDB.previewProfileBackup
+        and sArena_ReloadedDB.previewProfileEncoded == encodedString
+    then
+        return true
+    end
+
+    if currentKey ~= PREVIEW_PROFILE_NAME then
+        sArena_ReloadedDB.previewProfileBackup = currentKey
+    end
+    sArena_ReloadedDB.previewProfileEncoded = encodedString
+
+    sArena_ReloadedDB.profiles[PREVIEW_PROFILE_NAME] = CopyTable(data)
+
+    if currentKey == PREVIEW_PROFILE_NAME then
+        local bounce = sArena_ReloadedDB.previewProfileBackup
+        if bounce and sArena_ReloadedDB.profiles
+            and sArena_ReloadedDB.profiles[bounce]
+        then
+            self.db:SetProfile(bounce)
+        else
+            self.db:SetProfile("Default")
+        end
+    end
+
+    self.db:SetProfile(PREVIEW_PROFILE_NAME)
+    return true
+end
+
+function sArenaMixin:RevertProfilePreview()
+    if not (self.db and sArena_ReloadedDB) then return end
+
+    local backup = sArena_ReloadedDB.previewProfileBackup
+    if not backup then return end
+
+    sArena_ReloadedDB.previewProfileBackup = nil
+    sArena_ReloadedDB.previewProfileEncoded = nil
+
+    if InCombatLockdown() then
+        return
+    end
+
+    if self.db:GetCurrentProfile() == PREVIEW_PROFILE_NAME then
+        if sArena_ReloadedDB.profiles and sArena_ReloadedDB.profiles[backup] then
+            self.db:SetProfile(backup)
+        else
+            self.db:SetProfile("Default")
+        end
+    end
+
+    if sArena_ReloadedDB.profiles then
+        sArena_ReloadedDB.profiles[PREVIEW_PROFILE_NAME] = nil
+    end
+    if sArena_ReloadedDB.profileKeys then
+        for char, key in pairs(sArena_ReloadedDB.profileKeys) do
+            if key == PREVIEW_PROFILE_NAME then
+                sArena_ReloadedDB.profileKeys[char] = backup
+            end
+        end
+    end
+end
+
+function sArenaMixin:CleanupStaleProfilePreview()
+    if not (self.db and sArena_ReloadedDB) then return end
+
+    local backup = sArena_ReloadedDB.previewProfileBackup
+    local current = self.db:GetCurrentProfile()
+
+    if current == PREVIEW_PROFILE_NAME then
+        local target = (backup and sArena_ReloadedDB.profiles
+            and sArena_ReloadedDB.profiles[backup]) and backup or "Default"
+        self.db:SetProfile(target)
+    end
+
+    if sArena_ReloadedDB.profiles then
+        sArena_ReloadedDB.profiles[PREVIEW_PROFILE_NAME] = nil
+    end
+    sArena_ReloadedDB.previewProfileBackup = nil
+    sArena_ReloadedDB.previewProfileEncoded = nil
+end
+
 function sArenaMixin:ImportStreamerProfile(streamerName, profileString, displayName, classColor, profileClass)
+    self:RevertProfilePreview()
+
     local profileName = (profileClass == "SKILLCAPPED") and streamerName or (streamerName .. " StreamProfile")
     local profileExists = sArena_ReloadedDB.profiles[profileName] ~= nil
 
@@ -225,12 +372,25 @@ function sArenaMixin:ImportStreamerProfile(streamerName, profileString, displayN
         currentProfileName = currentProfileKey or "Default"
     }
 
+    local function ApplyMidnightDRFix(profileName)
+        if not sArenaMixin.isMidnight then return end
+        local profileData = sArena_ReloadedDB.profiles[profileName]
+        if profileData and profileData.drResetTimeFixMidnight == nil then
+            profileData.drResetTime = 16.1
+            profileData.drResetTimeFixMidnight = true
+        end
+    end
+
     -- If profile doesn't exist, import directly without asking
     if not profileExists then
-        local success, err = sArenaMixin:ImportProfile(data.profileString, data.profileName)
+        local success, err = sArenaMixin:ImportProfile(data.profileString, data.profileName, true)
         if not success then
             sArenaMixin:Print(L["Message_ImportFailed"] .. " " .. err)
+            return
         end
+        ApplyMidnightDRFix(data.profileName)
+        sArena_ReloadedDB.reOpenOptions = true
+        ReloadUI()
         return
     end
 
@@ -239,9 +399,13 @@ function sArenaMixin:ImportStreamerProfile(streamerName, profileString, displayN
     local coloredName = (classColor or "|cffffffff") .. (displayName or streamerName) .. "|r"
     local message = string.format(L["Message_ProfileOverwrite"], coloredName)
     ShowImportConfirmDialog(message, function(d)
-        local success, err = sArenaMixin:ImportProfile(d.profileString, d.profileName)
+        local success, err = sArenaMixin:ImportProfile(d.profileString, d.profileName, true)
         if not success then
             sArenaMixin:Print(L["Message_ImportFailed"] .. " " .. err)
+            return
         end
+        ApplyMidnightDRFix(d.profileName)
+        sArena_ReloadedDB.reOpenOptions = true
+        ReloadUI()
     end, data)
 end

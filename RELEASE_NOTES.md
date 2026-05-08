@@ -1,12 +1,9 @@
-# sArena Reloaded 2.5.1
+# sArena Reloaded 2.5.2
 ## New
-- Midnight: Absorbs and Overshields are back! (And again huge thanks to Verz (MiniCC, FrameSort, etc) for being the goat and helping me a bit here)
-## Bugfix
-- Fix potential nil error on login.
-
-# sArena Reloaded 2.5.0
-## New
-- Trinket Glow: Adds a glow animation around the Trinket icon when it gets used. Settings in Global -> Trinket,
+- New intro screen for first time sArena Reloaded users where you can preview and pick a layout/profile.
+- All profiles in "Streamer Profiles" section can now be previewed by mousing over the buttons.
 ## Tweak
-- Tweak lingo about Glad Tracker requirement being 2400 when its supposed to be 2300.
-![sArenaTrinketGlow](https://github.com/user-attachments/assets/898fde7b-3e77-4209-b52c-f2fb3284b6db)
+- Fix "Force Castbar Text Width" setting to account for text size setting so it doesnt truncate for no reason or go outside.
+- Interrupt logic: Replace IsSpellKnown with IsPlayerSpell because IsSpellKnown returns false on known spells on some clients. #Blizzard
+## Bugfix
+- Fix issues with Arena/Party Target Indicators not showing up on other types of non-default party frames (Danders, ElvUI, etc). Also consider if ElvUI doesnt disable default party frames and use default party frames instead.

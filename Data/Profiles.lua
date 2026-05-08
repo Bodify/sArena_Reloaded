@@ -157,6 +157,8 @@ function sArenaMixin:BuildStreamerProfileArgs()
                 and string.format(L["Option_ImportProfile_Desc_Website"], profile.name, color, profile.website)
                 or string.format(L["Option_ImportProfile_Desc"], profile.name, color, profile.twitchName or ""),
             type = "execute",
+            dialogControl = "sArena_ProfilePreviewButton",
+            arg = profile.importString,
             func = function(info)
                 info.handler:ImportStreamerProfile(profile.name:gsub(" ", ""), profile.importString, profile.name, color, profile.class)
             end,

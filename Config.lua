@@ -5251,6 +5251,7 @@ else
                 name = L["Option_Layout"],
                 type = "select",
                 style = "dropdown",
+                dialogControl = "sArena_LayoutPreviewDropdown",
                 get = function(info) return info.handler.db.profile.currentLayout end,
                 set = "SetLayout",
                 values = getLayoutTable,

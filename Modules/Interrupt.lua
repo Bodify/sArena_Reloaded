@@ -7,7 +7,7 @@ local interruptList = sArenaMixin.interruptList
 
 local function GetInterruptSpell()
     for spellID, _ in pairs(interruptList) do
-        if IsSpellKnownOrOverridesKnown(spellID) or (UnitExists("pet") and IsSpellKnownOrOverridesKnown(spellID, true)) or IsSpellKnown(spellID) then
+        if IsSpellKnownOrOverridesKnown(spellID) or (UnitExists("pet") and IsSpellKnownOrOverridesKnown(spellID, true)) or IsPlayerSpell(spellID) then
             return spellID
         end
     end

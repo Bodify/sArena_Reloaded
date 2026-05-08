@@ -56,18 +56,14 @@ function sArenaMixin:UpdateAuraPrioImportant()
 end
 
 function sArenaFrameMixin:FindAura(updateInfo)
-    if self.disabledAuras then
-        self:UpdateClassIcon()
-        self:SetAuraHighlightActive()
-        return
-    end
-    if not UnitExists(self.unit) then
+    if not self.parent.engagedInMatch or self.disabledAuras then
         self.currentAuraSpellID = nil
         self.currentAuraDurationObj = nil
         self.currentAuraTexture = nil
         self.currentAuraApplications = nil
+        self.currentAuraCategory = nil
         self:SetAuraHighlightActive()
-        self:UpdateClassIcon(true)
+        self:UpdateClassIcon()
         return
     end
     if updateInfo and not AurasChanged(updateInfo) then return end

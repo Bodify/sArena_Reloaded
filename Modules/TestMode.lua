@@ -709,6 +709,10 @@ function sArenaMixin:Test()
             if frame.ClassIconMsq then
                 frame.ClassIconMsq:Hide()
             end
+            if not hideSpecIcon then
+                frame.SpecIcon:Show()
+                frame.SpecIcon.Texture:SetTexture(data.specIcon)
+            end
         elseif onlyShowAuras then
             local ccSpells = {408, 2139, 33786, 118, 122}
             local ccIndex = ((i - 1) % #ccSpells) + 1
@@ -844,10 +848,15 @@ function sArenaMixin:Test()
             frame.Trinket.Texture:SetDesaturated(false)
         end
 
+        if frame.trinketGlowTimer then
+            frame.trinketGlowTimer:Cancel()
+            frame.trinketGlowTimer = nil
+        end
+        LCG.ButtonGlow_Stop(frame.Trinket)
+
         if db.profile.trinketUseGlow and (not db.profile.trinketUseGlowHealerOnly or frame.isHealer) then
             local glowColor = db.profile.trinketUseGlowColorEnabled and db.profile.trinketUseGlowColor or nil
             LCG.ButtonGlow_Start(frame.Trinket, glowColor)
-            if frame.trinketGlowTimer then frame.trinketGlowTimer:Cancel() end
             frame.trinketGlowTimer = C_Timer.NewTimer(1, function()
                 LCG.ButtonGlow_Stop(frame.Trinket)
                 frame.trinketGlowTimer = nil
@@ -971,8 +980,6 @@ function sArenaMixin:Test()
                         end
                     end
                 end
-
-                self:UpdateDRSettings(drSettings)
             end
         else
             local drsEnabled = #self.drCategories
@@ -1407,6 +1414,13 @@ function sArenaMixin:Test()
         if frame then
             local category = auraCategories[((i - 1) % #auraCategories) + 1]
             frame:SetAuraHighlightActive(category)
+        end
+    end
+
+    for i = 1, self.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        if frame and frame.UpdateDRPositions then
+            frame:UpdateDRPositions(true)
         end
     end
 end

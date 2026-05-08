@@ -632,8 +632,16 @@ function sArenaMixin:Initialize()
 
     local conflictType = self:ConflictCheck()
 
+    self.isFirstUse = (sArena_ReloadedDB == nil)
+
     self.db = LibStub("AceDB-3.0"):New("sArena_ReloadedDB", self.defaultSettings, true)
     db = self.db
+
+    if self.isFirstUse then
+        sArena_ReloadedDB.isFirstUse = true
+    end
+
+    self:CleanupStaleProfilePreview()
 
     db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
     db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
@@ -661,6 +669,13 @@ function sArenaMixin:Initialize()
     else
         self:PrintConflictMessage(conflictType)
     end
+
+    if sArena_ReloadedDB.isFirstUse then
+        self:ShowWelcomePopup()
+        C_Timer.After(1, function()
+            self:Test()
+        end)
+    end
 end
 
 function sArenaMixin:RefreshConfig()
@@ -668,7 +683,7 @@ function sArenaMixin:RefreshConfig()
     self:SetLayout(_, db.profile.currentLayout)
 end
 
-function sArenaMixin:SetLayout(_, layout)
+function sArenaMixin:PreviewLayout(layout)
     if (InCombatLockdown()) then return end
 
     if not self.db then
@@ -684,29 +699,6 @@ function sArenaMixin:SetLayout(_, layout)
     self.showTrinketCircleBorder = nil
 
     layout = self.layouts[layout] and layout or "Gladiuish"
-
-    -- Detect if this is a user-initiated layout change (not from addon load)
-    local oldLayout = db.profile.currentLayout
-    local isUserChange = oldLayout ~= nil and oldLayout ~= layout
-
-    -- Handle BlizzRaid layout onlyShowAuras setting
-    if isUserChange then
-        if layout == "BlizzRaid" then
-            -- Store the previous onlyShowAuras value before changing to BlizzRaid
-            if not db.profile.onlyShowAurasBeforeBlizzRaid then
-                db.profile.onlyShowAurasBeforeBlizzRaid = db.profile.onlyShowAuras
-            end
-            db.profile.onlyShowAuras = true
-        elseif oldLayout == "BlizzRaid" then
-            -- Restore the previous onlyShowAuras value when leaving BlizzRaid
-            if db.profile.onlyShowAurasBeforeBlizzRaid ~= nil then
-                db.profile.onlyShowAuras = db.profile.onlyShowAurasBeforeBlizzRaid
-                db.profile.onlyShowAurasBeforeBlizzRaid = nil
-            else
-                db.profile.onlyShowAuras = false
-            end
-        end
-    end
 
     if layout == "BlizzRaid" or layout == "Pixelated" then
         self.showPixelBorder = true
@@ -757,13 +749,44 @@ function sArenaMixin:SetLayout(_, layout)
     self:ApplyAllClickActions()
     self:UpdateCooldownSwipeColor()
 
-    self.optionsTable.args.layoutSettingsGroup.args = self.layouts[layout].optionsTable and self.layouts[layout].optionsTable or emptyLayoutOptionsTable
-    LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-
     local _, instanceType = IsInInstance()
     if (instanceType ~= "arena" and self.arena1:IsShown()) then
         self:Test()
     end
+end
+
+function sArenaMixin:SetLayout(_, layout)
+    if (InCombatLockdown()) then return end
+
+    layout = self.layouts[layout] and layout or "Gladiuish"
+
+    -- Detect if this is a user-initiated layout change (not from addon load)
+    local oldLayout = db and db.profile and db.profile.currentLayout
+    local isUserChange = oldLayout ~= nil and oldLayout ~= layout
+
+    -- Handle BlizzRaid layout onlyShowAuras setting
+    if isUserChange then
+        if layout == "BlizzRaid" then
+            -- Store the previous onlyShowAuras value before changing to BlizzRaid
+            if not db.profile.onlyShowAurasBeforeBlizzRaid then
+                db.profile.onlyShowAurasBeforeBlizzRaid = db.profile.onlyShowAuras
+            end
+            db.profile.onlyShowAuras = true
+        elseif oldLayout == "BlizzRaid" then
+            -- Restore the previous onlyShowAuras value when leaving BlizzRaid
+            if db.profile.onlyShowAurasBeforeBlizzRaid ~= nil then
+                db.profile.onlyShowAuras = db.profile.onlyShowAurasBeforeBlizzRaid
+                db.profile.onlyShowAurasBeforeBlizzRaid = nil
+            else
+                db.profile.onlyShowAuras = false
+            end
+        end
+    end
+
+    self:PreviewLayout(layout)
+
+    self.optionsTable.args.layoutSettingsGroup.args = self.layouts[layout].optionsTable and self.layouts[layout].optionsTable or emptyLayoutOptionsTable
+    LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
 end
 
 function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateMethod, dragType, subKey)

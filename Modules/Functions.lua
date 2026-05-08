@@ -13,8 +13,15 @@ local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
 
 local function FindPartyFrame(i)
     if C_AddOns.IsAddOnLoaded("DandersFrames") then
-        return _G["DandersPartyHeaderUnitButton" .. i]
-    elseif C_AddOns.IsAddOnLoaded("ElvUI") then
+        local arenaPartyFrame = _G["DandersArenaHeaderUnitButton" .. i]
+        if arenaPartyFrame then
+            return arenaPartyFrame
+        end
+        local partyFrame = _G["DandersPartyHeaderUnitButton" .. i]
+        if partyFrame then
+            return partyFrame
+        end
+    elseif C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].private.unitframe.disabledBlizzardFrames.party then
         return _G["ElvUF_PartyGroup1UnitButton" .. i]
     elseif C_AddOns.IsAddOnLoaded("Cell") then
         return _G["CellPartyFrameHeaderUnitButton" .. i]

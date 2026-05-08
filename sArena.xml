@@ -24,6 +24,7 @@
     <Script file="Modules\Clicks.lua"/>
     <Script file="Modules\Interrupt.lua"/>
     <Script file="Modules\ConflictCheck.lua"/>
+    <Script file="GUI\IntroPopup.lua"/>
     <Script file="sArena.lua"/>
     <Script file="Modules\TestMode.lua"/>
     <Script file="Modules\Widgets.lua"/>
@@ -35,6 +36,7 @@
     <Script file="Modules\Racials.lua"/>
     <Script file="Modules\DiminishingReturns.lua"/>
     <Script file="Modules\ImportExport.lua"/>
+    <Script file="GUI\AceGUIExtras.lua"/>
     <Script file="Config.lua"/>
     <Script file="Modules\Auras_Midnight.lua"/>
     <Script file="Modules\Trinkets.lua"/>

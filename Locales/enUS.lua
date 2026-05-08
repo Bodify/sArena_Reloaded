@@ -755,3 +755,18 @@ L["ClickAction_ModAlt"] = "Alt"
 L["ClickAction_ResetAll"] = "Reset All"
 L["ClickAction_ResetAll_Desc"] = "Reset all click actions back to default: Left Click to Target, Right Click to Focus. Any custom actions will be removed."
 L["ClickAction_ResetAll_Confirm"] = sArenaMixin.popupHeader.."Are you sure you want to reset all click actions to default? This will remove any custom actions you have configured.\n"
+
+---------------------------------------
+-- Welcome Intro Popup
+---------------------------------------
+
+L["Intro_Tooltip_Gladiuish"] = "The default sArena Reloaded layout"
+L["Intro_Tooltip_ExitNoProfile"] = "Exit using no profile and the default Gladiuish layout."
+L["Intro_Confirm_Layout"] = "Are you sure you want to use the\n%s layout?\n\nClick Yes to apply."
+L["Intro_Confirm_Profile"] = "Are you sure you want to use the\n%s profile?\n\nClick Yes to apply and Reload UI."
+L["Intro_Welcome"] = "Welcome to sArena |cffff8000Reloaded|r!"
+L["Intro_Description"] = "Thank you for trying out sArena Reloaded!\n\nBelow you can pick a layout or streamer profile to start with,\nor you can exit and customize everything yourself.\n\nHover over a layout to preview it!"
+L["Intro_LayoutsHeader"] = "|cffff8000Layouts|r"
+L["Intro_StreamerProfilesHeader"] = "|cffd8b4feStreamer Profiles|r"
+L["Intro_ExitButton"] = "Exit, No Profile."
+L["Intro_UsingLayout"] = "(using %s layout)"
