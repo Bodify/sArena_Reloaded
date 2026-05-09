@@ -1240,15 +1240,40 @@ function sArenaMixin:RegisterCVarListener()
     end)
 end
 
-function sArenaMixin:InitializeMidnightDRFrames()
-    if self.drFramesInitialized then return end
-    if self.db and self.db.profile.hideMidnightDRs then return end
+function sArenaMixin:ReparentBlizzardDRFrames()
+    for i = 1, self.maxArenaOpponents do
+        local blizzArenaFrame = _G["CompactArenaFrameMember" .. i]
+        local arenaFrame = self["arena" .. i]
 
-    if not sArena_ReloadedDB.skipEMDR then
-        if EditModeManagerFrame and EditModeManagerFrame.AccountSettings then
-            ShowUIPanel(EditModeManagerFrame)
+        if not blizzArenaFrame then return end
+
+        local drTray = blizzArenaFrame.SpellDiminishStatusTray
+        if drTray then
+            drTray:SetParent(arenaFrame)
+            drTray:SetAlpha(0)
+            drTray:EnableMouse(false)
         end
     end
+end
+
+function sArenaMixin:ToggleEditMode(show)
+    if (not (EditModeManagerFrame and EditModeManagerFrame.AccountSettings)) or sArena_ReloadedDB.skipEMDR then return end
+    if show then
+        ShowUIPanel(EditModeManagerFrame)
+    else
+        HideUIPanel(EditModeManagerFrame)
+    end
+end
+
+function sArenaMixin:InitializeMidnightDRFrames()
+    if self.drFramesInitialized then return end
+    self:ReparentBlizzardDRFrames()
+
+    if self.db and self.db.profile.hideMidnightDRs then
+        return
+    end
+
+    self:ToggleEditMode(true)
 
     for i = 1, self.maxArenaOpponents do
         local blizzArenaFrame = _G["CompactArenaFrameMember" .. i]
@@ -1263,9 +1288,6 @@ function sArenaMixin:InitializeMidnightDRFrames()
         local NUM_DR_FRAMES = #blizzDRFrames
 
         if not arenaFrame.drFrames then
-            drTray:SetParent(arenaFrame)
-            drTray:SetAlpha(0)
-            drTray:EnableMouse(false)
             arenaFrame.drFrames = {}
 
             for drIndex = 1, NUM_DR_FRAMES do
@@ -1393,17 +1415,11 @@ function sArenaMixin:InitializeMidnightDRFrames()
         end
     end
 
-    -- Apply DR settings after all frames are initialized
     if self.layoutdb and self.layoutdb.dr then
         self:UpdateDRSettings(self.layoutdb.dr)
     end
 
-
-    if not sArena_ReloadedDB.skipEMDR then
-        if EditModeManagerFrame and EditModeManagerFrame.AccountSettings then
-            HideUIPanel(EditModeManagerFrame)
-        end
-    end
+    self:ToggleEditMode(false)
 
     self.drFramesInitialized = true
 end
