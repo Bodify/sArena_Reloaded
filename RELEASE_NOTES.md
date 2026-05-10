@@ -1,3 +1,8 @@
+# sArena Reloaded 2.5.2b
+## Tweak
+- Update Dissonance profile (www.twitch.tv/dissonancewow)
+- Midnight: Tweak how the "Hide DRs" setting works so other DR addons relying on the Blizzard DR frames should still function correctly.
+
 # sArena Reloaded 2.5.2
 ## New
 - New intro screen for first time sArena Reloaded users where you can preview and pick a layout/profile.
