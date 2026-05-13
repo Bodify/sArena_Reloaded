@@ -18,9 +18,51 @@ local function AurasChanged(updateInfo)
     return false
 end
 
-local function IterateAuras(filter, validateAura, unit, seen)
-    local spellID, icon, applications, auraInstanceID
-    local auras = C_UnitAuras.GetUnitAuras(unit, filter)
+local ccSortRule, ccSortDirection
+local defensiveSortRule, defensiveSortDirection
+local importantSortRule, importantSortDirection
+local ccSortFunc, defensiveSortFunc, importantSortFunc
+local prioImportant
+
+local function SortOldestFirst(a, b) return a.auraInstanceID < b.auraInstanceID end
+local function SortNewestFirst(a, b) return a.auraInstanceID > b.auraInstanceID end
+
+local function GetAuraSortFunc(sortRule, sortDir)
+    if sortRule == nil or sortRule == Enum.UnitAuraSortRule.Unsorted then
+        return (sortDir == Enum.UnitAuraSortDirection.Reverse) and SortNewestFirst or SortOldestFirst
+    end
+end
+
+local function ToSortEnums(sortKey)
+    if sortKey == "last" then
+        return Enum.UnitAuraSortRule.Unsorted, Enum.UnitAuraSortDirection.Reverse
+    elseif sortKey == "blizzDefault" then
+        return Enum.UnitAuraSortRule.Default, Enum.UnitAuraSortDirection.Normal
+    elseif sortKey == "lastending" then
+        return Enum.UnitAuraSortRule.ExpirationOnly, Enum.UnitAuraSortDirection.Reverse
+    elseif sortKey == "firstending" then
+        return Enum.UnitAuraSortRule.ExpirationOnly, Enum.UnitAuraSortDirection.Normal
+    end
+end
+
+function sArenaMixin:UpdateAuraSortSettings()
+    local profile = self.db and self.db.profile
+    local p = profile or {}
+    prioImportant = p.prioImportantOverDefensives or false
+    ccSortRule, ccSortDirection = ToSortEnums(p.ccSort)
+    defensiveSortRule, defensiveSortDirection = ToSortEnums(p.defensiveSort)
+    importantSortRule, importantSortDirection = ToSortEnums(p.importantSort)
+    ccSortFunc = GetAuraSortFunc(ccSortRule, ccSortDirection)
+    defensiveSortFunc = GetAuraSortFunc(defensiveSortRule, defensiveSortDirection)
+    importantSortFunc = GetAuraSortFunc(importantSortRule, importantSortDirection)
+end
+
+local function IterateAuras(filter, validateAura, unit, seen, sortRule, sortDir, sortFunc)
+    local auras = C_UnitAuras.GetUnitAuras(unit, filter, nil, sortRule, sortDir)
+
+    if sortFunc then
+        table.sort(auras, sortFunc)
+    end
 
     for _, auraData in ipairs(auras) do
         if not seen[auraData.auraInstanceID] then
@@ -34,25 +76,13 @@ local function IterateAuras(filter, validateAura, unit, seen)
             end
 
             if not garbageAuraData then
-                spellID = auraData.spellId
-                icon = auraData.icon
-                applications = auraData.applications
-                auraInstanceID = auraData.auraInstanceID
-                applications = auraData.applications
+                seen[auraData.auraInstanceID] = true
+                return auraData.spellId, auraData.icon, auraData.auraInstanceID, auraData.applications
             end
         end
 
         seen[auraData.auraInstanceID] = true
     end
-
-    return spellID, icon, auraInstanceID, applications
-end
-
-local prioImportant
-
-function sArenaMixin:UpdateAuraPrioImportant()
-    local db = self.db
-    prioImportant = db and db.profile.prioImportantOverDefensives or false
 end
 
 function sArenaFrameMixin:FindAura(updateInfo)
@@ -73,43 +103,43 @@ function sArenaFrameMixin:FindAura(updateInfo)
     local seen = {}
 
     -- Crowd Control
-    spellID, texture, auraInstanceID = IterateAuras("HARMFUL|CROWD_CONTROL", C_Spell.IsSpellCrowdControl, unit, seen)
+    spellID, texture, auraInstanceID = IterateAuras("HARMFUL|CROWD_CONTROL", C_Spell.IsSpellCrowdControl, unit, seen, ccSortRule, ccSortDirection, ccSortFunc)
     if spellID then auraCategory = "cc" end
 
     if prioImportant then
         -- Important buffs
         if not spellID then
-            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|IMPORTANT", C_Spell.IsSpellImportant, unit, seen)
+            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|IMPORTANT", C_Spell.IsSpellImportant, unit, seen, importantSortRule, importantSortDirection, importantSortFunc)
             if spellID then auraCategory = "important" end
         end
 
         -- Big Defensives
         if not spellID then
-            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|BIG_DEFENSIVE", C_UnitAuras.AuraIsBigDefensive, unit, seen)
+            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|BIG_DEFENSIVE", C_UnitAuras.AuraIsBigDefensive, unit, seen, defensiveSortRule, defensiveSortDirection, defensiveSortFunc)
             if spellID then auraCategory = "defensive" end
         end
 
         -- External Defensives
         if not spellID then
-            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|EXTERNAL_DEFENSIVE", nil, unit, seen)
+            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|EXTERNAL_DEFENSIVE", nil, unit, seen, defensiveSortRule, defensiveSortDirection, defensiveSortFunc)
             if spellID then auraCategory = "defensive" end
         end
     else
         -- Big Defensives
         if not spellID then
-            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|BIG_DEFENSIVE", C_UnitAuras.AuraIsBigDefensive, unit, seen)
+            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|BIG_DEFENSIVE", C_UnitAuras.AuraIsBigDefensive, unit, seen, defensiveSortRule, defensiveSortDirection, defensiveSortFunc)
             if spellID then auraCategory = "defensive" end
         end
 
         -- External Defensives
         if not spellID then
-            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|EXTERNAL_DEFENSIVE", nil, unit, seen)
+            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|EXTERNAL_DEFENSIVE", nil, unit, seen, defensiveSortRule, defensiveSortDirection, defensiveSortFunc)
             if spellID then auraCategory = "defensive" end
         end
 
         -- Important buffs
         if not spellID then
-            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|IMPORTANT", C_Spell.IsSpellImportant, unit, seen)
+            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|IMPORTANT", C_Spell.IsSpellImportant, unit, seen, importantSortRule, importantSortDirection, importantSortFunc)
             if spellID then auraCategory = "important" end
         end
     end

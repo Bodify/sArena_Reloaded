@@ -655,7 +655,7 @@ function sArenaMixin:Initialize()
         self:InterruptTracker()
         self:DatabaseCleanup(db)
         if isMidnight then
-            self:UpdateAuraPrioImportant()
+            self:UpdateAuraSortSettings()
         end
         self:UpdateDRTimeSetting()
         self:UpdateDecimalThreshold()

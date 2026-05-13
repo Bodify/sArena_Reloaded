@@ -1,14 +1,7 @@
-# sArena Reloaded 2.5.2b
-## Tweak
-- Update Dissonance profile (www.twitch.tv/dissonancewow)
-- Midnight: Tweak how the "Hide DRs" setting works so other DR addons relying on the Blizzard DR frames should still function correctly.
-
-# sArena Reloaded 2.5.2
+# sArena Reloaded 2.5.3
 ## New
-- New intro screen for first time sArena Reloaded users where you can preview and pick a layout/profile.
-- All profiles in "Streamer Profiles" section can now be previewed by mousing over the buttons.
+- New aura sorting settings (Global - Class Icon) and updated the default aura sorting method for sArena to show last aura added by default (same as MiniCC by Verz).
+- New Vanguards profile (www.twitch.tv/VanguardsTV). Thank you for sharing!
+- New "Use Default Party Frames (for Widgets)" setting that forces default party frames over detected party frames addon for Widgets placements (like Arena Target Indicator)
 ## Tweak
-- Fix "Force Castbar Text Width" setting to account for text size setting so it doesnt truncate for no reason or go outside.
-- Interrupt logic: Replace IsSpellKnown with IsPlayerSpell because IsSpellKnown returns false on known spells on some clients. #Blizzard
-## Bugfix
-- Fix issues with Arena/Party Target Indicators not showing up on other types of non-default party frames (Danders, ElvUI, etc). Also consider if ElvUI doesnt disable default party frames and use default party frames instead.
+- Re-organize gui categories a bit and make them alphabetical (for the most part).

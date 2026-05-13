@@ -11,11 +11,28 @@ local LSM = LibStub("LibSharedMedia-3.0")
 local LCG = LibStub("LibCustomGlow-1.0", true)
 local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
 
-local function FindPartyFrame(i)
-    if C_AddOns.IsAddOnLoaded("DandersFrames") then
-        local arenaPartyFrame = _G["DandersArenaHeaderUnitButton" .. i]
-        if arenaPartyFrame then
-            return arenaPartyFrame
+local function GetDefaultPartyFrame(i)
+    local EM = EditModeManagerFrame
+    if EM and EM.UseRaidStylePartyFrames and EM:UseRaidStylePartyFrames() then
+        return _G["CompactPartyFrameMember" .. i] or _G["CompactRaidFrame" .. i]
+    else
+        if C_CVar.GetCVarBool("useCompactPartyFrames") then
+            return _G["CompactPartyFrameMember" .. i] or _G["CompactRaidFrame" .. i]
+        else
+            return _G["PartyMemberFrame" .. i] or _G["PartyFrame"]["MemberFrame" .. i]
+        end
+    end
+end
+
+function sArenaMixin:FindPartyFrame(i)
+    if self.db and self.db.profile.useDefaultPartyFrames then
+        return GetDefaultPartyFrame(i)
+    elseif C_AddOns.IsAddOnLoaded("DandersFrames") then
+        if self.isInArena then
+            local arenaPartyFrame = _G["DandersArenaHeaderUnitButton" .. i]
+            if arenaPartyFrame then
+                return arenaPartyFrame
+            end
         end
         local partyFrame = _G["DandersPartyHeaderUnitButton" .. i]
         if partyFrame then
@@ -46,27 +63,19 @@ local function FindPartyFrame(i)
         -- From testing, the sorting order doesnt matter, SUF still calls them sequentially from 1 to 4
 		return _G["SUFHeaderpartyUnitButton" .. i - 1]
     else
-        local EM = EditModeManagerFrame
-        if EM and EM.UseRaidStylePartyFrames and EM:UseRaidStylePartyFrames() then
-            return _G["CompactPartyFrameMember" .. i] or _G["CompactRaidFrame" .. i]
-        else
-            if C_CVar.GetCVarBool("useCompactPartyFrames") then
-                return _G["CompactPartyFrameMember" .. i] or _G["CompactRaidFrame" .. i]
-            else
-                return _G["PartyMemberFrame" .. i] or _G["PartyFrame"]["MemberFrame" .. i]
-            end
-        end
+        local defaultFrame = GetDefaultPartyFrame(i)
+        return defaultFrame
     end
 end
 
 function sArenaMixin:UpdatePartyFrameReferences()
     for i = 1, 4 do
-        self["partyFrame" .. i] = FindPartyFrame(i)
+        self["partyFrame" .. i] = self:FindPartyFrame(i)
     end
 end
 
 function sArenaMixin:GetPartyFrame(i)
-    return self["partyFrame" .. i] or FindPartyFrame(i)
+    return self["partyFrame" .. i] or self:FindPartyFrame(i)
 end
 
 function sArenaMixin:GetSpecNameByID(specId)
