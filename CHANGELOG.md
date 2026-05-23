@@ -1,7 +1,7 @@
 # sArena Reloaded 2.5.4
 ## New
-- Pet Frames. You can now enable Pet Frames for pet classes.
-- Midnight: Castbar Highlight has its own group now in the Castbar layout settings with a new color setting, icon glow setting, and a "Highlight CC" option. Note that you can only chose either "Cast on me" or "CC" due to restrictions.
+- Pet Frames. You can now enable Pet Frames for pet classes
+- Midnight: Castbar Highlight has its own group now in the Castbar layout settings with a new color setting, icon glow setting, and a "Highlight CC" option. Note that you can only chose either "Cast on me" or "CC" due to restrictions.
 ## Tweak
 - Midnight version has the un-interruptible texture setting working again, but needs a better solution still as this isnt perfect but better than nothing.
 - Castbar quick hiding should properly work again for channeled casts again (without hiding it when its been interrupted).
