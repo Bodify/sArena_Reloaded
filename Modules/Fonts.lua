@@ -41,44 +41,42 @@ function sArenaMixin:UpdateFonts()
         local og = self.ogFonts
         if og then
             for i = 1, self.maxArenaOpponents do
-                local f = self["arena"..i]
-                if f then
-                    applyFont(f.Name,        og.Name)
-                    applyFont(f.HealthText,  og.HealthText)
-                    applyFont(f.SpecNameText, og.SpecNameText)
-                    applyFont(f.PowerText,   og.PowerText)
-                    applyFont(f.CastBar and f.CastBar.Text, og.CastBarText)
-                    local fontName, s, o = f.CastBar.Text:GetFont()
-                    f.CastBar.Text:SetFont(fontName, s, "OUTLINE")
-                    if f.CastBar and f.CastBar.ArenaIDText then
-                        applyFont(f.CastBar.ArenaIDText, og.CastBarIDText)
-                        local _, cbSize = f.CastBar.Text:GetFont()
-                        local idPath, _, idFlags = f.CastBar.ArenaIDText:GetFont()
-                        if idPath and cbSize then
-                            f.CastBar.ArenaIDText:SetFont(idPath, cbSize, idFlags)
-                        end
+                local f = self["arena" .. i]
+                applyFont(f.Name,        og.Name)
+                applyFont(f.HealthText,  og.HealthText)
+                applyFont(f.SpecNameText, og.SpecNameText)
+                applyFont(f.PowerText,   og.PowerText)
+                applyFont(f.CastBar and f.CastBar.Text, og.CastBarText)
+                applyFont(f.PetFrame.Name,       og.PetName)
+                applyFont(f.PetFrame.HealthText, og.PetHealthText)
+                local fontName, s, o = f.CastBar.Text:GetFont()
+                f.CastBar.Text:SetFont(fontName, s, "OUTLINE")
+                if f.CastBar and f.CastBar.ArenaIDText then
+                    applyFont(f.CastBar.ArenaIDText, og.CastBarIDText)
+                    local _, cbSize = f.CastBar.Text:GetFont()
+                    local idPath, _, idFlags = f.CastBar.ArenaIDText:GetFont()
+                    if idPath and cbSize then
+                        f.CastBar.ArenaIDText:SetFont(idPath, cbSize, idFlags)
                     end
-                    if f.CastBar and f.CastBar.ArenaTargetText then
-                        applyFont(f.CastBar.ArenaTargetText, og.CastBarTargetText)
-                        local _, cbSize = f.CastBar.Text:GetFont()
-                        local tPath, _, tFlags = f.CastBar.ArenaTargetText:GetFont()
-                        if tPath and cbSize then
-                            f.CastBar.ArenaTargetText:SetFont(tPath, cbSize - 2, tFlags)
-                        end
+                end
+                if f.CastBar and f.CastBar.ArenaTargetText then
+                    applyFont(f.CastBar.ArenaTargetText, og.CastBarTargetText)
+                    local _, cbSize = f.CastBar.Text:GetFont()
+                    local tPath, _, tFlags = f.CastBar.ArenaTargetText:GetFont()
+                    if tPath and cbSize then
+                        f.CastBar.ArenaTargetText:SetFont(tPath, cbSize - 2, tFlags)
                     end
-                    if f.WidgetOverlay and f.WidgetOverlay.arenaTargetText then
-                        applyFont(f.WidgetOverlay.arenaTargetText, og.ArenaTargetWidgetText)
-                    end
+                end
+                if f.WidgetOverlay and f.WidgetOverlay.arenaTargetText then
+                    applyFont(f.WidgetOverlay.arenaTargetText, og.ArenaTargetWidgetText)
                 end
             end
             self.ogFonts = nil
         else
             for i = 1, self.maxArenaOpponents do
-                local f = self["arena"..i]
-                if f then
-                    local fontName, s, o = f.CastBar.Text:GetFont()
-                    f.CastBar.Text:SetFont(fontName, s, "OUTLINE")
-                end
+                local f = self["arena" .. i]
+                local fontName, s, o = f.CastBar.Text:GetFont()
+                f.CastBar.Text:SetFont(fontName, s, "OUTLINE")
             end
         end
         return
@@ -120,8 +118,7 @@ function sArenaMixin:UpdateFonts()
     end
 
     for i = 1, self.maxArenaOpponents do
-        local frame = self["arena"..i]
-        if not frame or not frame.HealthBar then return end
+        local frame = self["arena" .. i]
 
         if frameFontPath then
             if not self.ogFonts then
@@ -134,12 +131,16 @@ function sArenaMixin:UpdateFonts()
                     CastBarIDText = captureFont(frame.CastBar and frame.CastBar.ArenaIDText),
                     CastBarTargetText = captureFont(frame.CastBar and frame.CastBar.ArenaTargetText),
                     ArenaTargetWidgetText = captureFont(frame.WidgetOverlay and frame.WidgetOverlay.arenaTargetText),
+                    PetName       = captureFont(frame.PetFrame.Name),
+                    PetHealthText = captureFont(frame.PetFrame.HealthText),
                 }
             end
             setFont(frame.Name, frameFontPath)
             setFont(frame.HealthText, frameFontPath)
             setFont(frame.SpecNameText, frameFontPath)
             setFont(frame.PowerText,  frameFontPath)
+            setFont(frame.PetFrame.Name,       frameFontPath)
+            setFont(frame.PetFrame.HealthText, frameFontPath)
             setFont(frame.CastBar.Text, frameFontPath, true)
             if frame.CastBar and frame.CastBar.ArenaIDText then
                 setFont(frame.CastBar.ArenaIDText, frameFontPath, true)
@@ -160,6 +161,12 @@ function sArenaMixin:UpdateFonts()
             if frame.WidgetOverlay and frame.WidgetOverlay.arenaTargetText then
                 setFont(frame.WidgetOverlay.arenaTargetText, frameFontPath)
             end
+        end
+    end
+    for i = 1, 5 do
+        local partyFrame = self:GetPartyFrame(i)
+        if partyFrame and partyFrame.WidgetOverlay and partyFrame.WidgetOverlay.partyTargetText and frameFontPath then
+            setFont(partyFrame.WidgetOverlay.partyTargetText, frameFontPath)
         end
     end
 end
@@ -203,6 +210,8 @@ function sArenaFrameMixin:ApplyPrototypeFont()
     updateFont(self.SpecNameText, 9)
     updateFont(self.HealthText)
     updateFont(self.PowerText)
+    updateFont(self.PetFrame.Name)
+    updateFont(self.PetFrame.HealthText)
     updateFont(self.CastBar and self.CastBar.Text)
     if self.CastBar and self.CastBar.ArenaIDText then
         local _, cbSize = self.CastBar.Text:GetFont()

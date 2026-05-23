@@ -53,7 +53,7 @@ sArenaMixin.defaultRangeSpellsPerSpec = {
     -- Hunter
     [253]  = 193455, -- Beast Mastery: Cobra Shot
     [254]  = 19434,  -- Marksmanship: Aimed Shot
-    [255]  = 1515,   -- Survival: Tame Beast
+    [255]  = 193265, -- Survival: Hatchet Toss
     -- Rogue
     [259]  = 36554,  -- Assassination: Shadowstep
     [260]  = 36554,  -- Outlaw: Shadowstep

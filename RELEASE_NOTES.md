@@ -1,7 +1,18 @@
-# sArena Reloaded 2.5.3
+# sArena Reloaded 2.5.4
 ## New
-- New aura sorting settings (Global - Class Icon) and updated the default aura sorting method for sArena to show last aura added by default (same as MiniCC by Verz).
-- New Vanguards profile (www.twitch.tv/VanguardsTV). Thank you for sharing!
-- New "Use Default Party Frames (for Widgets)" setting that forces default party frames over detected party frames addon for Widgets placements (like Arena Target Indicator)
+- Pet Frames. You can now enable Pet Frames for pet classes.
+- Midnight: Castbar Highlight has its own group now in the Castbar layout settings with a new color setting, icon glow setting, and a "Highlight CC" option. Note that you can only chose either "Cast on me" or "CC" due to restrictions.
 ## Tweak
-- Re-organize gui categories a bit and make them alphabetical (for the most part).
+- Midnight version has the un-interruptible texture setting working again, but needs a better solution still as this isnt perfect but better than nothing.
+- Castbar quick hiding should properly work again for channeled casts again (without hiding it when its been interrupted).
+- Update default spell used for range check for survival hunter to hatchet toss (40yard).
+## Bugfix
+- Fix first time introduction screen reverting layout choice to default Gladiuish layout even after picking a different one.
+- Fix an issue of castbar not changing color on gained aura mastery effects like Precog etc.
+- Fix click issues in test mode preventing click and drag for widgets etc for things going over the arena frames.
+- Fix ctrl+shift drag for Arena/Party Target Text.
+- Fix font issue on the Party Target Text not picking up selected font.
+- Fix an issue causing aura highlight glows to appear after a shuffle round if unit was stealthed when gates opened.
+- Fix an error related to spec updates while in combat on TBC
+## Note
+- Big patch with a lot of changes to things behind the scenes to accomodate Pet Frames. Please if you run into any issues report it (especially TBC cuz very limited testing has been done there).

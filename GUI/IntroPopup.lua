@@ -130,6 +130,7 @@ function sArenaMixin:ShowWelcomePopup()
 
     local originalLayout = sArenaMixin.db and sArenaMixin.db.profile.currentLayout or "Gladiuish"
     local activePreview, hoverTimer, previewLocked = nil, nil, false
+    local applied = false
 
     local function CancelHoverTimer()
         if hoverTimer then hoverTimer:Cancel() hoverTimer = nil end
@@ -139,6 +140,7 @@ function sArenaMixin:ShowWelcomePopup()
     local ScheduleRevertToDefault = function() end
 
     local function RevertActivePreview()
+        if applied then return end
         CancelHoverTimer()
         CancelRevertToDefault()
         if activePreview == "profile" and _G.sArena and _G.sArena.RevertProfilePreview then
@@ -158,7 +160,9 @@ function sArenaMixin:ShowWelcomePopup()
 
     local function ApplyLayoutAndClose(layoutKey)
         sArena_ReloadedDB.isFirstUse = nil
+        applied = true
         RevertActivePreview()
+        CancelRevertToDefault()
         ;(_G.sArena or sArenaMixin):SetLayout(nil, layoutKey)
         window:Hide()
         LibStub("AceConfigDialog-3.0"):Open("sArena")
@@ -167,7 +171,9 @@ function sArenaMixin:ShowWelcomePopup()
     local function ApplyProfileAndClose(profile)
         sArena_ReloadedDB.isFirstUse = nil
         CancelHoverTimer()
+        CancelRevertToDefault()
         activePreview = nil
+        applied = true
         window:Hide()
         local color = CLASS_COLORS[profile.class] or "|cffffffff"
         ;(_G.sArena or sArenaMixin):ImportStreamerProfile(
@@ -239,16 +245,17 @@ function sArenaMixin:ShowWelcomePopup()
     local revertToken = 0
     CancelRevertToDefault = function() revertToken = revertToken + 1 end
     ScheduleRevertToDefault = function()
-        if previewLocked then return end
+        if previewLocked or applied then return end
         revertToken = revertToken + 1
         local token = revertToken
         C_Timer.After(REVERT_TO_DEFAULT_DELAY, function()
             if token ~= revertToken then return end
+            if applied then return end
             if InCombatLockdown() or not _G.sArena then return end
             if activePreview == "profile" and _G.sArena.RevertProfilePreview then
                 _G.sArena:RevertProfilePreview()
             end
-            if _G.sArena.PreviewLayout then _G.sArena:PreviewLayout("Gladiuish") end
+            if _G.sArena.PreviewLayout then _G.sArena:PreviewLayout(originalLayout) end
             EnsureTestMode()
             activePreview = "layout"
         end)

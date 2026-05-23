@@ -16,8 +16,8 @@ local function AdjustAbsorbGlow(absorbGlow, anchorBar, clamped, useRightEdge)
     absorbGlow:SetAlphaFromBoolean(clamped, ABSORB_GLOW_ALPHA, 0)
 end
 
-function sArenaFrameMixin:CreateOvershieldBar()
-    local healthBar = self.HealthBar
+local function CreateOvershield(frame)
+    local healthBar = frame.HealthBar
 
     local overshieldBar = CreateFrame("StatusBar", nil, healthBar)
     overshieldBar:SetAllPoints(healthBar)
@@ -32,14 +32,14 @@ function sArenaFrameMixin:CreateOvershieldBar()
     barTex:SetVertTile(true)
     barTex:SetDrawLayer("ARTWORK", 1)
 
-    self.healPredictionCalc = CreateUnitHealPredictionCalculator()
-    self.healPredictionCalc:SetDamageAbsorbClampMode(Enum.UnitDamageAbsorbClampMode.MissingHealth)
+    frame.healPredictionCalc = CreateUnitHealPredictionCalculator()
+    frame.healPredictionCalc:SetDamageAbsorbClampMode(Enum.UnitDamageAbsorbClampMode.MissingHealth)
 
-    self.OvershieldBar = overshieldBar
+    frame.OvershieldBar = overshieldBar
 end
 
-function sArenaFrameMixin:CreateAbsorbBar()
-    local healthBar = self.HealthBar
+local function CreateAbsorb(frame)
+    local healthBar = frame.HealthBar
 
     local fillBar = CreateFrame("StatusBar", nil, healthBar)
     fillBar:SetStatusBarTexture("Interface\\RaidFrame\\Shield-Fill")
@@ -58,7 +58,7 @@ function sArenaFrameMixin:CreateAbsorbBar()
     overlay:SetAllPoints(barTex)
     fillBar.overlay = overlay
 
-    self.AbsorbBar = fillBar
+    frame.AbsorbBar = fillBar
 
     C_Timer.After(0.1, function()
         if fillBar:GetNumPoints() > 0 then return end
@@ -67,18 +67,29 @@ function sArenaFrameMixin:CreateAbsorbBar()
     end)
 end
 
-function sArenaFrameMixin:UpdateAbsorb()
-    local healthBar = self.HealthBar
-    local absorbGlow = self.overAbsorbGlow
-    local overshieldBar = self.OvershieldBar
-    local absorbFillBar = self.AbsorbBar
-    local unit = self.unit
-    local disableOvershields = self.parent.db.profile.disableOvershields
+local function UpdateAbsorbBars(parent, frame, unit)
+    local healthBar     = frame.HealthBar
+    local absorbGlow    = frame.overAbsorbGlow
+    local overshieldBar = frame.OvershieldBar
+    local absorbFillBar = frame.AbsorbBar
 
-    UnitGetDetailedHealPrediction(unit, nil, self.healPredictionCalc)
-    local absorbAmount, clamped = self.healPredictionCalc:GetDamageAbsorbs()
-    local missingHealth = self.healPredictionCalc:GetMissingHealth()
-    local totalAbsorbs = UnitGetTotalAbsorbs(self.unit) or 0
+    if not (healthBar and absorbGlow and overshieldBar and absorbFillBar and frame.healPredictionCalc) then
+        return
+    end
+
+    if not (unit and UnitExists(unit)) then
+        overshieldBar:SetAlpha(0)
+        absorbFillBar:Hide()
+        absorbGlow:SetAlpha(0)
+        return
+    end
+
+    local disableOvershields = parent.parent.db.profile.disableOvershields
+
+    UnitGetDetailedHealPrediction(unit, nil, frame.healPredictionCalc)
+    local absorbAmount, clamped = frame.healPredictionCalc:GetDamageAbsorbs()
+    local missingHealth = frame.healPredictionCalc:GetMissingHealth()
+    local totalAbsorbs = UnitGetTotalAbsorbs(unit) or 0
 
     if disableOvershields then
         AdjustAbsorbGlow(absorbGlow, overshieldBar, clamped, true)
@@ -97,4 +108,28 @@ function sArenaFrameMixin:UpdateAbsorb()
     absorbFillBar:SetMinMaxValues(0, missingHealth)
     absorbFillBar:SetValue(absorbAmount or 0)
     absorbFillBar:Show()
+end
+
+function sArenaFrameMixin:CreateOvershieldBar()
+    CreateOvershield(self)
+end
+
+function sArenaFrameMixin:CreateAbsorbBar()
+    CreateAbsorb(self)
+end
+
+function sArenaPetFrameMixin:CreateOvershieldBar()
+    CreateOvershield(self)
+end
+
+function sArenaPetFrameMixin:CreateAbsorbBar()
+    CreateAbsorb(self)
+end
+
+function sArenaFrameMixin:UpdateAbsorb()
+    UpdateAbsorbBars(self, self, self.unit)
+end
+
+function sArenaPetFrameMixin:UpdateAbsorb()
+    UpdateAbsorbBars(self.OwnerFrame, self, self.unit)
 end

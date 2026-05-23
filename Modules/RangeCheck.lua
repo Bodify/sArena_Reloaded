@@ -10,7 +10,7 @@ local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
 local stealthCheck = noEarlyFrames and UnitExists or UnitIsVisible
 
 local function IsSpellInRange(spellID, unit)
-    if IsSpellKnownOrOverridesKnown(spellID) or (UnitExists("pet") and IsSpellKnownOrOverridesKnown(spellID, true)) then
+    if IsSpellKnownOrOverridesKnown(spellID) or (UnitExists("pet") and IsSpellKnownOrOverridesKnown(spellID, true)) or IsPlayerSpell(spellID) then
         return C_Spell.IsSpellInRange(spellID, unit)
     end
     -- If the spell isnt known always show as in range
@@ -87,6 +87,9 @@ function sArenaMixin:CreateRangeCheckFrames()
         local notInRangeIcon = frame.WidgetOverlay.notInRangeIcon
         inRangeIcon:SetIgnoreParentAlpha(true)
         notInRangeIcon:SetIgnoreParentAlpha(true)
+        local petFrame = frame.PetFrame
+        petFrame.WidgetOverlay.inRangeIcon:SetIgnoreParentAlpha(true)
+        petFrame.WidgetOverlay.notInRangeIcon:SetIgnoreParentAlpha(true)
     end
 end
 
@@ -151,6 +154,68 @@ function sArenaMixin:ApplyRangeCheckTextures()
         inIcon:ClearAllPoints()
         inIcon:SetPoint("CENTER", frame.HealthBar, "CENTER", ri.inRangePosX or 0, ri.inRangePosY or 0)
     end
+
+    if self:IsPetFramesEnabled() then
+        local profile = self.db.profile
+        local layout = profile.layoutSettings and profile.layoutSettings[profile.currentLayout]
+        local petRC = layout and layout.petFrames and layout.petFrames.petFrameRangeCheck
+        if petRC and petRC.enabled then
+            local petScale = petRC.scale or 1
+            local petPosX = petRC.posX or 0
+            local petPosY = petRC.posY or 0
+            for i = 1, self.maxArenaOpponents do
+                local petFrame = self["arena" .. i].PetFrame
+                local outIcon = petFrame.WidgetOverlay.notInRangeIcon
+                if outAtlas and outAtlas ~= "" then
+                    if tonumber(outAtlas) then
+                        outIcon.Texture:SetTexture(tonumber(outAtlas))
+                    else
+                        outIcon.Texture:SetAtlas(outAtlas)
+                    end
+                    if ri.notInRangeColorEnabled and ri.notInRangeColor then
+                        local c = ri.notInRangeColor
+                        outIcon.Texture:SetDesaturated(true)
+                        outIcon.Texture:SetVertexColor(c[1], c[2], c[3], c[4] or 1)
+                    else
+                        outIcon.Texture:SetDesaturated(false)
+                        outIcon.Texture:SetVertexColor(1, 1, 1, 1)
+                    end
+                    local petBaseSize = baseSize * 0.8
+                    outIcon:SetSize(petBaseSize * outScale * petScale, petBaseSize * outScale * petScale)
+                    outIcon.hasAtlas = true
+                else
+                    outIcon.hasAtlas = false
+                end
+
+                local inIcon = petFrame.WidgetOverlay.inRangeIcon
+                if inAtlas and inAtlas ~= "" then
+                    if tonumber(inAtlas) then
+                        inIcon.Texture:SetTexture(tonumber(inAtlas))
+                    else
+                        inIcon.Texture:SetAtlas(inAtlas)
+                    end
+                    if ri.inRangeColorEnabled and ri.inRangeColor then
+                        local c = ri.inRangeColor
+                        inIcon.Texture:SetDesaturated(true)
+                        inIcon.Texture:SetVertexColor(c[1], c[2], c[3], c[4] or 1)
+                    else
+                        inIcon.Texture:SetDesaturated(false)
+                        inIcon.Texture:SetVertexColor(1, 1, 1, 1)
+                    end
+                    local petBaseSize = baseSize * 0.8
+                    inIcon:SetSize(petBaseSize * inScale * petScale, petBaseSize * inScale * petScale)
+                    inIcon.hasAtlas = true
+                else
+                    inIcon.hasAtlas = false
+                end
+
+                outIcon:ClearAllPoints()
+                outIcon:SetPoint("CENTER", petFrame.HealthBar, "CENTER", petPosX, petPosY)
+                inIcon:ClearAllPoints()
+                inIcon:SetPoint("CENTER", petFrame.HealthBar, "CENTER", petPosX, petPosY)
+            end
+        end
+    end
 end
 
 function sArenaMixin:ResetRangeChecks()
@@ -160,10 +225,13 @@ function sArenaMixin:ResetRangeChecks()
         frame.WidgetOverlay.notInRangeIcon:Hide()
         frame.notInRange = nil
         frame:SetAlpha(1)
+        local petFrame = frame.PetFrame
+        petFrame.WidgetOverlay.inRangeIcon:Hide()
+        petFrame.WidgetOverlay.notInRangeIcon:Hide()
+        petFrame.notInRange = nil
+        petFrame:SetAlpha(1)
     end
 end
-
-
 
 function sArenaMixin:UpdateAllRangeChecks()
     local spellID = self.rangeSpell
@@ -175,34 +243,48 @@ function sArenaMixin:UpdateAllRangeChecks()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         if frame:IsShown() then
-            frame:UpdateRangeCheck(frame.unit, spellID, useIcon, useAlpha)
+            self:UpdateRangeCheck(frame, frame.unit, spellID, useIcon, useAlpha)
+        end
+    end
+
+    if self:IsPetFramesEnabled() then
+        local profile = self.db.profile
+        local layout = profile.layoutSettings and profile.layoutSettings[profile.currentLayout]
+        local petRC = layout and layout.petFrames and layout.petFrames.petFrameRangeCheck
+        if petRC and petRC.enabled then
+            for i = 1, self.maxArenaOpponents do
+                local petFrame = self["arena" .. i].PetFrame
+                if petFrame:IsShown() then
+                    self:UpdateRangeCheck(petFrame, petFrame.unit, spellID, useIcon, useAlpha)
+                end
+            end
         end
     end
 end
 
-function sArenaFrameMixin:UpdateRangeCheck(unit, spellID, useIcon, useAlpha)
-    if not spellID then spellID = self.parent.rangeSpell end
+function sArenaMixin:UpdateRangeCheck(frame, unit, spellID, useIcon, useAlpha)
+    if not spellID then spellID = self.rangeSpell end
     if not spellID then return end
     if not useIcon and not useAlpha then
-        useIcon = self.parent.rangeUseIcon
-        useAlpha = self.parent.rangeUseAlpha
+        useIcon = self.rangeUseIcon
+        useAlpha = self.rangeUseAlpha
     end
 
-    local inRangeIcon = self.WidgetOverlay.inRangeIcon
-    local notInRangeIcon = self.WidgetOverlay.notInRangeIcon
+    local inRangeIcon = frame.WidgetOverlay.inRangeIcon
+    local notInRangeIcon = frame.WidgetOverlay.notInRangeIcon
 
     if not unit or not UnitExists(unit) then
         inRangeIcon:Hide()
         notInRangeIcon:Hide()
-        self.notInRange = nil
+        frame.notInRange = nil
         return
     end
 
     local inRange, spellNotKnown = IsSpellInRange(spellID, unit)
-    self.notInRange = not inRange
+    frame.notInRange = not inRange
 
     if useIcon then
-        if self.notInRange then
+        if frame.notInRange then
             inRangeIcon:Hide()
             if notInRangeIcon.hasAtlas then
                 notInRangeIcon:SetShown(not spellNotKnown)
@@ -223,21 +305,36 @@ function sArenaFrameMixin:UpdateRangeCheck(unit, spellID, useIcon, useAlpha)
     end
 
     if useAlpha then
-        self:ApplyRangeAlpha()
+        self:ApplyRangeAlpha(frame)
     end
 end
 
-function sArenaFrameMixin:ApplyRangeAlpha()
-    local parent = self.parent
-    local notInRangeAlpha = parent.rangeNotInRangeAlpha
-    local stealthAlpha = parent.stealthAlpha
-    local unit = self.unit
+function sArenaMixin:ApplyRangeAlpha(frame)
+    local notInRangeAlpha = self.rangeNotInRangeAlpha
+    local stealthAlpha = self.stealthAlpha
+    local unit = frame.unit
 
     if unit and not stealthCheck(unit) then
-        self:SetAlpha(math.min(stealthAlpha, notInRangeAlpha))
-    elseif self.notInRange then
-        self:SetAlpha(notInRangeAlpha)
+        frame:SetAlpha(math.min(stealthAlpha, notInRangeAlpha))
+    elseif frame.notInRange then
+        frame:SetAlpha(notInRangeAlpha)
     else
-        self:SetAlpha(1)
+        frame:SetAlpha(1)
     end
+end
+
+function sArenaFrameMixin:UpdateRangeCheck(unit, spellID, useIcon, useAlpha)
+    self.parent:UpdateRangeCheck(self, unit, spellID, useIcon, useAlpha)
+end
+
+function sArenaFrameMixin:ApplyRangeAlpha()
+    self.parent:ApplyRangeAlpha(self)
+end
+
+function sArenaPetFrameMixin:UpdateRangeCheck(unit, spellID, useIcon, useAlpha)
+    self.OwnerFrame.parent:UpdateRangeCheck(self, unit, spellID, useIcon, useAlpha)
+end
+
+function sArenaPetFrameMixin:ApplyRangeAlpha()
+    self.OwnerFrame.parent:ApplyRangeAlpha(self)
 end

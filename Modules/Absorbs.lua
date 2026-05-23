@@ -3,17 +3,26 @@
 -- No portion of this file may be copied, modified, redistributed, or used
 -- in other projects without explicit prior written permission from the author.
 
-local ABSORB_GLOW_ALPHA = 0.6
+local ABSORB_GLOW_ALPHA  = 0.6
 local ABSORB_GLOW_OFFSET = -5
-function sArenaFrameMixin:UpdateAbsorb()
-    local unit     = self.unit
-    local healthBar     = self.HealthBar
-    local absorbBar     = self.totalAbsorbBar
-    local absorbOverlay = self.totalAbsorbBarOverlay
-    local glow          = self.overAbsorbGlow
 
-    local maxHealth = UnitHealthMax(unit)
-    local totalAbsorb   = UnitGetTotalAbsorbs(unit) or 0
+local function UpdateAbsorbBars(parent, frame, unit)
+    local healthBar     = frame.HealthBar
+    local absorbBar     = frame.totalAbsorbBar
+    local absorbOverlay = frame.totalAbsorbBarOverlay
+    local glow          = frame.overAbsorbGlow
+
+    if not (healthBar and absorbBar and absorbOverlay and glow) then return end
+
+    if not (unit and UnitExists(unit)) then
+        absorbBar:Hide()
+        absorbOverlay:Hide()
+        glow:Hide()
+        return
+    end
+
+    local maxHealth   = UnitHealthMax(unit)
+    local totalAbsorb = (UnitGetTotalAbsorbs and UnitGetTotalAbsorbs(unit)) or 0
 
     if maxHealth <= 0 or totalAbsorb <= 0 then
         absorbBar:Hide()
@@ -23,12 +32,13 @@ function sArenaFrameMixin:UpdateAbsorb()
     end
 
     local currentHealth = UnitHealth(unit)
-    local healthWidth  = healthBar:GetWidth()
-    local healthHeight = healthBar:GetHeight()
-    local isReversed   = self.parent.db.profile.reverseBarsFill or false
+    local healthWidth   = healthBar:GetWidth()
+    local healthHeight  = healthBar:GetHeight()
+    local profile       = parent.parent.db.profile
+    local isReversed    = profile.reverseBarsFill or false
 
     -- Default, no Overshields.
-    if self.parent.db.profile.disableOvershields then
+    if profile.disableOvershields then
         local isOverAbsorb = (currentHealth + totalAbsorb >= maxHealth)
 
         -- Clamp absorbs to actual missing health
@@ -154,4 +164,12 @@ function sArenaFrameMixin:UpdateAbsorb()
             glow:Hide()
         end
     end
+end
+
+function sArenaFrameMixin:UpdateAbsorb()
+    UpdateAbsorbBars(self, self, self.unit)
+end
+
+function sArenaPetFrameMixin:UpdateAbsorb()
+    UpdateAbsorbBars(self.OwnerFrame, self, self.unit)
 end

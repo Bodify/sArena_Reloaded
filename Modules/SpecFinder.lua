@@ -41,7 +41,12 @@ function sArenaFrameMixin:CheckForSpecSpell(spellID)
     if db then
         local currentLayout = self.parent.layouts[db.profile.currentLayout]
         if currentLayout and currentLayout.UpdateHealthbarOrientation then
-            currentLayout:UpdateHealthbarOrientation(self)
+            if InCombatLockdown() then
+                self.needsHealthbarOrientationUpdate = true
+                self:RegisterEvent("PLAYER_REGEN_ENABLED")
+            else
+                currentLayout:UpdateHealthbarOrientation(self)
+            end
         end
     end
 

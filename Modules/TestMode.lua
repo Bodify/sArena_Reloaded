@@ -541,6 +541,9 @@ function sArenaMixin:Test()
     local rangeCheckOn = ri and ri.enabled
     local rangeMode = ri and ri.mode or "transparency"
 
+    local petLyt = self.db.profile.layoutSettings[self.db.profile.currentLayout]
+    local petRC = petLyt and petLyt.petFrames and petLyt.petFrames.petFrameRangeCheck
+
     if rangeCheckOn then
         self:UpdateRangeSettings()
     end
@@ -597,6 +600,58 @@ function sArenaMixin:Test()
 
         frame.HealthBar:SetMinMaxValues(0, 100)
         frame.HealthBar:SetValue(100)
+
+        frame.PetFrame:Setup()
+        frame.PetFrame:UpdateSettings()
+        if frame.PetFrame:IsShown() then
+            frame.PetFrame.HealthBar:SetMinMaxValues(0, 100)
+            frame.PetFrame.HealthBar:SetValue(100)
+
+            local statusText = self.db.profile.statusText
+            if statusText and statusText.usePercentage then
+                frame.PetFrame.HealthText:SetText("100%")
+            elseif statusText and statusText.formatNumbers then
+                frame.PetFrame.HealthText:SetText("100K")
+            else
+                frame.PetFrame.HealthText:SetText("100000")
+            end
+
+            frame.PetFrame:ApplyTestModeWidgets()
+
+            if rangeCheckOn and petRC and petRC.enabled then
+                local showIcon = (rangeMode == "icon" or rangeMode == "both")
+                local inRangeIcon = frame.PetFrame.WidgetOverlay.inRangeIcon
+                local notInRangeIcon = frame.PetFrame.WidgetOverlay.notInRangeIcon
+
+                if showIcon and i == 3 then
+                    inRangeIcon:Hide()
+                    if notInRangeIcon.hasAtlas then
+                        notInRangeIcon:Show()
+                    else
+                        notInRangeIcon:Hide()
+                    end
+                elseif showIcon then
+                    notInRangeIcon:Hide()
+                    if inRangeIcon.hasAtlas then
+                        inRangeIcon:Show()
+                    else
+                        inRangeIcon:Hide()
+                    end
+                else
+                    inRangeIcon:Hide()
+                    notInRangeIcon:Hide()
+                end
+
+                if (rangeMode == "transparency" or rangeMode == "both") and i == 3 then
+                    frame.PetFrame:SetAlpha(ri.notInRangeAlpha or 0.4)
+                end
+                frame.PetFrame.notInRange = (i == 3)
+            else
+                frame.PetFrame.WidgetOverlay.inRangeIcon:Hide()
+                frame.PetFrame.WidgetOverlay.notInRangeIcon:Hide()
+                frame.PetFrame.notInRange = nil
+            end
+        end
 
         if i == 1 then
             local showFocusIcon = focusIndicatorOn and (not focusUseBorder or focusUseBoth)
@@ -1143,8 +1198,11 @@ function sArenaMixin:Test()
                 end
             end
 
-            if db.profile.highlightCastsOnMe and frame.CastBar.ArenaTargetHighlight then
-                frame.CastBar.ArenaTargetHighlight:SetAlpha(i == 2 and 1 or 0)
+            if (db.profile.highlightCastsOnMe or db.profile.highlightCC) and frame.CastBar.barHighlight then
+                frame.CastBar.barHighlight:SetAlpha(i == 2 and 1 or 0)
+            end
+            if db.profile.glowCastbarIcon and (db.profile.highlightCastsOnMe or db.profile.highlightCC) and frame.CastBar.iconHighlight then
+                frame.CastBar.iconHighlight:SetAlpha(i == 2 and 1 or 0)
             end
 
             if data.unint then
@@ -1305,7 +1363,10 @@ function sArenaMixin:Test()
             local partyFrame = self:GetPartyFrame(i)
             if partyFrame and partyFrame.WidgetOverlay then
                 for j = 1, self.maxArenaOpponents do
-                    partyFrame.WidgetOverlay["arenaTarget" .. j]:Hide()
+                    local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
+                    if indicator then
+                        indicator:Hide()
+                    end
                 end
             end
         end
@@ -1351,14 +1412,13 @@ function sArenaMixin:Test()
             self.testMode = nil
             for i = 1, self.maxArenaOpponents do
                 local frame = self["arena" .. i]
-                if frame then
-                    frame:SetAuraHighlightActive()
-                    if frame.WidgetOverlay and frame.WidgetOverlay.arenaTargetText then
-                        frame.WidgetOverlay.arenaTargetText:Hide()
-                    end
+                frame:SetAuraHighlightActive()
+                if frame.WidgetOverlay.arenaTargetText then
+                    frame.WidgetOverlay.arenaTargetText:Hide()
                 end
             end
             self:RefreshAllAuraHighlights()
+            self:RefreshPetFrames()
             for i = 1, 5 do
                 local partyFrame = self:GetPartyFrame(i)
                 if partyFrame and partyFrame.WidgetOverlay then
@@ -1401,9 +1461,7 @@ function sArenaMixin:Test()
     if testCount < self.maxArenaOpponents then
         for i = testCount + 1, self.maxArenaOpponents do
             local frame = self["arena" .. i]
-            if frame then
-                frame:Hide()
-            end
+            frame:Hide()
         end
     end
 
@@ -1411,16 +1469,12 @@ function sArenaMixin:Test()
     local auraCategories = { "cc", "important", "defensive" }
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        if frame then
-            local category = auraCategories[((i - 1) % #auraCategories) + 1]
-            frame:SetAuraHighlightActive(category)
-        end
+        local category = auraCategories[((i - 1) % #auraCategories) + 1]
+        frame:SetAuraHighlightActive(category)
     end
 
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        if frame and frame.UpdateDRPositions then
-            frame:UpdateDRPositions(true)
-        end
+        frame:UpdateDRPositions()
     end
 end

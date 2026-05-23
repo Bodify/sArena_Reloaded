@@ -286,11 +286,9 @@ end
 function sArenaMixin:RefreshAllAuraHighlights()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        if frame then
-            frame:CreateAuraHighlight()
-            frame:UpdateAuraHighlightLayout()
-            frame:UpdateAuraHighlightEnabled()
-            frame:SetUnitAuraRegistration()
-        end
+        frame:CreateAuraHighlight()
+        frame:UpdateAuraHighlightLayout()
+        frame:UpdateAuraHighlightEnabled()
+        frame:SetUnitAuraRegistration()
     end
 end

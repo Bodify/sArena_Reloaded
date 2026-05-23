@@ -419,6 +419,13 @@ function layout:Initialize(frame)
     frameTexture:SetDrawLayer("OVERLAY", 5)
     frameTexture:Show()
 
+    -- if not frame.PetFrame.frameTexture then
+    --     frame.PetFrame.frameTexture = frame.PetFrame:CreateTexture(nil, "OVERLAY", nil, 5)
+    --     frame.PetFrame.frameTexture:SetPoint("TOPLEFT", frame.PetFrame, "TOPLEFT", -2, 4)
+    --     frame.PetFrame.frameTexture:SetPoint("BOTTOMRIGHT", frame.PetFrame, "BOTTOMRIGHT", 2, -4)
+    --     frame.PetFrame.frameTexture:SetAtlas("plunderstorm-stormbar-border")
+    -- end
+
     self:UpdateOrientation(frame)
 end
 
@@ -613,5 +620,31 @@ function layout:UpdateOrientation(frame)
     self:UpdateHealthbarOrientation(frame)
 end
 
+layout.defaultSettings.petFrames = {
+    posX          = 7,
+    posY          = 1,
+    width         = 99,
+    height        = 16,
+    scale         = 1,
+    frameStrata   = "LOW",
+    textSettings  = {
+        nameAnchor    = "LEFT",
+        nameOffsetX   = 0,
+        nameOffsetY   = -1,
+        nameSize      = 0.9,
+        healthAnchor  = "CENTER",
+        healthOffsetX = 0,
+        healthOffsetY = -1,
+        healthSize    = 0.9,
+    },
+    widgets = {
+        targetIndicator       = { enabled = true,  scale = 1, posX = -1, posY = -1 },
+        focusIndicator        = { enabled = true,  scale = 1, posX = -1, posY = -1 },
+        combatIndicator       = { enabled = false, scale = 1, posX = 0, posY = 0 },
+        partyTargetIndicators = { enabled = false, scale = 1, posX = 0, posY = 0, direction = "LEFT", spacing = 0 },
+    },
+}
+
+layout.petFrameBaseOffsets = { posX = -121, posY = -11 }
 sArenaMixin.layouts[layoutName] = layout
 sArenaMixin.defaultSettings.profile.layoutSettings[layoutName] = layout.defaultSettings

@@ -58,10 +58,10 @@ function sArenaMixin:ModernOrClassicCastbar()
                 newBar.Background:SetVertexColor(cbBgColor[1], cbBgColor[2], cbBgColor[3], cbBgColor[4])
                 newBar:SetHeight(9)
                 newBar.Icon:SetSize(20,20)
-                if newBar.ArenaTargetHighlight then
-                    newBar.ArenaTargetHighlight:ClearAllPoints()
-                    newBar.ArenaTargetHighlight:SetPoint("TOPLEFT", -3, 4)
-                    newBar.ArenaTargetHighlight:SetPoint("BOTTOMRIGHT", 3, -4)
+                if newBar.barHighlight then
+                    newBar.barHighlight:ClearAllPoints()
+                    newBar.barHighlight:SetPoint("TOPLEFT", -3, 4)
+                    newBar.barHighlight:SetPoint("BOTTOMRIGHT", 3, -4)
                 end
             else
                 newBar.Text:ClearAllPoints()
@@ -75,10 +75,10 @@ function sArenaMixin:ModernOrClassicCastbar()
                 if newBar.MaskTexture then
                     newBar.MaskTexture:Hide()
                 end
-                if newBar.ArenaTargetHighlight then
-                    newBar.ArenaTargetHighlight:ClearAllPoints()
-                    newBar.ArenaTargetHighlight:SetPoint("TOPLEFT", -2, 2)
-                    newBar.ArenaTargetHighlight:SetPoint("BOTTOMRIGHT", 2, -2)
+                if newBar.barHighlight then
+                    newBar.barHighlight:ClearAllPoints()
+                    newBar.barHighlight:SetPoint("TOPLEFT", -2, 2)
+                    newBar.barHighlight:SetPoint("BOTTOMRIGHT", 2, -2)
                 end
             end
             newBar.Spark:SetSize(3, 20)
@@ -92,22 +92,20 @@ function sArenaMixin:ModernOrClassicCastbar()
             local fontName, s = frame.CastBar.Text:GetFont()
             frame.CastBar.Text:SetFont(fontName, s, "OUTLINE")
             self:SetupDrag(frame.CastBar, frame.CastBar, "castBar", "UpdateCastBarSettings")
-            frame.CastBar:SetFrameLevel(7)
+            frame.CastBar:SetFrameLevel(9)
         end
 
         local currentLayout = self.layouts[db.profile.currentLayout]
         if currentLayout and currentLayout.UpdateOrientation then
             for i = 1, self.maxArenaOpponents do
                 local frame = self["arena" .. i]
-                if frame then
-                    currentLayout:UpdateOrientation(frame)
-                end
+                currentLayout:UpdateOrientation(frame)
             end
         end
     else
         for i = 1, self.maxArenaOpponents do
             local frame = self["arena" .. i]
-            if (frame and useModern) or frame.CastBar.__modernHooked then
+            if useModern or frame.CastBar.__modernHooked then
                 local unit = "arena"..i
                 self:ApplyCastbarStyle(frame, unit, useModern, simpleCastbar)
                 if i == self.maxArenaOpponents then
@@ -117,7 +115,7 @@ function sArenaMixin:ModernOrClassicCastbar()
                 local fontName, s = frame.CastBar.Text:GetFont()
                 frame.CastBar.Text:SetFont(fontName, s, "OUTLINE")
                 self:SetupDrag(frame.CastBar, frame.CastBar, "castBar", "UpdateCastBarSettings")
-                frame.CastBar:SetFrameLevel(7)
+                frame.CastBar:SetFrameLevel(9)
             end
         end
 
@@ -125,9 +123,7 @@ function sArenaMixin:ModernOrClassicCastbar()
         if currentLayout and currentLayout.UpdateOrientation then
             for i = 1, self.maxArenaOpponents do
                 local frame = self["arena" .. i]
-                if frame then
-                    currentLayout:UpdateOrientation(frame)
-                end
+                currentLayout:UpdateOrientation(frame)
             end
         end
     end
@@ -267,12 +263,25 @@ function sArenaMixin:CreateCastbarHighlight()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         local castBar = frame.CastBar
-        if castBar and not castBar.ArenaTargetHighlight then
-            castBar.ArenaTargetHighlight = castBar:CreateTexture(nil, "OVERLAY", nil, 7)
-            castBar.ArenaTargetHighlight:SetAtlas("ui-hud-nameplates-targetedbyenemy")
-            castBar.ArenaTargetHighlight:SetPoint("TOPLEFT", -2.5, 2)
-            castBar.ArenaTargetHighlight:SetPoint("BOTTOMRIGHT", 2.5, -2)
-            castBar.ArenaTargetHighlight:SetAlpha(0)
+        if not castBar.HighlightFrame then
+            castBar.HighlightFrame = CreateFrame("Frame", nil, castBar)
+            castBar.HighlightFrame:SetAllPoints(castBar)
+        end
+        if castBar.barPixelBorder then
+            castBar.HighlightFrame:SetFrameLevel(castBar.barPixelBorder:GetFrameLevel() + 1)
+        end
+        if not castBar.barHighlight then
+            castBar.barHighlight = castBar:CreateTexture(nil, "OVERLAY", nil, 3)
+            castBar.barHighlight:SetAtlas("ui-hud-nameplates-targetedbyenemy")
+            castBar.barHighlight:SetPoint("TOPLEFT", -2.5, 2)
+            castBar.barHighlight:SetPoint("BOTTOMRIGHT", 2.5, -2)
+            castBar.barHighlight:SetAlpha(0)
+        end
+        if not castBar.iconHighlight then
+            castBar.iconHighlight = castBar.HighlightFrame:CreateTexture(nil, "OVERLAY", nil, 7)
+            castBar.iconHighlight:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\newplayertutorial-drag-slotgreen.tga")
+            castBar.iconHighlight:SetDesaturated(true)
+            castBar.iconHighlight:SetAlpha(0)
         end
     end
 end
@@ -538,7 +547,7 @@ local function ApplyModern(bar, simpleCastbar, frame, unit)
     bar:SetHeight(12)
     if bar.Icon then
         bar.Icon:SetSize(21, 21)
-        bar.Icon:SetDrawLayer("OVERLAY", 7)
+        bar.Icon:SetDrawLayer("OVERLAY", 6)
     end
 
     if not bar.__modernHooked then
@@ -660,7 +669,7 @@ end
 function sArenaMixin:UpdateMoPCastbarColors()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        if frame and frame.CastBar then
+        if frame.CastBar then
             UpdateCastbarColorsMoP(frame.CastBar, self)
         end
     end

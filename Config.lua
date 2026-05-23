@@ -3,6 +3,28 @@ local isRetail = sArenaMixin.isRetail
 local isMidnight = sArenaMixin.isMidnight
 local L = sArenaMixin.L
 
+local function GetClassOptionName(classToken)
+    local icon = sArenaMixin.classIcons[classToken]
+    local color = RAID_CLASS_COLORS[classToken]
+    local name = LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[classToken] or classToken
+    local label = name
+    if color then
+        local hex
+        if color.colorStr then
+            hex = color.colorStr
+        elseif color.r and color.g and color.b then
+            hex = string.format("ff%02x%02x%02x", color.r * 255, color.g * 255, color.b * 255)
+        end
+        if hex then
+            label = "|c" .. hex .. name .. "|r"
+        end
+    end
+    if icon then
+        label = "|T" .. icon .. ":16:16:0:0|t " .. label
+    end
+    return label
+end
+
 local function GetSpellInfoCompat(spellID)
     if not spellID then
         return nil
@@ -566,22 +588,6 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             end,
                         },
 
-                        highlightCastsOnMe = {
-                            order = 2.87,
-                            name = L["Castbar_HighlightCastsOnMe"],
-                            desc = L["Castbar_HighlightCastsOnMe_Desc"],
-                            type = "toggle",
-                            hidden = function() return not isMidnight end,
-                            get = function(info)
-                                return info.handler.db.profile.highlightCastsOnMe
-                            end,
-                            set = function(info, val)
-                                info.handler.db.profile.highlightCastsOnMe = val
-                                info.handler:UpdateTextures()
-                                info.handler:RefreshTestModeCastbars()
-                            end,
-                        },
-
                         spacer = {
                             order = 2.9,
                             type  = "description",
@@ -841,6 +847,101 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                         info.handler.db.profile.castBarColors = info.handler.db.profile.castBarColors or {}
                                         info.handler.db.profile.castBarColors.interruptNotReady = {r, g, b, a}
                                         info.handler:UpdateCastbarColors()
+                                        info.handler:UpdateTextures()
+                                        info.handler:RefreshTestModeCastbars()
+                                    end,
+                                },
+                            },
+                        },
+                        castbarHighlightGroup = {
+                            order = 6,
+                            type = "group",
+                            name = L["Castbar_HighlightGroup"],
+                            inline = true,
+                            hidden = function() return not isMidnight end,
+                            args = {
+                                highlightCastsOnMe = {
+                                    order = 1,
+                                    type = "toggle",
+                                    width = "full",
+                                    name = L["Castbar_HighlightCastsOnMe"],
+                                    desc = L["Castbar_HighlightCastsOnMe_Desc"],
+                                    get = function(info)
+                                        return info.handler.db.profile.highlightCastsOnMe
+                                    end,
+                                    set = function(info, val)
+                                        info.handler.db.profile.highlightCastsOnMe = val
+                                        if val then
+                                            info.handler.db.profile.highlightCC = false
+                                        end
+                                        info.handler:UpdateTextures()
+                                        info.handler:RefreshTestModeCastbars()
+                                    end,
+                                },
+                                highlightCC = {
+                                    order = 2,
+                                    type = "toggle",
+                                    width = "full",
+                                    name = L["Castbar_HighlightCC"],
+                                    desc = L["Castbar_HighlightCC_Desc"],
+                                    get = function(info)
+                                        return info.handler.db.profile.highlightCC
+                                    end,
+                                    set = function(info, val)
+                                        info.handler.db.profile.highlightCC = val
+                                        if val then
+                                            info.handler.db.profile.highlightCastsOnMe = false
+                                        end
+                                        info.handler:UpdateTextures()
+                                        info.handler:RefreshTestModeCastbars()
+                                    end,
+                                },
+                                glowCastbarIcon = {
+                                    order = 2.5,
+                                    type = "toggle",
+                                    width = "full",
+                                    name = L["Castbar_GlowIcon"],
+                                    desc = L["Castbar_GlowIcon_Desc"],
+                                    get = function(info)
+                                        return info.handler.db.profile.glowCastbarIcon or false
+                                    end,
+                                    set = function(info, val)
+                                        info.handler.db.profile.glowCastbarIcon = val
+                                        info.handler:UpdateTextures()
+                                        info.handler:RefreshTestModeCastbars()
+                                    end,
+                                },
+                                useHighlightColor = {
+                                    order = 3,
+                                    type = "toggle",
+                                    width = "full",
+                                    name = L["Castbar_UseHighlightColor"],
+                                    desc = L["Castbar_UseHighlightColor_Desc"],
+                                    get = function(info)
+                                        return info.handler.db.profile.useHighlightColor or false
+                                    end,
+                                    set = function(info, val)
+                                        info.handler.db.profile.useHighlightColor = val
+                                        info.handler:UpdateTextures()
+                                        info.handler:RefreshTestModeCastbars()
+                                    end,
+                                },
+                                highlightColor = {
+                                    order = 4,
+                                    type = "color",
+                                    name = L["Castbar_HighlightColor"],
+                                    desc = L["Castbar_HighlightColor_Desc"],
+                                    hasAlpha = true,
+                                    disabled = function(info)
+                                        return not (info.handler.db.profile.useHighlightColor)
+                                    end,
+                                    get = function(info)
+                                        local c = info.handler.db.profile.highlightColor
+                                        if c then return unpack(c) end
+                                        return 0, 1, 0, 1
+                                    end,
+                                    set = function(info, r, g, b, a)
+                                        info.handler.db.profile.highlightColor = {r, g, b, a}
                                         info.handler:UpdateTextures()
                                         info.handler:RefreshTestModeCastbars()
                                     end,
@@ -1935,6 +2036,187 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                         },
                     },
                 },
+                petNameText = {
+                    order = 3.5,
+                    name = L["Category_PetFrames"] .. " - " .. L["Text_NameText"],
+                    type = "group",
+                    inline = true,
+                    args = {
+                        nameAnchor = {
+                            order = 1,
+                            name = L["Text_AnchorPoint"],
+                            type = "select",
+                            style = "dropdown",
+                            width = 0.5,
+                            values = {
+                                ["LEFT"] = L["Direction_Left"],
+                                ["CENTER"] = L["Direction_Center"],
+                                ["RIGHT"] = L["Direction_Right"],
+                            },
+                            get = function(info)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                return lyt.petFrames.textSettings.nameAnchor or "LEFT"
+                            end,
+                            set = function(info, val)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                lyt.petFrames.textSettings.nameAnchor = val
+                                info.handler:RefreshPetFrameSettings()
+                            end,
+                        },
+                        nameSize = {
+                            order = 2,
+                            name = L["Size"],
+                            type = "range",
+                            min = 0.2, max = 3, softMin = 0.05, softMax = 5,
+                            step = 0.01, width = 0.8, isPercent = true,
+                            get = function(info)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                return lyt.petFrames.textSettings.nameSize or 1.0
+                            end,
+                            set = function(info, val)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                lyt.petFrames.textSettings.nameSize = val
+                                info.handler:RefreshPetFrameSettings()
+                            end,
+                        },
+                        nameOffsetX = {
+                            order = 3,
+                            name = L["Horizontal"],
+                            type = "range",
+                            softMin = -200, softMax = 200, step = 0.5, width = 0.8,
+                            get = function(info)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                return lyt.petFrames.textSettings.nameOffsetX or 0
+                            end,
+                            set = function(info, val)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                lyt.petFrames.textSettings.nameOffsetX = val
+                                info.handler:RefreshPetFrameSettings()
+                            end,
+                        },
+                        nameOffsetY = {
+                            order = 4,
+                            name = L["Vertical"],
+                            type = "range",
+                            softMin = -200, softMax = 200, step = 0.5, width = 0.8,
+                            get = function(info)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                return lyt.petFrames.textSettings.nameOffsetY or 0
+                            end,
+                            set = function(info, val)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                lyt.petFrames.textSettings.nameOffsetY = val
+                                info.handler:RefreshPetFrameSettings()
+                            end,
+                        },
+                    },
+                },
+                petHealthText = {
+                    order = 3.6,
+                    name = L["Category_PetFrames"] .. " - " .. L["Text_HealthText"],
+                    type = "group",
+                    inline = true,
+                    args = {
+                        healthAnchor = {
+                            order = 1,
+                            name = L["Text_AnchorPoint"],
+                            type = "select",
+                            style = "dropdown",
+                            width = 0.5,
+                            values = {
+                                ["LEFT"] = L["Direction_Left"],
+                                ["CENTER"] = L["Direction_Center"],
+                                ["RIGHT"] = L["Direction_Right"],
+                            },
+                            get = function(info)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                return lyt.petFrames.textSettings.healthAnchor or "RIGHT"
+                            end,
+                            set = function(info, val)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                lyt.petFrames.textSettings.healthAnchor = val
+                                info.handler:RefreshPetFrameSettings()
+                            end,
+                        },
+                        healthSize = {
+                            order = 2,
+                            name = L["Size"],
+                            type = "range",
+                            min = 0.05, max = 5, step = 0.01, width = 0.8, isPercent = true,
+                            get = function(info)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                return lyt.petFrames.textSettings.healthSize or 1.0
+                            end,
+                            set = function(info, val)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                lyt.petFrames.textSettings.healthSize = val
+                                info.handler:RefreshPetFrameSettings()
+                            end,
+                        },
+                        healthOffsetX = {
+                            order = 3,
+                            name = L["Horizontal"],
+                            type = "range",
+                            softMin = -200, softMax = 200, step = 0.5, width = 0.8,
+                            get = function(info)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                return lyt.petFrames.textSettings.healthOffsetX or 0
+                            end,
+                            set = function(info, val)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                lyt.petFrames.textSettings.healthOffsetX = val
+                                info.handler:RefreshPetFrameSettings()
+                            end,
+                        },
+                        healthOffsetY = {
+                            order = 4,
+                            name = L["Vertical"],
+                            type = "range",
+                            softMin = -200, softMax = 200, step = 0.5, width = 0.8,
+                            get = function(info)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                return lyt.petFrames.textSettings.healthOffsetY or 0
+                            end,
+                            set = function(info, val)
+                                local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                                lyt.petFrames = lyt.petFrames or {}
+                                lyt.petFrames.textSettings = lyt.petFrames.textSettings or {}
+                                lyt.petFrames.textSettings.healthOffsetY = val
+                                info.handler:RefreshPetFrameSettings()
+                            end,
+                        },
+                    },
+                },
                 castbarText = {
                     order = 4,
                     name = L["Text_CastbarText"],
@@ -2237,6 +2519,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             type = "toggle",
                             width = "full",
                             disabled = function(info)
+                                if not info.handler.db.profile.showCastbarTarget then return true end
                                 local layout = info.handler.db.profile.layoutSettings[layoutName]
                                 return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
                             end,
@@ -2264,6 +2547,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             style = "dropdown",
                             width = 0.5,
                             disabled = function(info)
+                                if not info.handler.db.profile.showCastbarTarget then return true end
                                 local layout = info.handler.db.profile.layoutSettings[layoutName]
                                 return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
                             end,
@@ -2298,6 +2582,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             width = 0.8,
                             isPercent = true,
                             disabled = function(info)
+                                if not info.handler.db.profile.showCastbarTarget then return true end
                                 local layout = info.handler.db.profile.layoutSettings[layoutName]
                                 return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
                             end,
@@ -2325,6 +2610,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             step = 0.5,
                             width = 0.8,
                             disabled = function(info)
+                                if not info.handler.db.profile.showCastbarTarget then return true end
                                 local layout = info.handler.db.profile.layoutSettings[layoutName]
                                 return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
                             end,
@@ -2352,6 +2638,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             step = 0.5,
                             width = 0.8,
                             disabled = function(info)
+                                if not info.handler.db.profile.showCastbarTarget then return true end
                                 local layout = info.handler.db.profile.layoutSettings[layoutName]
                                 return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
                             end,
@@ -2376,6 +2663,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             width = 0.4,
                             type = "execute",
                             disabled = function(info)
+                                if not info.handler.db.profile.showCastbarTarget then return true end
                                 local layout = info.handler.db.profile.layoutSettings[layoutName]
                                 return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
                             end,
@@ -2402,6 +2690,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             style = "dropdown",
                             width = 0.6,
                             disabled = function(info)
+                                if not info.handler.db.profile.showCastbarTarget then return true end
                                 local layout = info.handler.db.profile.layoutSettings[layoutName]
                                 return layout.textSettings and layout.textSettings.castbarTargetAnchorInside
                             end,
@@ -4271,6 +4560,332 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
         }
     end
 
+    local function petGet(info)
+        local lyt = info.handler.db.profile.layoutSettings[layoutName]
+        lyt.petFrames = lyt.petFrames or {}
+        return lyt.petFrames[info[#info]]
+    end
+    local function petSet(info, val)
+        local lyt = info.handler.db.profile.layoutSettings[layoutName]
+        lyt.petFrames = lyt.petFrames or {}
+        lyt.petFrames[info[#info]] = val
+        info.handler:RefreshPetFrameSettings()
+    end
+
+    optionsTable.petFrames = {
+        order = 4.5,
+        name = L["Category_PetFrames"],
+        type = "group",
+        args = {
+            sizing = {
+                order = 1,
+                name = L["Sizing"],
+                type = "group",
+                inline = true,
+                get = petGet,
+                set = petSet,
+                args = {
+                    width = {
+                        order = 1,
+                        name = L["Width"],
+                        type = "range",
+                        min = 20, max = 400, step = 0.01, bigStep = 1,
+                    },
+                    height = {
+                        order = 2,
+                        name = L["Height"],
+                        type = "range",
+                        min = 4, max = 100, step = 0.01, bigStep = 1,
+                    },
+                    scale = {
+                        order = 3,
+                        name = L["Scale"],
+                        type = "range",
+                        min = 0.1,
+                        max = 5.0,
+                        softMin = 0.5,
+                        softMax = 3.0,
+                        step = 0.01,
+                        bigStep = 0.01,
+                        isPercent = true,
+                    },
+                },
+            },
+            positioning = {
+                order = 2,
+                name = L["Positioning"],
+                type = "group",
+                inline = true,
+                get = petGet,
+                set = petSet,
+                args = {
+                    posX = {
+                        order = 1,
+                        name = L["Horizontal"],
+                        type = "range",
+                        min = -2000, max = 2000, softMin = -250, softMax = 250, step = 0.01, bigStep = 1,
+                    },
+                    posY = {
+                        order = 2,
+                        name = L["Vertical"],
+                        type = "range",
+                        min = -2000, max = 2000, softMin = -250, softMax = 250, step = 0.01, bigStep = 1,
+                    },
+                    frameStrata = {
+                        order = 3,
+                        name = L["Option_PetFrameStrata"],
+                        type = "select",
+                        style = "dropdown",
+                        width = 0.85,
+                        values = {
+                            LOW    = L["Option_PetFrameStrata_Low"],
+                            MEDIUM = L["Option_PetFrameStrata_Medium"],
+                        },
+                        sorting = { "LOW", "MEDIUM" },
+                        get = function(info)
+                            local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                            lyt.petFrames = lyt.petFrames or {}
+                            return lyt.petFrames.frameStrata or "MEDIUM"
+                        end,
+                        set = function(info, val)
+                            local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                            lyt.petFrames = lyt.petFrames or {}
+                            lyt.petFrames.frameStrata = val
+                            info.handler:RefreshPetFrameSettings()
+                        end,
+                    },
+                },
+            },
+            widgets = {
+                order = 3,
+                name = L["Category_PetFrameWidgetSettings"],
+                type = "group",
+                inline = true,
+                get = function(info)
+                    local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                    lyt.petFrames = lyt.petFrames or {}
+                    lyt.petFrames.widgets = lyt.petFrames.widgets or {}
+                    local wkey = info[#info - 1]
+                    local skey = info[#info]
+                    local w = lyt.petFrames.widgets[wkey]
+                    return w and w[skey]
+                end,
+                set = function(info, val)
+                    local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                    lyt.petFrames = lyt.petFrames or {}
+                    lyt.petFrames.widgets = lyt.petFrames.widgets or {}
+                    local wkey = info[#info - 1]
+                    local skey = info[#info]
+                    lyt.petFrames.widgets[wkey] = lyt.petFrames.widgets[wkey] or {}
+                    lyt.petFrames.widgets[wkey][skey] = val
+                    info.handler:RefreshPetFrameSettings()
+                end,
+                args = (function()
+                    local function petWidgetEnabled(info, wkey)
+                        local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                        local w = lyt and lyt.petFrames and lyt.petFrames.widgets and lyt.petFrames.widgets[wkey]
+                        return w and w.enabled
+                    end
+                    local function disabledIfDisabled(wkey)
+                        return function(info) return not petWidgetEnabled(info, wkey) end
+                    end
+                    local function makeWidgetGroup(order, wkey, displayName, extras)
+                        local group = {
+                            order = order,
+                            name = displayName,
+                            type = "group",
+                            inline = true,
+                            args = {
+                                enabled = {
+                                    order = 1,
+                                    name = L["Enable"],
+                                    type = "toggle",
+                                    width = "full",
+                                },
+                                scale = {
+                                    order = 2,
+                                    name = L["Scale"],
+                                    type = "range",
+                                    min = 0.1, max = 3.0, step = 0.01, bigStep = 0.01, isPercent = true,
+                                    width = 0.95,
+                                    disabled = disabledIfDisabled(wkey),
+                                },
+                                posX = {
+                                    order = 3,
+                                    name = L["Horizontal"],
+                                    type = "range",
+                                    min = -500, max = 500, softMin = -100, softMax = 100, step = 0.1, bigStep = 1,
+                                    width = 0.95,
+                                    disabled = disabledIfDisabled(wkey),
+                                },
+                                posY = {
+                                    order = 4,
+                                    name = L["Vertical"],
+                                    type = "range",
+                                    min = -500, max = 500, softMin = -100, softMax = 100, step = 0.1, bigStep = 1,
+                                    width = 0.95,
+                                    disabled = disabledIfDisabled(wkey),
+                                },
+                            },
+                        }
+                        if extras then
+                            for k, v in pairs(extras) do group.args[k] = v end
+                        end
+                        return group
+                    end
+
+                    return {
+                        targetIndicator = makeWidgetGroup(1, "targetIndicator",
+                            L["Widget_TargetIndicator"] .. " |A:TargetCrosshairs:23:23|a"),
+                        focusIndicator = makeWidgetGroup(2, "focusIndicator",
+                            L["Widget_FocusIndicator"] .. " |TInterface\\AddOns\\sArena_Reloaded\\Textures\\Waypoint-MapPin-Untracked.tga:23:23|t"),
+                        combatIndicator = makeWidgetGroup(3, "combatIndicator",
+                            L["Widget_CombatIndicator"] .. " |A:Food:23:23|a"),
+                        partyTargetIndicators = makeWidgetGroup(4, "partyTargetIndicators",
+                            L["Widget_PartyTargetOnPetFrame"] .. " |TInterface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga:19:19|t",
+                            {
+                                direction = {
+                                    order = 5,
+                                    name = L["Direction"],
+                                    type = "select",
+                                    style = "dropdown",
+                                    width = 0.95,
+                                    values = {
+                                        LEFT  = L["Direction_Left"],
+                                        RIGHT = L["Direction_Right"],
+                                        UP    = L["Direction_Up"],
+                                        DOWN  = L["Direction_Down"],
+                                    },
+                                    disabled = disabledIfDisabled("partyTargetIndicators"),
+                                },
+                                spacing = {
+                                    order = 6,
+                                    name = L["Spacing"],
+                                    type = "range",
+                                    min = -10, max = 50, step = 0.5,
+                                    width = 0.95,
+                                    disabled = disabledIfDisabled("partyTargetIndicators"),
+                                },
+                            }),
+                    }
+                end)(),
+            },
+            petFrameRangeCheck = {
+                order = 4,
+                name = L["Category_PetFrameRangeCheckSettings"],
+                type = "group",
+                inline = true,
+                get = function(info)
+                    local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                    lyt.petFrames = lyt.petFrames or {}
+                    lyt.petFrames.petFrameRangeCheck = lyt.petFrames.petFrameRangeCheck or {}
+                    local key = info[#info]
+                    local val = lyt.petFrames.petFrameRangeCheck[key]
+                    if val ~= nil then return val end
+                    if key == "scale" then return 1 end
+                    if key == "posX" or key == "posY" then return 0 end
+                end,
+                set = function(info, val)
+                    local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                    lyt.petFrames = lyt.petFrames or {}
+                    lyt.petFrames.petFrameRangeCheck = lyt.petFrames.petFrameRangeCheck or {}
+                    lyt.petFrames.petFrameRangeCheck[info[#info]] = val
+                    info.handler:RefreshPetFrameSettings()
+                end,
+                args = {
+                    enabled = {
+                        order = 1,
+                        name = L["Enable"],
+                        type = "toggle",
+                        width = "full",
+                        set = function(info, val)
+                            local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                            lyt.petFrames = lyt.petFrames or {}
+                            lyt.petFrames.petFrameRangeCheck = lyt.petFrames.petFrameRangeCheck or {}
+                            lyt.petFrames.petFrameRangeCheck.enabled = val
+                            if not val then
+                                info.handler:ResetRangeChecks()
+                            end
+                            info.handler:RefreshPetFrameSettings()
+                            if info.handler.testMode then
+                                info.handler:Test()
+                            end
+                        end,
+                    },
+                    scale = {
+                        order = 2,
+                        name = L["Scale"],
+                        type = "range",
+                        min = 0.1,
+                        max = 3.0,
+                        softMin = 0.5,
+                        softMax = 2.0,
+                        step = 0.01,
+                        bigStep = 0.01,
+                        isPercent = true,
+                        width = 0.95,
+                        disabled = function(info)
+                            local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                            return not (lyt and lyt.petFrames and lyt.petFrames.petFrameRangeCheck and lyt.petFrames.petFrameRangeCheck.enabled)
+                        end,
+                    },
+                    posX = {
+                        order = 3,
+                        name = L["Horizontal"],
+                        type = "range",
+                        min = -200, max = 200, softMin = -100, softMax = 100, step = 0.1, bigStep = 1,
+                        width = 0.95,
+                        disabled = function(info)
+                            local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                            return not (lyt and lyt.petFrames and lyt.petFrames.petFrameRangeCheck and lyt.petFrames.petFrameRangeCheck.enabled)
+                        end,
+                    },
+                    posY = {
+                        order = 4,
+                        name = L["Vertical"],
+                        type = "range",
+                        min = -200, max = 200, softMin = -100, softMax = 100, step = 0.1, bigStep = 1,
+                        width = 0.95,
+                        disabled = function(info)
+                            local lyt = info.handler.db.profile.layoutSettings[layoutName]
+                            return not (lyt and lyt.petFrames and lyt.petFrames.petFrameRangeCheck and lyt.petFrames.petFrameRangeCheck.enabled)
+                        end,
+                    },
+                },
+            },
+        },
+    }
+
+    do
+        local ts = optionsTable.textSettings.args
+        local petKeys = { petNameText = true, petHealthText = true }
+        local arenaArgs, petArgs = {}, {}
+        for k, v in pairs(ts) do
+            if petKeys[k] then petArgs[k] = v else arenaArgs[k] = v end
+        end
+        optionsTable.textSettings.args = {
+            arenaFrames = {
+                order = 1,
+                name = L["Category_ArenaFrames"],
+                type = "group",
+                inline = true,
+                args = arenaArgs,
+            },
+            petFramesHeader = {
+                order = 5,
+                name = L["Category_PetFrames"],
+                type = "header",
+            },
+            petFrames = {
+                order = 5.5,
+                name = L["Category_PetFrames"],
+                type = "group",
+                inline = true,
+                args = petArgs,
+            },
+        }
+    end
+
     return optionsTable
 end
 
@@ -4372,11 +4987,24 @@ function sArenaMixin:UpdateCastBarSettings(db, info, val)
             frame.CastBar.BorderShield:SetAlpha(1)
         end
 
-        frame.CastBar.Icon:SetDrawLayer("OVERLAY", 7)
-        frame.CastBar.BorderShield:SetDrawLayer("OVERLAY", 6)
+        frame.CastBar.Icon:SetDrawLayer("OVERLAY", 6)
+        frame.CastBar.BorderShield:SetDrawLayer("OVERLAY", 5)
 
         frame.CastBar.BorderShield:SetScale(db.iconScale or 1)
         frame.CastBar.Icon:SetScale(db.iconScale or 1)
+
+        if frame.CastBar.iconHighlight then
+            local iconGlow = frame.CastBar.iconHighlight
+            local icon = frame.CastBar.Icon
+            local iconScale = icon:GetScale()
+            local w = icon:GetWidth() * iconScale
+            local h = icon:GetHeight() * iconScale
+
+            local mult = 1.2
+            iconGlow:ClearAllPoints()
+            iconGlow:SetPoint("TOPLEFT", icon, "TOPLEFT", -(w * mult), h * mult)
+            iconGlow:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", w * mult, -(h * mult))
+        end
     end
 
     self:UpdateCastBarPixelBorders()
@@ -4394,20 +5022,20 @@ function sArenaMixin:UpdateCastBarPixelBorders()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
 
-        if frame.CastBar.castBar then
+        if frame.CastBar.barPixelBorder then
             if isPixelBorderLayout and not useModernCastbars and not bordersHidden then
-                frame.CastBar.castBar:Show()
+                frame.CastBar.barPixelBorder:Show()
             else
-                frame.CastBar.castBar:Hide()
+                frame.CastBar.barPixelBorder:Hide()
             end
         end
 
-        if frame.CastBar.castBarIcon then
+        if frame.CastBar.iconPixelBorder then
             local hideCastbarIcon = layoutSettings and layoutSettings.castBar and layoutSettings.castBar.hideCastbarIcon
             if isPixelBorderLayout and not useModernCastbars and not hideCastbarIcon and not bordersHidden then
-                frame.CastBar.castBarIcon:Show()
+                frame.CastBar.iconPixelBorder:Show()
             else
-                frame.CastBar.castBarIcon:Hide()
+                frame.CastBar.iconPixelBorder:Hide()
             end
         end
 
@@ -4453,6 +5081,7 @@ function sArenaMixin:UpdateCastbarColors()
         self.castbarColors.defaultStandard = CreateColor(1.0, 0.7, 0.0, 1)
         self.castbarColors.defaultChannel = CreateColor(0.0, 1.0, 0.0, 1)
         self.castbarColors.defaultUninterruptable = CreateColor(0.7, 0.7, 0.7, 1)
+        self.castbarColors.colorRed = CreateColor(1, 0, 0, 1)
     end
 
     -- Update MoP castbar colors for already-created castbars
@@ -4464,7 +5093,7 @@ end
 function sArenaMixin:RefreshTestModeCastbars()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        if frame and frame.tempCast and frame.CastBar:IsShown() then
+        if frame.tempCast and frame.CastBar:IsShown() then
             local db = self.db
             local layout = db.profile.layoutSettings[db.profile.currentLayout]
             local recolorEnabled = layout and layout.castBar and layout.castBar.recolorCastbar
@@ -4554,11 +5183,18 @@ function sArenaMixin:RefreshTestModeCastbars()
                 end
             end
 
-            if frame.CastBar.ArenaTargetHighlight then
-                if db.profile.highlightCastsOnMe and i == 2 then
-                    frame.CastBar.ArenaTargetHighlight:SetAlpha(1)
+            if frame.CastBar.barHighlight then
+                if (db.profile.highlightCastsOnMe or db.profile.highlightCC) and i == 2 then
+                    frame.CastBar.barHighlight:SetAlpha(1)
                 else
-                    frame.CastBar.ArenaTargetHighlight:SetAlpha(0)
+                    frame.CastBar.barHighlight:SetAlpha(0)
+                end
+            end
+            if frame.CastBar.iconHighlight then
+                if db.profile.glowCastbarIcon and (db.profile.highlightCastsOnMe or db.profile.highlightCC) and i == 2 then
+                    frame.CastBar.iconHighlight:SetAlpha(1)
+                else
+                    frame.CastBar.iconHighlight:SetAlpha(0)
                 end
             end
         end
@@ -4591,7 +5227,6 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
 
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        if not frame then return end
 
         frame:UpdateDRPositions()
 
@@ -4685,7 +5320,7 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
                 elseif db.thickPixelBorder then
                     dr.Border:Hide()
                     local drSize = layoutSettings and layoutSettings.drPixelBorderSize or 2
-                    frame:CreatePixelTextureBorder(dr, dr, "PixelBorder", drSize, 0, false)
+                    frame.parent:CreatePixelTextureBorder(dr, dr, "PixelBorder", drSize, 0, false)
                     dr.PixelBorder:Show()
 
                     if db.blackDRBorder then
@@ -6111,6 +6746,300 @@ else
                             },
                         },
                     },
+                    petFramesGroup = {
+                        order = 5.5,
+                        name = L["Category_PetFrames"],
+                        desc = L["Category_PetFrames_Desc"],
+                        type = "group",
+                        get = function(info)
+                            return info.handler.db.profile.petFrames[info[#info]]
+                        end,
+                        set = function(info, val)
+                            info.handler.db.profile.petFrames[info[#info]] = val
+                            if info.handler.RefreshPetFrames then
+                                info.handler:RefreshPetFrames()
+                            end
+                        end,
+                        args = {
+                            enabled = {
+                                order = 1,
+                                name = L["Option_PetEnabled"],
+                                desc = L["Option_PetEnabled_Desc"],
+                                type = "toggle",
+                            },
+                            classesGroup = {
+                                order = 2,
+                                name = L["Option_PetClassesEnabled"],
+                                type = "group",
+                                inline = true,
+                                args = {
+                                    classDeathknight = {
+                                        order = 1,
+                                        name = GetClassOptionName("DEATHKNIGHT"),
+                                        type = "toggle",
+                                        hidden = function() return sArenaMixin.isTBC end,
+                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                        get = function(info) return info.handler.db.profile.petFrames.classes.DEATHKNIGHT end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.petFrames.classes.DEATHKNIGHT = val
+                                            info.handler:RefreshPetFrames()
+                                        end,
+                                    },
+                                    classMage = {
+                                        order = 2,
+                                        name = GetClassOptionName("MAGE"),
+                                        type = "toggle",
+                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                        get = function(info) return info.handler.db.profile.petFrames.classes.MAGE end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.petFrames.classes.MAGE = val
+                                            info.handler:RefreshPetFrames()
+                                        end,
+                                    },
+                                    classMonk = {
+                                        order = 3,
+                                        name = GetClassOptionName("MONK"),
+                                        type = "toggle",
+                                        hidden = function() return sArenaMixin.isTBC or sArenaMixin.isWrath end,
+                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                        get = function(info) return info.handler.db.profile.petFrames.classes.MONK end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.petFrames.classes.MONK = val
+                                            info.handler:RefreshPetFrames()
+                                        end,
+                                    },
+                                    classWarlock = {
+                                        order = 4,
+                                        name = GetClassOptionName("WARLOCK"),
+                                        type = "toggle",
+                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                        get = function(info) return info.handler.db.profile.petFrames.classes.WARLOCK end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.petFrames.classes.WARLOCK = val
+                                            info.handler:RefreshPetFrames()
+                                        end,
+                                    },
+                                    classHunter = {
+                                        order = 5,
+                                        name = GetClassOptionName("HUNTER"),
+                                        type = "toggle",
+                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                        get = function(info) return info.handler.db.profile.petFrames.classes.HUNTER end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.petFrames.classes.HUNTER = val
+                                            info.handler:RefreshPetFrames()
+                                        end,
+                                    },
+                                },
+                            },
+                            colorsGroup = {
+                                order = 3,
+                                name = L["Option_Colors"],
+                                type = "group",
+                                inline = true,
+                                args = {
+                                    classColors = {
+                                        order = 1,
+                                        name = L["Option_PetClassColors"],
+                                        desc = L["Option_PetClassColors_Desc"],
+                                        type = "toggle",
+                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                    },
+                                    spacerAfterClassColors = {
+                                        order = 1.5,
+                                        name = "",
+                                        type = "description",
+                                        width = "full",
+                                    },
+                                    customColor = {
+                                        order = 2,
+                                        name = L["Option_PetCustomColor"],
+                                        type = "color",
+                                        hasAlpha = true,
+                                        disabled = function(info)
+                                            return not info.handler.db.profile.petFrames.enabled
+                                                or info.handler.db.profile.petFrames.classColors
+                                        end,
+                                        get = function(info)
+                                            local c = info.handler.db.profile.petFrames.customColor
+                                            return c[1], c[2], c[3], c[4] or 1
+                                        end,
+                                        set = function(info, r, g, b, a)
+                                            info.handler.db.profile.petFrames.customColor = { r, g, b, a }
+                                            info.handler:RefreshPetFrameSettings()
+                                        end,
+                                    },
+                                },
+                            },
+                            displayGroup = {
+                                order = 4,
+                                name = L["Option_PetDisplay"],
+                                type = "group",
+                                inline = true,
+                                args = {
+                                    showPetName = {
+                                        order = 1,
+                                        name = L["Option_ShowPetName"],
+                                        type = "toggle",
+                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                        get = function(info) return info.handler.db.profile.petFrames.showPetName end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.petFrames.showPetName = val
+                                            if val then
+                                                info.handler.db.profile.petFrames.showPetNumber = false
+                                            end
+                                            info.handler:RefreshPetFrames()
+                                        end,
+                                    },
+                                    spacerAfterShowPetName = {
+                                        order = 1.5,
+                                        name = "",
+                                        type = "description",
+                                        width = "full",
+                                    },
+                                    showPetNumber = {
+                                        order = 2,
+                                        name = L["Option_ShowPetNumber"],
+                                        type = "toggle",
+                                        width = 1,
+                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                        get = function(info) return info.handler.db.profile.petFrames.showPetNumber end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.petFrames.showPetNumber = val
+                                            if val then
+                                                info.handler.db.profile.petFrames.showPetName = false
+                                            end
+                                            info.handler:RefreshPetFrames()
+                                        end,
+                                    },
+                                    petNumberIdOnly = {
+                                        order = 3,
+                                        name = L["Option_PetNumberIdOnly"],
+                                        type = "toggle",
+                                        width = 1,
+                                        disabled = function(info)
+                                            return not info.handler.db.profile.petFrames.enabled
+                                                or not info.handler.db.profile.petFrames.showPetNumber
+                                        end,
+                                        get = function(info) return info.handler.db.profile.petFrames.petNumberIdOnly end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.petFrames.petNumberIdOnly = val
+                                            info.handler:RefreshPetFrames()
+                                        end,
+                                    },
+                                    spacerBeforeBorderStyle = {
+                                        order = 3.5,
+                                        name = "",
+                                        type = "description",
+                                        width = "full",
+                                    },
+                                    borderStyle = {
+                                        order = 4,
+                                        name = L["Option_PetBorderStyle"],
+                                        desc = L["Option_PetBorderStyle_Desc"],
+                                        type = "select",
+                                        style = "dropdown",
+                                        width = 1,
+                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                        values = {
+                                            layoutBorders = L["Option_PetBorderStyle_LayoutBorders"],
+                                            pixelBorder   = L["Option_PetBorderStyle_PixelBorder"],
+                                            modernBorder  = L["Option_PetBorderStyle_ModernBorder"],
+                                            classicBorder = L["Option_PetBorderStyle_ClassicBorder"],
+                                            none          = L["None"],
+                                        },
+                                        sorting = {
+                                            "layoutBorders",
+                                            "pixelBorder",
+                                            "modernBorder",
+                                            "classicBorder",
+                                            "none",
+                                        },
+                                        get = function(info)
+                                            return info.handler.db.profile.petFrames.borderStyle or "layoutBorders"
+                                        end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.petFrames.borderStyle = val
+                                            info.handler:RefreshPetFrameSettings()
+                                        end,
+                                    },
+                                },
+                            },
+                            statusTextGroup = {
+                                order = 5,
+                                name = L["Option_StatusText"],
+                                type = "group",
+                                inline = true,
+                                args = {
+                                    alwaysShow = {
+                                        order = 1,
+                                        name = L["Option_AlwaysShow"],
+                                        desc = L["Text_ShowOnMouseover_Desc"],
+                                        type = "toggle",
+                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                        get = function(info)
+                                            local petSt = info.handler.db.profile.petFrames.statusText
+                                            if petSt ~= nil and petSt.alwaysShow ~= nil then
+                                                return petSt.alwaysShow
+                                            end
+                                            return info.handler.db.profile.statusText.alwaysShow
+                                        end,
+                                        set = function(info, val)
+                                            local pf = info.handler.db.profile.petFrames
+                                            pf.statusText = pf.statusText or {}
+                                            pf.statusText.alwaysShow = val
+                                            info.handler:RefreshPetFrames()
+                                        end,
+                                    },
+                                    usePercentage = {
+                                        order = 2,
+                                        name = L["Option_UsePercentage"],
+                                        type = "toggle",
+                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                        get = function(info)
+                                            local petSt = info.handler.db.profile.petFrames.statusText
+                                            if petSt ~= nil and petSt.usePercentage ~= nil then
+                                                return petSt.usePercentage
+                                            end
+                                            return info.handler.db.profile.statusText.usePercentage
+                                        end,
+                                        set = function(info, val)
+                                            local pf = info.handler.db.profile.petFrames
+                                            pf.statusText = pf.statusText or {}
+                                            pf.statusText.usePercentage = val
+                                            if val then
+                                                pf.statusText.formatNumbers = false
+                                            end
+                                            info.handler:RefreshPetFrames()
+                                        end,
+                                    },
+                                    formatNumbers = {
+                                        order = 3,
+                                        name = L["Option_FormatNumbers"],
+                                        desc = L["Text_FormatLargeNumbers_Desc"],
+                                        type = "toggle",
+                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                        get = function(info)
+                                            local petSt = info.handler.db.profile.petFrames.statusText
+                                            if petSt ~= nil and petSt.formatNumbers ~= nil then
+                                                return petSt.formatNumbers
+                                            end
+                                            return info.handler.db.profile.statusText.formatNumbers
+                                        end,
+                                        set = function(info, val)
+                                            local pf = info.handler.db.profile.petFrames
+                                            pf.statusText = pf.statusText or {}
+                                            pf.statusText.formatNumbers = val
+                                            if val then
+                                                pf.statusText.usePercentage = false
+                                            end
+                                            info.handler:RefreshPetFrames()
+                                        end,
+                                    },
+                                },
+                            },
+                        },
+                    },
                     auraHighlightGroup = {
                         order = 2,
                         name = L["AuraHighlight"],
@@ -6719,6 +7648,8 @@ else
 
                             local addAttrButton = "1"
                             local addAttrMod = ""
+                            local petAddAttrButton = "1"
+                            local petAddAttrMod = ""
 
                             local function GetAttrDisplayName(modifier, button)
                                 local modName = CLICK_MODIFIERS[modifier] or ""
@@ -6729,7 +7660,8 @@ else
                                 return btnName
                             end
 
-                            function sArenaMixin:BuildClickActionOption(key, orderStart)
+                            function sArenaMixin:BuildClickActionOption(key, orderStart, dbKey)
+                                dbKey = dbKey or "clickAttributes"
                                 return {
                                     type = "group",
                                     name = key,
@@ -6743,11 +7675,11 @@ else
                                             width = 0.7,
                                             values = CLICK_ACTIONS,
                                             get = function(info)
-                                                local attrs = info.handler.db.profile.clickAttributes
+                                                local attrs = info.handler.db.profile[dbKey]
                                                 return attrs[key] and attrs[key].action or "target"
                                             end,
                                             set = function(info, value)
-                                                local attrs = info.handler.db.profile.clickAttributes
+                                                local attrs = info.handler.db.profile[dbKey]
                                                 if attrs[key] then
                                                     attrs[key].action = value
                                                     info.handler:ApplyAllClickActions()
@@ -6762,16 +7694,16 @@ else
                                             width = "full",
                                             multiline = 4,
                                             hidden = function(info)
-                                                local attrs = info.handler.db.profile.clickAttributes
+                                                local attrs = info.handler.db.profile[dbKey]
                                                 local action = attrs[key] and attrs[key].action
                                                 return action ~= "macro"
                                             end,
                                             get = function(info)
-                                                local attrs = info.handler.db.profile.clickAttributes
+                                                local attrs = info.handler.db.profile[dbKey]
                                                 return attrs[key] and attrs[key].macro or ""
                                             end,
                                             set = function(info, value)
-                                                local attrs = info.handler.db.profile.clickAttributes
+                                                local attrs = info.handler.db.profile[dbKey]
                                                 if attrs[key] then
                                                     attrs[key].macro = value
                                                     info.handler:ApplyAllClickActions()
@@ -6785,16 +7717,16 @@ else
                                             type = "input",
                                             width = 1.5,
                                             hidden = function(info)
-                                                local attrs = info.handler.db.profile.clickAttributes
+                                                local attrs = info.handler.db.profile[dbKey]
                                                 local action = attrs[key] and attrs[key].action
                                                 return action ~= "spell"
                                             end,
                                             get = function(info)
-                                                local attrs = info.handler.db.profile.clickAttributes
+                                                local attrs = info.handler.db.profile[dbKey]
                                                 return attrs[key] and attrs[key].macro or ""
                                             end,
                                             set = function(info, value)
-                                                local attrs = info.handler.db.profile.clickAttributes
+                                                local attrs = info.handler.db.profile[dbKey]
                                                 if attrs[key] then
                                                     attrs[key].macro = value
                                                     info.handler:ApplyAllClickActions()
@@ -6809,7 +7741,7 @@ else
                                             width = 0.5,
                                             confirm = function() return sArenaMixin.popupHeader..L["ClickAction_Delete_Confirm"] end,
                                             func = function(info)
-                                                info.handler.db.profile.clickAttributes[key] = nil
+                                                info.handler.db.profile[dbKey][key] = nil
                                                 info.handler:ApplyAllClickActions()
                                                 info.handler:RebuildClickActionsOptions()
                                                 LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
@@ -6903,6 +7835,103 @@ else
                                     disabled = function(info) return info.handler.db.profile.enableCliqueSupport end,
                                     args = {},
                                 },
+                                petFrameGroup = {
+                                    order = 3,
+                                    type = "group",
+                                    name = L["ClickAction_PetFrames"],
+                                    inline = true,
+                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport end,
+                                    args = {
+                                        usePetFrameClickActions = {
+                                            order = 1,
+                                            type = "toggle",
+                                            name = L["ClickAction_UsePetFrameClickActions"],
+                                            desc = L["ClickAction_UsePetFrameClickActions_Desc"],
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.usePetFrameClickActions end,
+                                            set = function(info, value)
+                                                info.handler.db.profile.usePetFrameClickActions = value
+                                                info.handler:ApplyAllClickActions()
+                                            end,
+                                        },
+                                        petAddGroup = {
+                                            order = 2,
+                                            type = "group",
+                                            name = L["ClickAction_Add"],
+                                            inline = true,
+                                            hidden = function(info) return not info.handler.db.profile.usePetFrameClickActions end,
+                                            args = {
+                                                addButton = {
+                                                    order = 1,
+                                                    name = L["ClickAction_Button"],
+                                                    type = "select",
+                                                    width = 0.6,
+                                                    values = CLICK_BUTTONS,
+                                                    get = function() return petAddAttrButton end,
+                                                    set = function(_, value) petAddAttrButton = value end,
+                                                },
+                                                addModifier = {
+                                                    order = 2,
+                                                    name = L["ClickAction_Modifier"],
+                                                    type = "select",
+                                                    width = 0.6,
+                                                    values = CLICK_MODIFIERS,
+                                                    get = function() return petAddAttrMod end,
+                                                    set = function(_, value) petAddAttrMod = value end,
+                                                },
+                                                addExecute = {
+                                                    order = 3,
+                                                    name = L["ClickAction_AddButton"],
+                                                    desc = L["ClickAction_AddButton_Desc"],
+                                                    type = "execute",
+                                                    width = 0.5,
+                                                    func = function(info)
+                                                        local displayName = GetAttrDisplayName(petAddAttrMod, petAddAttrButton)
+                                                        local attrs = info.handler.db.profile.petFrameClickAttributes
+                                                        if not attrs[displayName] then
+                                                            attrs[displayName] = {
+                                                                button = petAddAttrButton,
+                                                                modifier = petAddAttrMod,
+                                                                action = "target",
+                                                            }
+                                                            info.handler:ApplyAllClickActions()
+                                                            info.handler:RebuildClickActionsOptions()
+                                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                                        end
+                                                    end,
+                                                },
+                                            },
+                                        },
+                                        attributeList = {
+                                            order = 3,
+                                            type = "group",
+                                            name = L["ClickAction_Existing"],
+                                            inline = true,
+                                            hidden = function(info) return not info.handler.db.profile.usePetFrameClickActions end,
+                                            args = {},
+                                        },
+                                        resetPet = {
+                                            order = 4,
+                                            name = L["ClickAction_ResetAll"],
+                                            desc = L["ClickAction_ResetAll_Desc"],
+                                            type = "execute",
+                                            width = 0.7,
+                                            hidden = function(info) return not info.handler.db.profile.usePetFrameClickActions end,
+                                            confirm = function() return L["ClickAction_ResetAll_Confirm"] end,
+                                            func = function(info)
+                                                local defaults = sArenaMixin.defaultSettings.profile.petFrameClickAttributes
+                                                local copy = {}
+                                                for k, v in pairs(defaults) do
+                                                    copy[k] = { button = v.button, modifier = v.modifier, action = v.action, macro = v.macro }
+                                                end
+                                                info.handler.db.profile.petFrameClickAttributes = copy
+                                                info.handler:ApplyAllClickActions()
+                                                info.handler:RebuildClickActionsOptions()
+                                                LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                            end,
+                                        },
+                                    },
+                                },
                                 resetAll = {
                                     order = 99,
                                     name = L["ClickAction_ResetAll"],
@@ -6927,8 +7956,14 @@ else
 
                             local order = 1
                             for key, _ in pairs(sArenaMixin.defaultSettings.profile.clickAttributes) do
-                                args.attributeList.args[key] = sArenaMixin:BuildClickActionOption(key, order)
+                                args.attributeList.args[key] = sArenaMixin:BuildClickActionOption(key, order, "clickAttributes")
                                 order = order + 1
+                            end
+
+                            local petOrder = 1
+                            for key, _ in pairs(sArenaMixin.defaultSettings.profile.petFrameClickAttributes or {}) do
+                                args.petFrameGroup.args.attributeList.args[key] = sArenaMixin:BuildClickActionOption(key, petOrder, "petFrameClickAttributes")
+                                petOrder = petOrder + 1
                             end
 
                             sArenaMixin.ClickActionsArgs = args

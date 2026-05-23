@@ -86,7 +86,7 @@ local function IterateAuras(filter, validateAura, unit, seen, sortRule, sortDir,
 end
 
 function sArenaFrameMixin:FindAura(updateInfo)
-    if not self.parent.engagedInMatch or self.disabledAuras then
+    if not self.parent.engagedInMatch or self.disabledAuras or not UnitExists(self.unit) then
         self.currentAuraSpellID = nil
         self.currentAuraDurationObj = nil
         self.currentAuraTexture = nil

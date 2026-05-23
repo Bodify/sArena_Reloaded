@@ -464,15 +464,15 @@ function sArenaFrameMixin:ClassColorFrameTexture()
         if pixelBorders.dispel then
             pixelBorders.dispel:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
         end
-        if self.SpecIcon and self.SpecIcon.specIcon then
-            self.SpecIcon.specIcon:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+        if self.SpecIcon and self.SpecIcon.specPixelBorder then
+            self.SpecIcon.specPixelBorder:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
         end
         if self.CastBar then
-            if self.CastBar.castBar then
-                self.CastBar.castBar:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+            if self.CastBar.barPixelBorder then
+                self.CastBar.barPixelBorder:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
             end
-            if self.CastBar.castBarIcon then
-                self.CastBar.castBarIcon:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+            if self.CastBar.iconPixelBorder then
+                self.CastBar.iconPixelBorder:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
             end
         end
     end
@@ -497,15 +497,15 @@ function sArenaFrameMixin:ResetPixelBorders()
         if pixelBorders.dispel then
             pixelBorders.dispel:SetVertexColor(0, 0, 0)
         end
-        if self.SpecIcon and self.SpecIcon.specIcon then
-            self.SpecIcon.specIcon:SetVertexColor(0, 0, 0)
+        if self.SpecIcon and self.SpecIcon.specPixelBorder then
+            self.SpecIcon.specPixelBorder:SetVertexColor(0, 0, 0)
         end
         if self.CastBar then
-            if self.CastBar.castBar then
-                self.CastBar.castBar:SetVertexColor(0, 0, 0)
+            if self.CastBar.barPixelBorder then
+                self.CastBar.barPixelBorder:SetVertexColor(0, 0, 0)
             end
-            if self.CastBar.castBarIcon then
-                self.CastBar.castBarIcon:SetVertexColor(0, 0, 0)
+            if self.CastBar.iconPixelBorder then
+                self.CastBar.iconPixelBorder:SetVertexColor(0, 0, 0)
             end
         end
     end
@@ -549,6 +549,7 @@ function sArenaFrameMixin:UpdateFrameColors()
         end
         self:ResetPixelBorders()
     end
+    self.PetFrame:UpdateTextureBorderColor()
 end
 
 function sArenaFrameMixin:RegisterFrameEvents()
@@ -578,7 +579,7 @@ function sArenaMixin:UpdateStealthAlpha()
     self.stealthAlpha = self.db and self.db.profile.stealthAlpha or 0.4
 end
 
-function sArenaMixin:UpdateBlizzArenaFrameVisibility(instanceType)
+function sArenaMixin:UpdateBlizzArenaFrameVisibility()
     if isRetail and not noEarlyFrames then
         -- Hide Blizzard Arena Frames while in Arena
         if CompactArenaFrame.isHidden then return end
@@ -634,7 +635,7 @@ function sArenaMixin:UpdateBlizzArenaFrameVisibility(instanceType)
             self.blizzFrame:Hide()
         end
 
-        if instanceType == "arena" then
+        if self.isInArena then
             if prepFrame then
                 prepFrame:SetParent(self.blizzFrame)
                 self.changedDefaultFrameParent = true
@@ -697,7 +698,6 @@ function sArenaMixin:UpdateCDTextVisibility()
 
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        if not frame then break end
 
         -- Class Icon
         local classIconCD = frame.ClassIcon and frame.ClassIcon.Cooldown
@@ -923,6 +923,11 @@ function sArenaMixin:DatabaseCleanup(db)
         end
         db.profile.dbClean2 = true
     end
+
+    -- Migrate Survival Hunter range spell from Tame Beast (1515) to Hatchet Toss (193265) for Midnight
+    if isMidnight and db.profile.rangeCheckSpellsPerSpec and db.profile.rangeCheckSpellsPerSpec[255] == 1515 then
+        db.profile.rangeCheckSpellsPerSpec[255] = 193265
+    end
 end
 
 -- function sArenaMixin:ToggleObjectivesFrame(instanceType)
@@ -996,7 +1001,7 @@ function sArenaFrameMixin:SetupTrinketCooldownDone()
     end)
 end
 
-function sArenaFrameMixin:CreatePixelTextureBorder(parent, target, key, size, offset, setFrameLevel)
+function sArenaMixin:CreatePixelTextureBorder(parent, target, key, size, offset, setFrameLevel)
     offset = offset or 0
     size = size or 1
     if setFrameLevel == nil then setFrameLevel = true end
@@ -1085,29 +1090,34 @@ function sArenaFrameMixin:AddPixelBorderToFrame()
         wrapper:ClearAllPoints()
         wrapper:SetPoint("TOPLEFT", self.HealthBar, "TOPLEFT")
         wrapper:SetPoint("BOTTOMRIGHT", self.PowerBar, "BOTTOMRIGHT")
-        self:CreatePixelTextureBorder(borders, wrapper, "main", size, offset)
+        self.parent:CreatePixelTextureBorder(borders, wrapper, "main", size, offset)
     end
 
-    self:CreatePixelTextureBorder(borders, self.ClassIcon, "classIcon", size, offset)
-    self:CreatePixelTextureBorder(borders, self.Trinket, "trinket", size, offset)
-    self:CreatePixelTextureBorder(borders, self.Racial, "racial", size, offset)
-    self:CreatePixelTextureBorder(borders, self.Dispel, "dispel", size, offset)
+    self.parent:CreatePixelTextureBorder(borders, self.ClassIcon, "classIcon", size, offset)
+    self.parent:CreatePixelTextureBorder(borders, self.Trinket, "trinket", size, offset)
+    self.parent:CreatePixelTextureBorder(borders, self.Racial, "racial", size, offset)
+    self.parent:CreatePixelTextureBorder(borders, self.Dispel, "dispel", size, offset)
 
     if not self.parent.db.profile.showDispels then
         borders.dispel:Hide()
     end
 
-    self:CreatePixelTextureBorder(self.SpecIcon, self.SpecIcon, "specIcon", size, offset)
-    self:CreatePixelTextureBorder(self.CastBar, self.CastBar, "castBar", size, offset)
-    self:CreatePixelTextureBorder(self.CastBar, self.CastBar.Icon, "castBarIcon", size, offset)
+    self.parent:CreatePixelTextureBorder(self.SpecIcon, self.SpecIcon, "specPixelBorder", size, offset)
+    self.parent:CreatePixelTextureBorder(self.CastBar, self.CastBar, "barPixelBorder", size, offset)
+    self.parent:CreatePixelTextureBorder(self.CastBar, self.CastBar.Icon, "iconPixelBorder", size, offset)
     self:SetTextureCrop(self.CastBar.Icon, true)
+    if self.CastBar.HighlightFrame and self.CastBar.barPixelBorder then
+        self.CastBar.HighlightFrame:SetFrameLevel(self.CastBar.barPixelBorder:GetFrameLevel() + 1)
+    end
+
+    self.parent:CreatePixelTextureBorder(self.PetFrame, self.PetFrame, "pixelBorder", size, offset)
 
     if size == 0 then
         borders:Hide()
         self.PixelBorders.hide = true
-        if self.CastBar.castBar then self.CastBar.castBar:Hide() end
-        if self.CastBar.castBarIcon then self.CastBar.castBarIcon:Hide() end
-        if self.SpecIcon.specIcon then self.SpecIcon.specIcon:Hide() end
+        if self.CastBar.barPixelBorder then self.CastBar.barPixelBorder:Hide() end
+        if self.CastBar.iconPixelBorder then self.CastBar.iconPixelBorder:Hide() end
+        if self.SpecIcon.specPixelBorder then self.SpecIcon.specPixelBorder:Hide() end
         return
     end
 
@@ -1141,9 +1151,10 @@ function sArenaMixin:RemovePixelBorders()
         hideBorder(borders, "trinket")
         hideBorder(borders, "dispel")
         hideBorder(borders, "racial")
-        hideBorder(frame.SpecIcon, "specIcon")
-        hideBorder(frame.CastBar, "castBar")
-        hideBorder(frame.CastBar, "castBarIcon")
+        hideBorder(frame.PetFrame, "pixelBorder")
+        hideBorder(frame.SpecIcon, "specPixelBorder")
+        hideBorder(frame.CastBar, "barPixelBorder")
+        hideBorder(frame.CastBar, "iconPixelBorder")
 
         frame.ClassIcon:SetScale(1)
         frame.CastBar.Icon:ClearAllPoints()
@@ -1175,7 +1186,7 @@ function sArenaMixin:UpdateCastbarVisibility()
         self.hiddenCastbars = true
         for i = 1, self.maxArenaOpponents do
             local frame = self["arena" .. i]
-            if frame and frame.CastBar then
+            if frame.CastBar then
                 frame.CastBar:SetParent(self.hiddenFrame)
                 if isMidnight and frame.midnightCastBarMoveFrame then
                     frame.midnightCastBarMoveFrame:Hide()
@@ -1187,7 +1198,7 @@ function sArenaMixin:UpdateCastbarVisibility()
         self.hiddenCastbars = nil
         for i = 1, self.maxArenaOpponents do
             local frame = self["arena" .. i]
-            if frame and frame.CastBar then
+            if frame.CastBar then
                 frame.CastBar:SetParent(frame)
                 if isMidnight and frame.midnightCastBarMoveFrame then
                     frame.midnightCastBarMoveFrame:Show()
@@ -1203,22 +1214,20 @@ function sArenaMixin:UpdateCooldownSwipeColor()
 
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        if frame then
-            frame.ClassIcon.Cooldown:SetSwipeColor(r, g, b, a)
-            frame.Trinket.Cooldown:SetSwipeColor(r, g, b, a)
-            frame.Racial.Cooldown:SetSwipeColor(r, g, b, a)
-            if frame.Dispel and frame.Dispel.Cooldown then
-                frame.Dispel.Cooldown:SetSwipeColor(r, g, b, a)
-            end
+        frame.ClassIcon.Cooldown:SetSwipeColor(r, g, b, a)
+        frame.Trinket.Cooldown:SetSwipeColor(r, g, b, a)
+        frame.Racial.Cooldown:SetSwipeColor(r, g, b, a)
+        if frame.Dispel and frame.Dispel.Cooldown then
+            frame.Dispel.Cooldown:SetSwipeColor(r, g, b, a)
+        end
 
-            local useDrFrames = frame.drFrames ~= nil
-            local drList = frame.drFrames or self.drCategories
-            local drCount = drList and #drList or 0
-            for n = 1, drCount do
-                local dr = useDrFrames and drList[n] or frame[drList[n]]
-                if dr and dr.Cooldown then
-                    dr.Cooldown:SetSwipeColor(r, g, b, a)
-                end
+        local useDrFrames = frame.drFrames ~= nil
+        local drList = frame.drFrames or self.drCategories
+        local drCount = drList and #drList or 0
+        for n = 1, drCount do
+            local dr = useDrFrames and drList[n] or frame[drList[n]]
+            if dr and dr.Cooldown then
+                dr.Cooldown:SetSwipeColor(r, g, b, a)
             end
         end
     end
@@ -1288,7 +1297,7 @@ function sArenaMixin:InitializeMidnightDRFrames()
         local blizzArenaFrame = _G["CompactArenaFrameMember" .. i]
         local arenaFrame = self["arena" .. i]
 
-        if not blizzArenaFrame or not arenaFrame then return end
+        if not blizzArenaFrame then return end
 
         local drTray = blizzArenaFrame.SpellDiminishStatusTray
         if not drTray then return end

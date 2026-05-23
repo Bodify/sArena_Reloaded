@@ -1,5 +1,6 @@
 sArenaMixin = {}
 sArenaFrameMixin = {}
+sArenaPetFrameMixin = {}
 
 local gameVersion = select(1, GetBuildInfo())
 sArenaMixin.isRetail = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
@@ -7,6 +8,7 @@ sArenaMixin.isMidnight = gameVersion:match("^12")
 sArenaMixin.isMoP = gameVersion:match("^5%.")
 sArenaMixin.isWrath = gameVersion:match("^3%.")
 sArenaMixin.isTBC = gameVersion:match("^2%.")
+sArenaMixin.noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
 
 sArenaMixin.addonName = "|T135884:13:13|t sArena |cffff8000Reloaded|r"
 sArenaMixin.addonTitle = sArenaMixin.addonName.. " " .. (C_AddOns.GetAddOnMetadata("sArena_Reloaded", "Version") or "")
@@ -51,7 +53,24 @@ sArenaMixin.defaultSettings = {
         darkModeDesaturate = true,
         statusText = {
             alwaysShow = true,
-            formatNumbers = true,
+            formatNumbers = false,
+            usePercentage = true,
+        },
+        petFrames = {
+            enabled = false,
+            classes = {
+                DEATHKNIGHT = false,
+                MAGE        = false,
+                MONK        = false,
+                WARLOCK     = true,
+                HUNTER      = true,
+            },
+            classColors = true,
+            customColor = { 0, 1, 0, 1 },
+            showPetName     = false,
+            showPetNumber   = false,
+            petNumberIdOnly = false,
+            borderStyle     = "layoutBorders",
         },
         trinketColors = {
             available = { 0, 1, 0 },
@@ -91,6 +110,11 @@ sArenaMixin.defaultSettings = {
             notInRangePosY = 0,
         },
         clickAttributes = {
+            ["Left"] = { button = "1", action = "target" },
+            ["Right"] = { button = "2", action = "focus" },
+        },
+        usePetFrameClickActions = false,
+        petFrameClickAttributes = {
             ["Left"] = { button = "1", action = "target" },
             ["Right"] = { button = "2", action = "focus" },
         },

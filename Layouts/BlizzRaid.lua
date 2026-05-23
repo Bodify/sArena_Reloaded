@@ -33,7 +33,7 @@ layout.defaultSettings = {
     },
     racial = {
         posX = 210.4,
-        posY = 23.4,
+        posY = 23.7,
         scale = 0.75,
         fontSize = 14,
     },
@@ -708,5 +708,30 @@ function layout:UpdateOrientation(frame)
     self:UpdateHealthbarOrientation(frame)
 end
 
+layout.defaultSettings.petFrames = {
+    posX          = 0,
+    posY          = 0,
+    width         = 66,
+    height        = 31,
+    scale         = 1,
+    textSettings  = {
+        nameAnchor    = "LEFT",
+        nameOffsetX   = 0,
+        nameOffsetY   = 0,
+        nameSize      = 1,
+        healthAnchor  = "CENTER",
+        healthOffsetX = 0,
+        healthOffsetY = 0,
+        healthSize    = 1,
+    },
+    widgets = {
+        targetIndicator       = { enabled = true,  scale = 1, posX = 0, posY = 0 },
+        focusIndicator        = { enabled = true,  scale = 1, posX = 0, posY = 0 },
+        combatIndicator       = { enabled = false, scale = 1, posX = 0, posY = 0 },
+        partyTargetIndicators = { enabled = false, scale = 1, posX = 0, posY = 0, direction = "LEFT", spacing = 0 },
+    },
+}
+
+layout.petFrameBaseOffsets = { posX = 4, posY = 22 }
 sArenaMixin.layouts[layoutName] = layout
 sArenaMixin.defaultSettings.profile.layoutSettings[layoutName] = layout.defaultSettings

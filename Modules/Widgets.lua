@@ -71,7 +71,6 @@ function sArenaMixin:UpdateWidgetSettings(db, info, val)
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
 
-
         if db.combatIndicator then frame.WidgetOverlay.combatIndicator:SetScale(db.combatIndicator.scale or 1) end
         if db.healerIndicator then frame.WidgetOverlay.healerIndicator:SetScale(db.healerIndicator.scale or 1) end
         if db.targetIndicator then frame.WidgetOverlay.targetIndicator:SetScale(db.targetIndicator.scale or 1) end
@@ -117,13 +116,14 @@ function sArenaMixin:UpdateWidgetSettings(db, info, val)
 end
 
 function sArenaFrameMixin:UpdateCombatStatus(unit)
-    local db = self.parent.db
-    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
-    if not widgetSettings or not widgetSettings.combatIndicator or not widgetSettings.combatIndicator.enabled then
-        self.WidgetOverlay.combatIndicator:Hide()
-        return
-    end
-    self.WidgetOverlay.combatIndicator:SetShown((unit and not UnitAffectingCombat(unit) and not self.DeathIcon:IsShown()))
+    local ws = self.parent.db.profile.layoutSettings[self.parent.db.profile.currentLayout].widgets
+    local ci = ws and ws.combatIndicator
+    self.WidgetOverlay.combatIndicator:SetShown(ci and ci.enabled and unit and not UnitAffectingCombat(unit) and not self.DeathIcon:IsShown() or false)
+
+    local pet = self.PetFrame
+    local pci = pet:GetWidgetSettings().combatIndicator
+    local petUnit = pet:IsShown() and pet.unit
+    pet.WidgetOverlay.combatIndicator:SetShown(pci and pci.enabled and petUnit and UnitExists(petUnit) and not UnitAffectingCombat(petUnit) or false)
 end
 
 function sArenaFrameMixin:UpdateHealerStatus()
@@ -144,40 +144,65 @@ local function UnitIsProbablyUnit(unit1, unit2)
        and UnitHonorLevel(unit1) == UnitHonorLevel(unit2)
 end
 
+local function UpdateIndicator(frame, unit, widgetSettings, key, unitType, stateKey)
+    local ind = widgetSettings and widgetSettings[key]
+    local isUnit = ind and ind.enabled and unit and UnitIsUnit(unit, unitType)
+    frame.WidgetOverlay[key]:SetShown(isUnit and (not ind.useBorder or ind.useBorderWithIcon) or false)
+    if stateKey then frame[stateKey] = isUnit and true or false end
+    frame:UpdateTargetFocusBorderVisibility()
+end
+
 function sArenaFrameMixin:UpdateTarget(unit)
     local db = self.parent.db
-    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
-    local ti = widgetSettings and widgetSettings.targetIndicator
-    local useBorder = ti and ti.useBorder
-    local useBoth = ti and ti.useBorderWithIcon
-
-    local showIcon = false
-    if ti and ti.enabled then
-        if not useBorder or useBoth then
-            showIcon = unit and UnitIsUnit(unit, "target")
-        end
-    end
-    self.WidgetOverlay.targetIndicator:SetShown(showIcon)
-
-    self:UpdateTargetFocusBorderVisibility()
+    local ws = db.profile.layoutSettings[db.profile.currentLayout].widgets
+    UpdateIndicator(self, unit, ws, "targetIndicator", "target")
+    local pet = self.PetFrame
+    UpdateIndicator(pet, pet:IsShown() and pet.unit, pet:GetWidgetSettings(), "targetIndicator", "target", "isTarget")
 end
 
 function sArenaFrameMixin:UpdateFocus(unit)
     local db = self.parent.db
-    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
-    local fi = widgetSettings and widgetSettings.focusIndicator
-    local useBorder = fi and fi.useBorder
-    local useBoth = fi and fi.useBorderWithIcon
+    local ws = db.profile.layoutSettings[db.profile.currentLayout].widgets
+    UpdateIndicator(self, unit, ws, "focusIndicator", "focus")
+    local pet = self.PetFrame
+    UpdateIndicator(pet, pet:IsShown() and pet.unit, pet:GetWidgetSettings(), "focusIndicator", "focus", "isFocus")
+end
 
-    local showIcon = false
-    if fi and fi.enabled then
-        if not useBorder or useBoth then
-            showIcon = unit and UnitIsUnit(unit, "focus")
-        end
-    end
-    self.WidgetOverlay.focusIndicator:SetShown(showIcon)
+function sArenaMixin:SetTargetFocusBorderEdges(border, borderSize, offset)
+    borderSize = borderSize or 1
+    offset     = offset     or 0
 
-    self:UpdateTargetFocusBorderVisibility()
+    border.top:SetIgnoreParentScale(true)
+    border.right:SetIgnoreParentScale(true)
+    border.bottom:SetIgnoreParentScale(true)
+    border.left:SetIgnoreParentScale(true)
+
+    -- Top edge
+    border.top:ClearAllPoints()
+    border.top:SetPoint("TOPLEFT",  border, "TOPLEFT")
+    border.top:SetPoint("TOPRIGHT", border, "TOPRIGHT")
+    border.top:SetHeight(borderSize)
+
+    -- Right edge
+    border.right:ClearAllPoints()
+    border.right:SetPoint("TOPRIGHT",    border, "TOPRIGHT")
+    border.right:SetPoint("BOTTOMRIGHT", border, "BOTTOMRIGHT")
+    border.right:SetWidth(borderSize)
+
+    -- Bottom edge
+    border.bottom:ClearAllPoints()
+    border.bottom:SetPoint("BOTTOMLEFT",  border, "BOTTOMLEFT")
+    border.bottom:SetPoint("BOTTOMRIGHT", border, "BOTTOMRIGHT")
+    border.bottom:SetHeight(borderSize)
+
+    -- Left edge
+    border.left:ClearAllPoints()
+    border.left:SetPoint("TOPLEFT",    border, "TOPLEFT")
+    border.left:SetPoint("BOTTOMLEFT", border, "BOTTOMLEFT")
+    border.left:SetWidth(borderSize)
+
+    border.borderSize = borderSize
+    border.baseOffset = offset
 end
 
 function sArenaFrameMixin:SetupTargetFocusBorder()
@@ -185,44 +210,14 @@ function sArenaFrameMixin:SetupTargetFocusBorder()
     local borderSize = 1
     local offset = 0
 
-    border.top:SetIgnoreParentScale(true)
-    border.right:SetIgnoreParentScale(true)
-    border.bottom:SetIgnoreParentScale(true)
-    border.left:SetIgnoreParentScale(true)
-
-    local topAnchor = self.HealthBar
-    local bottomAnchor = self.PowerBar
+    local topAnchor    = self.HealthBar
+    local bottomAnchor = self.PowerBar or self.HealthBar
 
     border:ClearAllPoints()
-    border:SetPoint("TOPLEFT", topAnchor, "TOPLEFT", -(offset + borderSize), offset + borderSize)
-    border:SetPoint("BOTTOMRIGHT", bottomAnchor, "BOTTOMRIGHT", offset + borderSize, -(offset + borderSize))
+    border:SetPoint("TOPLEFT",     topAnchor,    "TOPLEFT",     -(offset + borderSize),  offset + borderSize)
+    border:SetPoint("BOTTOMRIGHT", bottomAnchor, "BOTTOMRIGHT",  (offset + borderSize), -(offset + borderSize))
 
-    -- Top edge
-    border.top:ClearAllPoints()
-    border.top:SetPoint("TOPLEFT", border, "TOPLEFT")
-    border.top:SetPoint("TOPRIGHT", border, "TOPRIGHT")
-    border.top:SetHeight(borderSize)
-
-    -- Right edge
-    border.right:ClearAllPoints()
-    border.right:SetPoint("TOPRIGHT", border, "TOPRIGHT")
-    border.right:SetPoint("BOTTOMRIGHT", border, "BOTTOMRIGHT")
-    border.right:SetWidth(borderSize)
-
-    -- Bottom edge
-    border.bottom:ClearAllPoints()
-    border.bottom:SetPoint("BOTTOMLEFT", border, "BOTTOMLEFT")
-    border.bottom:SetPoint("BOTTOMRIGHT", border, "BOTTOMRIGHT")
-    border.bottom:SetHeight(borderSize)
-
-    -- Left edge
-    border.left:ClearAllPoints()
-    border.left:SetPoint("TOPLEFT", border, "TOPLEFT")
-    border.left:SetPoint("BOTTOMLEFT", border, "BOTTOMLEFT")
-    border.left:SetWidth(borderSize)
-
-    border.borderSize = borderSize
-    border.baseOffset = offset
+    self.parent:SetTargetFocusBorderEdges(border, borderSize, offset)
 end
 
 function sArenaFrameMixin:ApplyTargetFocusBorderSize(borderSize)
@@ -440,9 +435,10 @@ function sArenaFrameMixin:CreateArenaTargetText()
     local overlay = self.WidgetOverlay
     if overlay.arenaTargetText then return end
     local textFrame = CreateFrame("Frame", nil, overlay)
-    textFrame:SetAllPoints()
-    textFrame:SetFrameLevel(overlay:GetFrameLevel() + 20)
-    local fs = textFrame:CreateFontString(nil, "OVERLAY")
+    textFrame:SetSize(80, 14)
+    textFrame:SetMovable(true)
+    textFrame:EnableMouse(true)
+    local fs = overlay:CreateFontString(nil, "OVERLAY")
     local nf, _, nflag = self.Name:GetFont()
     fs:SetFont(nf or self.parent.pFont, 10, nflag or "OUTLINE")
     fs:SetShadowColor(0, 0, 0, 1)
@@ -459,6 +455,7 @@ function sArenaFrameMixin:PositionArenaTargetText()
     local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
     local ptt = widgetSettings and widgetSettings.partyTargetText
     local poa = ptt and ptt.partyOnArena
+    local textFrame = self.WidgetOverlay.arenaTargetTextFrame
     local fs = self.WidgetOverlay.arenaTargetText
     if not ptt or not ptt.enabled or not poa or not poa.enabled then
         fs:SetText("")
@@ -471,6 +468,9 @@ function sArenaFrameMixin:PositionArenaTargetText()
     fs:SetFont(nf or self.parent.pFont, fontSize, nflag or "OUTLINE")
     fs:ClearAllPoints()
     fs:SetPoint(anchor, self.HealthBar, anchor, poa.posX or 0, poa.posY or 0)
+    textFrame:SetSize(80, fontSize + 4)
+    textFrame:ClearAllPoints()
+    textFrame:SetPoint(anchor, self.HealthBar, anchor, poa.posX or 0, poa.posY or 0)
 end
 
 function sArenaFrameMixin:UpdateArenaTargetText(unit)
@@ -538,9 +538,10 @@ function sArenaMixin:CreatePartyFrameTargetText(partyFrame)
     local overlay = partyFrame.WidgetOverlay
     if overlay.partyTargetText then return end
     local textFrame = CreateFrame("Frame", nil, overlay)
-    textFrame:SetAllPoints()
-    textFrame:SetFrameLevel(overlay:GetFrameLevel() + 20)
-    local fs = textFrame:CreateFontString(nil, "OVERLAY")
+    textFrame:SetSize(80, 14)
+    textFrame:SetMovable(true)
+    textFrame:EnableMouse(true)
+    local fs = overlay:CreateFontString(nil, "OVERLAY")
     local refName = self["arena1"] and self["arena1"].Name
     local nf, _, nflag = refName and refName:GetFont()
     fs:SetFont(nf or self.pFont, 10, nflag or "OUTLINE")
@@ -574,20 +575,24 @@ function sArenaMixin:PositionArenaTargetTextOnPartyFrames()
     for i = 1, 5 do
         local partyFrame = self:GetPartyFrame(i)
         if partyFrame then
-            self:CreatePartyFrameTargetText(partyFrame)
-            local fs = partyFrame.WidgetOverlay.partyTargetText
+            self:SetupDrag(partyFrame, partyFrame, "partyTargetText", nil, "widget", "arenaOnParty", partyFrame)
+            local overlay = partyFrame.WidgetOverlay
+            local textFrame = overlay.partyTargetTextFrame
+            local fs = overlay.partyTargetText
             local refName = self["arena1"] and self["arena1"].Name
             local nf, _, nflag = refName and refName:GetFont()
             fs:SetFont(nf or self.pFont, fontSize, nflag or "OUTLINE")
-            local healthBar = partyFrame.healthBar or partyFrame.HealthBar or partyFrame.healthbar
-            local anchor_parent = healthBar or partyFrame
             fs:ClearAllPoints()
-            fs:SetPoint(anchor, anchor_parent, anchor, posX, posY)
+            fs:SetPoint(anchor, overlay, anchor, posX, posY)
+            textFrame:SetSize(80, fontSize + 4)
+            textFrame:ClearAllPoints()
+            textFrame:SetPoint(anchor, overlay, anchor, posX, posY)
         end
     end
 end
 
 function sArenaMixin:UpdateArenaTargetTextOnPartyFrames()
+    if self.suppressPartyTextUpdate then return end
     local db = self.db
     local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
     local ptt = widgetSettings and widgetSettings.partyTargetText
@@ -631,11 +636,7 @@ function sArenaMixin:UpdateArenaTargetTextOnPartyFrames()
 end
 
 function sArenaMixin:UpdateArenaTargetTextOnPartyFramesTestMode()
-    local db = self.db
-    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
-    local ptt = widgetSettings and widgetSettings.partyTargetText
-    local aop = ptt and ptt.arenaOnParty
-    if not ptt or not ptt.enabled or not aop or not aop.enabled then return end
+    if self.suppressPartyTextUpdate then return end
     local numArena = self.maxArenaOpponents or 3
     for i = 1, 5 do
         local partyFrame = self:GetPartyFrame(i)
@@ -660,6 +661,12 @@ end
 function sArenaFrameMixin:UpdateArenaTargets(unit)
     local db = self.parent.db
     local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
+    local pet = self.PetFrame
+    local pws = pet and pet:GetWidgetSettings()
+    local petOverlay = pet and pet.WidgetOverlay
+    local pti = pws and pws.partyTargetIndicators
+    local petEnabled = pti and pti.enabled and pet and pet:IsShown() and petOverlay
+
     if not widgetSettings or not widgetSettings.partyTargetIndicators
        or not widgetSettings.partyTargetIndicators.enabled
        or not widgetSettings.partyTargetIndicators.partyOnArena
@@ -667,49 +674,93 @@ function sArenaFrameMixin:UpdateArenaTargets(unit)
         for i = 1, 4 do
             self.WidgetOverlay["partyTarget" .. i]:Hide()
         end
-        return
-    end
-
-    if not unit or not UnitExists(unit) then return end
-
-    local targets = {}
-    local UnitIsUnitSafe = isMidnight and UnitIsProbablyUnit or UnitIsUnit
-    for i = 1, 4 do
-        if UnitIsUnitSafe("party" .. i .. "target", unit) then
-            table.insert(targets, "party" .. i)
+        if not petEnabled then
+            if petOverlay then
+                for i = 1, 4 do
+                    local ind = petOverlay["partyTarget" .. i]
+                    if ind then ind:Hide() end
+                end
+            end
+            return
         end
     end
 
-    for i = 1, 4 do
-        local indicator = self.WidgetOverlay["partyTarget" .. i]
-        if targets[i] then
-            local class = select(2, UnitClass(targets[i]))
-            if class then
-                local color = RAID_CLASS_COLORS[class]
-                indicator.Texture:SetVertexColor(color.r, color.g, color.b)
+    local UnitIsUnitSafe = isMidnight and UnitIsProbablyUnit or UnitIsUnit
+
+    -- Arena (player) frame indicators
+    local arenaTargets = {}
+    if widgetSettings and widgetSettings.partyTargetIndicators
+       and widgetSettings.partyTargetIndicators.enabled
+       and widgetSettings.partyTargetIndicators.partyOnArena
+       and widgetSettings.partyTargetIndicators.partyOnArena.enabled
+       and unit and UnitExists(unit) then
+        for i = 1, 4 do
+            if UnitIsUnitSafe("party" .. i .. "target", unit) then
+                table.insert(arenaTargets, "party" .. i)
             end
-            indicator:Show()
-        else
-            indicator:Hide()
+        end
+        for i = 1, 4 do
+            local indicator = self.WidgetOverlay["partyTarget" .. i]
+            if arenaTargets[i] then
+                local class = select(2, UnitClass(arenaTargets[i]))
+                if class then
+                    local color = RAID_CLASS_COLORS[class]
+                    indicator.Texture:SetVertexColor(color.r, color.g, color.b)
+                end
+                indicator:Show()
+            else
+                indicator:Hide()
+            end
+        end
+    end
+
+    if petEnabled then
+        local petUnit = pet.unit
+        local petTargets = {}
+        if petUnit and UnitExists(petUnit) then
+            for i = 1, 4 do
+                if UnitIsUnitSafe("party" .. i .. "target", petUnit) then
+                    table.insert(petTargets, "party" .. i)
+                end
+            end
+        end
+        for i = 1, 4 do
+            local indicator = petOverlay["partyTarget" .. i]
+            if indicator then
+                if petTargets[i] then
+                    local class = select(2, UnitClass(petTargets[i]))
+                    if class then
+                        local color = RAID_CLASS_COLORS[class]
+                        indicator.Texture:SetVertexColor(color.r, color.g, color.b)
+                    end
+                    indicator:Show()
+                else
+                    indicator:Hide()
+                end
+            end
         end
     end
 end
 
 function sArenaMixin:CreatePartyFrameIndicators(partyFrame)
-    if partyFrame.WidgetOverlay then
+    if not partyFrame.WidgetOverlay then
+        local overlay = CreateFrame("Frame", nil, partyFrame)
+        overlay:SetAllPoints()
+        overlay:SetFrameStrata("HIGH")
+        overlay:SetFrameLevel(partyFrame:GetFrameLevel() + 10)
+        partyFrame.WidgetOverlay = overlay
+    else
         partyFrame.WidgetOverlay:SetParent(partyFrame)
-        return
     end
 
-    local overlay = CreateFrame("Frame", nil, partyFrame)
-    overlay:SetAllPoints()
-    overlay:SetFrameStrata("HIGH")
-    overlay:SetFrameLevel(partyFrame:GetFrameLevel() + 10)
-    partyFrame.WidgetOverlay = overlay
+    if partyFrame.WidgetOverlay.arenaTarget1 then return end
 
+    local overlay = partyFrame.WidgetOverlay
     for i = 1, self.maxArenaOpponents do
         local indicator = CreateFrame("Frame", nil, overlay)
         indicator:SetSize(15, 15)
+        indicator:SetMovable(true)
+        indicator:EnableMouse(true)
         indicator:Hide()
         indicator:SetIgnoreParentAlpha(true)
 
@@ -765,6 +816,12 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
         local partyFrame = self:GetPartyFrame(i)
         if partyFrame then
             self:CreatePartyFrameIndicators(partyFrame)
+            local ov = partyFrame.WidgetOverlay
+            ov.arenaTarget1.useCursorDelta = true
+            self:SetupDrag(ov.arenaTarget1, ov.arenaTarget1, "partyTargetIndicators", nil, "widget", "arenaOnParty")
+            for j = 2, self.maxArenaOpponents do
+                self:SetupDrag(ov["arenaTarget" .. j], ov.arenaTarget1, "partyTargetIndicators", nil, "widget", "arenaOnParty")
+            end
             self:RepositionPartyFrameIndicators(partyFrame, arenaDirection, arenaSpacing, aopPosX, aopPosY)
 
             for j = 1, self.maxArenaOpponents do

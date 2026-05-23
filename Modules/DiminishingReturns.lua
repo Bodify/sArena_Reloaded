@@ -18,7 +18,7 @@ function sArenaFrameMixin:ResetDRCooldownTextColors()
 	end
 end
 
-function sArenaFrameMixin:UpdateDRPositions(includeHidden)
+function sArenaFrameMixin:UpdateDRPositions()
 	local layoutdb = self.parent.layoutdb
 	local numActive = 0
 	local prevFrame
@@ -29,7 +29,7 @@ function sArenaFrameMixin:UpdateDRPositions(includeHidden)
 
 	for i = 1, #frames do
 		local frame = useDrFrames and frames[i] or self[frames[i]]
-		if frame and (includeHidden or frame:IsShown()) then
+		if frame and frame:IsShown() then
 			frame:ClearAllPoints()
 			if numActive == 0 then
 				local offset = (self.parent.drBaseSize or 28) / 2
