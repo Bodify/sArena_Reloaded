@@ -160,14 +160,13 @@ function sArenaMixin:UpdateTextures()
                 iconGlow:SetAlpha(0)
             end
             local icon = frame.CastBar.Icon
-            local iconScale = icon:GetScale()
-            local w = icon:GetWidth() * iconScale
-            local h = icon:GetHeight() * iconScale
+            local iconScale = layout.castBar and layout.castBar.iconScale or 1
+            local size = 16 * iconScale
 
             local mult = 1.2
             iconGlow:ClearAllPoints()
-            iconGlow:SetPoint("TOPLEFT", icon, "TOPLEFT", -(w * mult), h * mult)
-            iconGlow:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", w * mult, -(h * mult))
+            iconGlow:SetPoint("TOPLEFT", icon, "TOPLEFT", -(size * mult), size * mult)
+            iconGlow:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", size * mult, -(size * mult))
         end
     end
 
