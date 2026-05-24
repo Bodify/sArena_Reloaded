@@ -14,6 +14,7 @@
 - Fix font issue on the Party Target Text not picking up selected font.
 - Fix an issue causing aura highlight glows to appear after a shuffle round if unit was stealthed when gates opened.
 - Fix an error related to spec updates while in combat on TBC
+- 2.5.4b: Fix secret error in castbar highlight code
 ## Note
 - Big patch with a lot of changes to things behind the scenes to accomodate Pet Frames. Please if you run into any issues report it (especially TBC cuz very limited testing has been done there).
 
