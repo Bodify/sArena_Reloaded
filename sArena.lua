@@ -2485,7 +2485,7 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                 local spellTarget = PlayerIsSpellTarget(unitToken)
                 castBar.barHighlight:SetAlphaFromBoolean(spellTarget, 1, 0)
                 if self.glowCastbarIcon then
-                    castBar.iconHighlight:SetAlpha(spellTarget and 1 or 0)
+                    castBar.iconHighlight:SetAlphaFromBoolean(spellTarget, 1, 0)
                 end
             else
                 castBar.barHighlight:SetAlpha(0)
@@ -2496,11 +2496,11 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                 local isCC = C_Spell.IsSpellCrowdControl(castBar.spellID)
                 castBar.barHighlight:SetAlphaFromBoolean(isCC, 1, 0)
                 if self.glowCastbarIcon then
-                    castBar.iconHighlight:SetAlpha(isCC and 1 or 0)
+                    castBar.iconHighlight:SetAlphaFromBoolean(isCC, 1, 0)
                 end
             else
                 castBar.barHighlight:SetAlpha(0)
-                if castBar.iconHighlight then castBar.iconHighlight:SetAlpha(0) end
+                castBar.iconHighlight:SetAlpha(0)
             end
         else
             if castBar.barHighlight then
