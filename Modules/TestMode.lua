@@ -607,7 +607,12 @@ function sArenaMixin:Test()
             frame.PetFrame.HealthBar:SetMinMaxValues(0, 100)
             frame.PetFrame.HealthBar:SetValue(100)
 
-            local statusText = self.db.profile.statusText
+            local petSt = db.profile.petFrames and db.profile.petFrames.statusText
+            local globalSt = db.profile.statusText
+            local statusText = petSt and {
+                usePercentage = petSt.usePercentage ~= nil and petSt.usePercentage or (globalSt and globalSt.usePercentage),
+                formatNumbers = petSt.formatNumbers ~= nil and petSt.formatNumbers or (globalSt and globalSt.formatNumbers),
+            } or globalSt
             if statusText and statusText.usePercentage then
                 frame.PetFrame.HealthText:SetText("100%")
             elseif statusText and statusText.formatNumbers then

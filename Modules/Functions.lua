@@ -928,6 +928,17 @@ function sArenaMixin:DatabaseCleanup(db)
     if isMidnight and db.profile.rangeCheckSpellsPerSpec and db.profile.rangeCheckSpellsPerSpec[255] == 1515 then
         db.profile.rangeCheckSpellsPerSpec[255] = 193265
     end
+
+    -- formatNumbers was accidentally set to false as default for arena frames. Also some pet frame issues.
+    if not db.profile.formatNumbersFix then
+        if not db.profile.statusText.usePercentage then
+            db.profile.statusText.formatNumbers = true
+        end
+        db.profile.petFrames.statusText.formatNumbers = false
+        db.profile.petFrames.statusText.usePercentage = true
+
+        db.profile.formatNumbersFix = true
+    end
 end
 
 -- function sArenaMixin:ToggleObjectivesFrame(instanceType)

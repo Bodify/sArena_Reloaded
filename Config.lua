@@ -7023,6 +7023,9 @@ else
                                             if petSt ~= nil and petSt.formatNumbers ~= nil then
                                                 return petSt.formatNumbers
                                             end
+                                            if petSt ~= nil and petSt.usePercentage then
+                                                return false
+                                            end
                                             return info.handler.db.profile.statusText.formatNumbers
                                         end,
                                         set = function(info, val)

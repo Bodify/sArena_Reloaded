@@ -36,7 +36,6 @@ sArenaMixin.defaultSettings = {
         showDecimalsDR = true,
         showDecimalsClassIcon = true,
         decimalThreshold = 6,
-        colorDRCooldownText = false,
         drBugFixMidnight = true,
         forceShowTrinketOnHuman = not sArenaMixin.isRetail and true or nil,
         shadowSightTimer = (sArenaMixin.isTBC or sArenaMixin.isWrath) and true or nil,
@@ -53,23 +52,20 @@ sArenaMixin.defaultSettings = {
         darkModeDesaturate = true,
         statusText = {
             alwaysShow = true,
-            formatNumbers = false,
-            usePercentage = true,
+            formatNumbers = true,
         },
         petFrames = {
             enabled = false,
             classes = {
-                DEATHKNIGHT = false,
-                MAGE        = false,
-                MONK        = false,
                 WARLOCK     = true,
                 HUNTER      = true,
             },
+            statusText = {
+                alwaysShow = true,
+                usePercentage = true,
+            },
             classColors = true,
             customColor = { 0, 1, 0, 1 },
-            showPetName     = false,
-            showPetNumber   = false,
-            petNumberIdOnly = false,
             borderStyle     = "layoutBorders",
         },
         trinketColors = {
@@ -103,7 +99,6 @@ sArenaMixin.defaultSettings = {
             inRangePosY = 0,
             notInRangeAtlas = "common-icon-redx",
             notInRangeCustomAtlas = "",
-            notInRangeColorEnabled = false,
             notInRangeColor = { 1, 0.2, 0.2, 1 },
             notInRangeScale = 1,
             notInRangePosX = 0,
@@ -119,8 +114,6 @@ sArenaMixin.defaultSettings = {
             ["Right"] = { button = "2", action = "focus" },
         },
         auraHighlight = {
-            enabled = false,
-            onlyOnHealer = false,
             cc        = { enabled = true, color = {1, 0.87, 0,    1} },
             important = { enabled = true, color = {0, 1,    0,    1} },
             defensive = { enabled = true, color = {1, 0.66, 0.95, 1} },
