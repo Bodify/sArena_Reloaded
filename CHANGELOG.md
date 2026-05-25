@@ -1,3 +1,8 @@
+# sArena Reloaded 2.5.4c
+## Bugfix
+- Fix "Format Numbers" being turned off accidentally. You may need to double check this value in settings (Global -> Arena Frames: Status Text)
+- Fix secret error related to castbar casts on Midnight resulting in various issues like castbar color/highlights/etc being off.
+
 # sArena Reloaded 2.5.4
 ## New
 - Pet Frames. You can now enable Pet Frames for pet classes
