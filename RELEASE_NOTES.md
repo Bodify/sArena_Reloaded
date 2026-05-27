@@ -1,3 +1,7 @@
+# sArena Reloaded 2.5.4d
+## New
+- Add Simplified and Traditional Chinese localization by vitocichen @ GitHub. Thank you for your contribution!
+
 # sArena Reloaded 2.5.4c
 ## Bugfix
 - Fix "Format Numbers" being turned off accidentally. You may need to double check this value in settings (Global -> Arena Frames: Status Text)
