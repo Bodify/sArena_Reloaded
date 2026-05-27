@@ -1429,8 +1429,10 @@ function sArenaMixin:Test()
                 if partyFrame and partyFrame.WidgetOverlay then
                     for j = 1, self.maxArenaOpponents do
                         local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
-                        indicator:Hide()
-                        indicator:SetAlpha(0)
+                        if indicator then
+                            indicator:Hide()
+                            indicator:SetAlpha(0)
+                        end
                     end
                     if partyFrame.WidgetOverlay.partyTargetText then
                         partyFrame.WidgetOverlay.partyTargetText:Hide()
