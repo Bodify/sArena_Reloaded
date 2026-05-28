@@ -378,7 +378,7 @@ function layout:Initialize(frame)
     dispelBorder:SetPoint("TOPLEFT", dispel, "TOPLEFT", -8, 8)
     dispelBorder:SetPoint("BOTTOMRIGHT", dispel, "BOTTOMRIGHT", 8, -8)
     dispelBorder:SetDrawLayer("OVERLAY", 3)
-    dispelBorder:Show()
+    dispelBorder:Hide()
     dispel.Border = dispelBorder
     dispel.useModernBorder = true
 
