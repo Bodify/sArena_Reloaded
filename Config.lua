@@ -4385,6 +4385,33 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                         info.handler:Test()
                                     end,
                                 },
+                                alwaysOn = {
+                                    order = 1.5,
+                                    name = L["Widget_ArenaTextOnParty_AlwaysOn"],
+                                    desc = L["Widget_ArenaTextOnParty_AlwaysOn_Desc"],
+                                    type = "toggle",
+                                    width = "full",
+                                    get = function(info)
+                                        local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                        local aop = widgets and widgets.partyTargetText and widgets.partyTargetText.arenaOnParty
+                                        return aop and aop.alwaysOn or false
+                                    end,
+                                    set = function(info, val)
+                                        local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                        widgets = widgets or {}
+                                        widgets.partyTargetText = widgets.partyTargetText or {}
+                                        widgets.partyTargetText.arenaOnParty = widgets.partyTargetText.arenaOnParty or {}
+                                        widgets.partyTargetText.arenaOnParty.alwaysOn = val
+                                        info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                        self:UpdateWidgetSettings(widgets, info, val)
+                                    end,
+                                    disabled = function(info)
+                                        local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                        local ptt = widgets and widgets.partyTargetText
+                                        local aop = ptt and ptt.arenaOnParty
+                                        return not (ptt and ptt.enabled and aop and aop.enabled)
+                                    end,
+                                },
                                 anchor = {
                                     order = 2,
                                     name = L["Anchor"],
@@ -4496,7 +4523,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                     end,
                                 },
                                 resetArenaTextOnParty = {
-                                    order = 6,
+                                    order = 7,
                                     name = L["Reset"],
                                     width = 0.4,
                                     type = "execute",
@@ -4509,6 +4536,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                         local aop = layout.widgets.partyTargetText.arenaOnParty or {}
                                         layout.widgets.partyTargetText.arenaOnParty = {
                                             enabled = aop.enabled,
+                                            alwaysOn = aop.alwaysOn,
                                             anchor = defaults.anchor,
                                             fontSize = defaults.fontSize,
                                             posX = defaults.posX,

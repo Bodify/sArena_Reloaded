@@ -467,13 +467,11 @@ function sArenaFrameMixin:ClassColorFrameTexture()
         if self.SpecIcon and self.SpecIcon.specPixelBorder then
             self.SpecIcon.specPixelBorder:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
         end
-        if self.CastBar then
-            if self.CastBar.barPixelBorder then
-                self.CastBar.barPixelBorder:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
-            end
-            if self.CastBar.iconPixelBorder then
-                self.CastBar.iconPixelBorder:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
-            end
+        if self.CastBar.barPixelBorder then
+            self.CastBar.barPixelBorder:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+        end
+        if self.CastBar.iconPixelBorder then
+            self.CastBar.iconPixelBorder:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
         end
     end
 end
@@ -500,13 +498,11 @@ function sArenaFrameMixin:ResetPixelBorders()
         if self.SpecIcon and self.SpecIcon.specPixelBorder then
             self.SpecIcon.specPixelBorder:SetVertexColor(0, 0, 0)
         end
-        if self.CastBar then
-            if self.CastBar.barPixelBorder then
-                self.CastBar.barPixelBorder:SetVertexColor(0, 0, 0)
-            end
-            if self.CastBar.iconPixelBorder then
-                self.CastBar.iconPixelBorder:SetVertexColor(0, 0, 0)
-            end
+        if self.CastBar.barPixelBorder then
+            self.CastBar.barPixelBorder:SetVertexColor(0, 0, 0)
+        end
+        if self.CastBar.iconPixelBorder then
+            self.CastBar.iconPixelBorder:SetVertexColor(0, 0, 0)
         end
     end
 end
@@ -1197,11 +1193,9 @@ function sArenaMixin:UpdateCastbarVisibility()
         self.hiddenCastbars = true
         for i = 1, self.maxArenaOpponents do
             local frame = self["arena" .. i]
-            if frame.CastBar then
-                frame.CastBar:SetParent(self.hiddenFrame)
-                if isMidnight and frame.midnightCastBarMoveFrame then
-                    frame.midnightCastBarMoveFrame:Hide()
-                end
+            frame.CastBar:SetParent(self.hiddenFrame)
+            if frame.midnightCastBarMoveFrame then
+                frame.midnightCastBarMoveFrame:Hide()
             end
         end
     else
@@ -1209,11 +1203,9 @@ function sArenaMixin:UpdateCastbarVisibility()
         self.hiddenCastbars = nil
         for i = 1, self.maxArenaOpponents do
             local frame = self["arena" .. i]
-            if frame.CastBar then
-                frame.CastBar:SetParent(frame)
-                if isMidnight and frame.midnightCastBarMoveFrame then
-                    frame.midnightCastBarMoveFrame:Show()
-                end
+            frame.CastBar:SetParent(frame)
+            if frame.midnightCastBarMoveFrame then
+                frame.midnightCastBarMoveFrame:Show()
             end
         end
     end

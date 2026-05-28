@@ -196,7 +196,7 @@ function sArenaMixin:CreateCastbarIDText()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         local castBar = frame.CastBar
-        if castBar and not castBar.ArenaIDText then
+        if not castBar.ArenaIDText then
             local idText = castBar:CreateFontString(nil, "OVERLAY")
 
             local fontFile, fontSize, fontFlags = castBar.Text:GetFont()
@@ -231,7 +231,7 @@ function sArenaMixin:UpdateCastbarIDText()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         local castBar = frame.CastBar
-        if castBar and castBar.ArenaIDText then
+        if castBar.ArenaIDText then
             local idText = castBar.ArenaIDText
 
             if not showID then
@@ -290,7 +290,7 @@ function sArenaMixin:CreateCastbarTargetText()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         local castBar = frame.CastBar
-        if castBar and not castBar.ArenaTargetText then
+        if not castBar.ArenaTargetText then
             if not castBar.ArenaTargetTextFrame then
                 castBar.ArenaTargetTextFrame = CreateFrame("Frame", nil, castBar)
                 castBar.ArenaTargetTextFrame:SetAllPoints(castBar)
@@ -334,7 +334,7 @@ function sArenaMixin:UpdateCastbarTargetText()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         local castBar = frame.CastBar
-        if castBar and castBar.ArenaTargetText then
+        if castBar.ArenaTargetText then
             local targetText = castBar.ArenaTargetText
 
             if not showTarget or anchorInside then
@@ -669,9 +669,7 @@ end
 function sArenaMixin:UpdateMoPCastbarColors()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        if frame.CastBar then
-            UpdateCastbarColorsMoP(frame.CastBar, self)
-        end
+        UpdateCastbarColorsMoP(frame.CastBar, self)
     end
 end
 

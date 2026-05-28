@@ -1,3 +1,10 @@
+# sArena Reloaded 2.5.4e
+## New
+- Add a new "Always On" option for Party Member Target Text Widget so it works outside of Arena as well.
+## Bugfix
+- Fix lua error on test mode exit if Arena Target Indicators were not enabled
+- Fix Arena Target Text Widget forgetting set font size on reload.
+
 # sArena Reloaded 2.5.4d
 ## New
 - Add Simplified and Traditional Chinese localization by vitocichen @ GitHub. Thank you for your contribution!

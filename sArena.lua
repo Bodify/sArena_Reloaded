@@ -991,9 +991,7 @@ end
 
 function sArenaMixin:SetMouseState(state)    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        if frame.CastBar then
-            frame.CastBar:EnableMouse(state)
-        end
+
         if frame.midnightCastBarMoveFrame then
             frame.midnightCastBarMoveFrame:EnableMouse(state)
         end
@@ -1010,6 +1008,7 @@ function sArenaMixin:SetMouseState(state)    for i = 1, self.maxArenaOpponents d
             end
         end
 
+        frame.CastBar:EnableMouse(state)
         frame.SpecIcon:EnableMouse(state)
         frame.Trinket:EnableMouse(state)
         frame.Racial:EnableMouse(state)

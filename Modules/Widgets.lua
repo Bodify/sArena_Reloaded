@@ -38,8 +38,9 @@ function sArenaMixin:RegisterWidgetEvents()
 
         local pti = widgetSettings.partyTargetIndicators
         local ptt = widgetSettings.partyTargetText
+        self.unitTargetAlwaysOn = ptt and ptt.enabled and ptt.arenaOnParty and ptt.arenaOnParty.enabled and ptt.arenaOnParty.alwaysOn or nil
         if (pti and pti.enabled and ((pti.partyOnArena and pti.partyOnArena.enabled) or (pti.arenaOnParty and pti.arenaOnParty.enabled)))
-        or (ptt and ptt.enabled and ((ptt.partyOnArena and ptt.partyOnArena.enabled) or (ptt.arenaOnParty and ptt.arenaOnParty.enabled))) then
+        or (ptt and ptt.enabled and ((ptt.partyOnArena and ptt.partyOnArena.enabled) or (ptt.arenaOnParty and (ptt.arenaOnParty.enabled or (ptt.arenaOnParty.enabled and ptt.arenaOnParty.alwaysOn))))) then
             self:RegisterEvent("UNIT_TARGET")
         end
 
@@ -56,7 +57,9 @@ end
 function sArenaMixin:UnregisterWidgetEvents()
     self:UnregisterEvent("PLAYER_TARGET_CHANGED")
     self:UnregisterEvent("PLAYER_FOCUS_CHANGED")
-    self:UnregisterEvent("UNIT_TARGET")
+    if not self.unitTargetAlwaysOn then
+        self:UnregisterEvent("UNIT_TARGET")
+    end
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         frame:UnregisterEvent("UNIT_FLAGS")
@@ -597,7 +600,7 @@ function sArenaMixin:UpdateArenaTargetTextOnPartyFrames()
     local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
     local ptt = widgetSettings and widgetSettings.partyTargetText
     local aop = ptt and ptt.arenaOnParty
-    if not ptt or not ptt.enabled or not aop or not aop.enabled then
+    if (not ptt or not ptt.enabled or not aop or not aop.enabled) or (not self.isInArena and (not aop or not aop.alwaysOn)) then
         for i = 1, 5 do
             local partyFrame = self:GetPartyFrame(i)
             if partyFrame and partyFrame.WidgetOverlay and partyFrame.WidgetOverlay.partyTargetText then
