@@ -4,6 +4,7 @@
 ## Bugfix
 - Fix lua error on test mode exit if Arena Target Indicators were not enabled
 - Fix Arena Target Text Widget forgetting set font size on reload.
+- Fix icon border for Dispel Icon showing on Midnight where dispels should be deactivated due to restrictions.
 
 # sArena Reloaded 2.5.4d
 ## New
