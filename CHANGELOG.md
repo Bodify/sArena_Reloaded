@@ -1,3 +1,9 @@
+# sArena Reloaded 2.5.4f
+## Tweak
+- Update Dissonance profile (www.twitch.tv/dissonancewow)
+## Bugfix
+- Fix issue with Danders Frames and Widgets not anchoring correctly to the PartyFrames without a reload/setting toggle.
+
 # sArena Reloaded 2.5.4e
 ## New
 - Add a new "Always On" option for Party Member Target Text Widget so it works outside of Arena as well.

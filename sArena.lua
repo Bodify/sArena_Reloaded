@@ -517,6 +517,7 @@ function sArenaMixin:OnEvent(event, ...)
 
         self:SetupCustomCD()
         self:UpdateArenaTargetsOnPartyFrames()
+        self:PositionArenaTargetTextOnPartyFrames()
         self:UpdateArenaTargetTextOnPartyFrames()
 
         if self.isInArena then

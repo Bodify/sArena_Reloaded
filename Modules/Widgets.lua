@@ -611,7 +611,8 @@ function sArenaMixin:UpdateArenaTargetTextOnPartyFrames()
     end
     for i = 1, 5 do
         local partyFrame = self:GetPartyFrame(i)
-        if partyFrame and partyFrame.WidgetOverlay then
+        if partyFrame then
+            self:CreatePartyFrameTargetText(partyFrame)
             local fs = partyFrame.WidgetOverlay.partyTargetText
             if fs then
                 local partyUnit = partyFrame.unit or partyFrame:GetAttribute("unit")
