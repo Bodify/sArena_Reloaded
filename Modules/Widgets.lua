@@ -532,12 +532,13 @@ end
 function sArenaMixin:CreatePartyFrameTargetText(partyFrame)
     if not partyFrame.WidgetOverlay then
         local overlay = CreateFrame("Frame", nil, partyFrame)
-        overlay:SetAllPoints()
         overlay:SetFrameStrata("HIGH")
         overlay:SetFrameLevel(partyFrame:GetFrameLevel() + 10)
         partyFrame.WidgetOverlay = overlay
     end
     partyFrame.WidgetOverlay:SetParent(partyFrame)
+    partyFrame.WidgetOverlay:ClearAllPoints()
+    partyFrame.WidgetOverlay:SetAllPoints()
     local overlay = partyFrame.WidgetOverlay
     if overlay.partyTargetText then return end
     local textFrame = CreateFrame("Frame", nil, overlay)
@@ -578,6 +579,7 @@ function sArenaMixin:PositionArenaTargetTextOnPartyFrames()
     for i = 1, 5 do
         local partyFrame = self:GetPartyFrame(i)
         if partyFrame then
+            self:CreatePartyFrameTargetText(partyFrame)
             self:SetupDrag(partyFrame, partyFrame, "partyTargetText", nil, "widget", "arenaOnParty", partyFrame)
             local overlay = partyFrame.WidgetOverlay
             local textFrame = overlay.partyTargetTextFrame

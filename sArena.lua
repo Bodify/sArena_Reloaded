@@ -491,7 +491,7 @@ function sArenaMixin:OnEvent(event, ...)
         self:UnregisterEvent("PLAYER_LOGIN")
     elseif (event == "PLAYER_ENTERING_WORLD") then
         self.isInArena = self:IsInArena()
-        self:UpdatePartyFrameReferences()
+        self:UpdatePartyFrameReferences(true)
         self:UpdateBlizzArenaFrameVisibility()
         self:SetMouseState(not self.isInArena)
         self.testMode = nil

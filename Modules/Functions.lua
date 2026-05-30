@@ -43,7 +43,13 @@ function sArenaMixin:FindPartyFrame(i)
     elseif C_AddOns.IsAddOnLoaded("Cell") then
         return _G["CellPartyFrameHeaderUnitButton" .. i]
     elseif C_AddOns.IsAddOnLoaded("Grid2") then
-        return _G["Grid2LayoutHeader1UnitButton" .. i]
+        for h = 1, 8 do
+            local header = _G["Grid2LayoutHeader" .. h]
+            if not header then break end
+            if header:IsShown() then
+                return _G["Grid2LayoutHeader" .. h .. "UnitButton" .. i]
+            end
+        end
     elseif C_AddOns.IsAddOnLoaded("VuhDo") then
         return _G["Vd1H" .. i]
 	elseif (C_AddOns.IsAddOnLoaded("ShadowedUnitFrames") and ShadowUF.db) then
@@ -68,9 +74,21 @@ function sArenaMixin:FindPartyFrame(i)
     end
 end
 
-function sArenaMixin:UpdatePartyFrameReferences()
-    for i = 1, 4 do
-        self["partyFrame" .. i] = self:FindPartyFrame(i)
+function sArenaMixin:UpdatePartyFrameReferences(delay)
+    local function UpdatePartyFrameReferences()
+        for i = 1, 4 do
+            self["partyFrame" .. i] = self:FindPartyFrame(i)
+        end
+        if self.db then
+            C_Timer.After(0.1, function()
+                self:PositionArenaTargetTextOnPartyFrames()
+            end)
+        end
+    end
+    if delay then
+        C_Timer.After(0.1, UpdatePartyFrameReferences)
+    else
+        UpdatePartyFrameReferences()
     end
 end
 

@@ -1,3 +1,7 @@
+# sArena Reloaded 2.5.4g
+## Bugfix
+- Fix issue with Grid2 (and potentially others) and Widgets not anchoring correctly to the PartyFrames without a reload/setting toggle.
+
 # sArena Reloaded 2.5.4f
 ## Tweak
 - Update Dissonance profile (www.twitch.tv/dissonancewow)
