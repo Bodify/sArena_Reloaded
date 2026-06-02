@@ -1,3 +1,9 @@
+# sArena Reloaded 2.5.5
+## Tweak
+- Update MoP version to support new WoW patch 5.5.4
+- Add missing "Blizz Raid" layout to MoP and Wrath (oops).
+- Add support for cast target & cast highlights for MoP (now that 5.5.4 implemented the API)
+
 # sArena Reloaded 2.5.4g
 ## Bugfix
 - Fix issue with Grid2 (and potentially others) and Widgets not anchoring correctly to the PartyFrames without a reload/setting toggle.

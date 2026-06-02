@@ -557,8 +557,8 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
 
                         showCastbarTarget = {
                             order = 2.85,
-                            name = isMidnight and L["Castbar_ShowTarget"] or ("|A:services-icon-warning:20:20|a " .. L["Castbar_ShowTarget"] .. " |A:services-icon-warning:20:20|a"),
-                            desc = isMidnight and L["Castbar_ShowTarget_Desc_Midnight"] or L["Castbar_ShowTarget_Desc"],
+                            name = UnitSpellTargetName and L["Castbar_ShowTarget"] or ("|A:services-icon-warning:20:20|a " .. L["Castbar_ShowTarget"] .. " |A:services-icon-warning:20:20|a"),
+                            desc = UnitSpellTargetName and L["Castbar_ShowTarget_Desc_Midnight"] or L["Castbar_ShowTarget_Desc"],
                             type = "toggle",
                             get = function(info)
                                 return info.handler.db.profile.showCastbarTarget
@@ -858,12 +858,13 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             type = "group",
                             name = L["Castbar_HighlightGroup"],
                             inline = true,
-                            hidden = function() return not isMidnight end,
+                            hidden = function() return not (PlayerIsSpellTarget or (C_Spell and C_Spell.IsSpellCrowdControl)) end,
                             args = {
                                 highlightCastsOnMe = {
                                     order = 1,
                                     type = "toggle",
                                     width = "full",
+                                    hidden = function() return not PlayerIsSpellTarget end,
                                     name = L["Castbar_HighlightCastsOnMe"],
                                     desc = L["Castbar_HighlightCastsOnMe_Desc"],
                                     get = function(info)
@@ -882,6 +883,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                     order = 2,
                                     type = "toggle",
                                     width = "full",
+                                    hidden = function() return not (C_Spell and C_Spell.IsSpellCrowdControl) end,
                                     name = L["Castbar_HighlightCC"],
                                     desc = L["Castbar_HighlightCC_Desc"],
                                     get = function(info)

@@ -1122,11 +1122,11 @@ function sArenaFrameMixin:OnLoad()
     if not isMidnight then
         self:CreateCastBar()
         self:CreateDRFrames()
-        if isTBC then
+        if CastingBarFrame_SetUnit then
+            CastingBarFrame_SetUnit(self.CastBar, unit, false, true)
+        else
             self.CastBar.empoweredFix = true
             self.CastBar:SetUnit(unit, false, true)
-        else
-            CastingBarFrame_SetUnit(self.CastBar, unit, false, true)
         end
     else
         local blizzArenaFrame = _G["CompactArenaFrameMember" .. self:GetID()]
@@ -2491,7 +2491,7 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                 castBar.barHighlight:SetAlpha(0)
                 if castBar.iconHighlight then castBar.iconHighlight:SetAlpha(0) end
             end
-        elseif self.highlightCC and castBar.barHighlight then
+        elseif self.highlightCC and castBar.barHighlight and C_Spell.IsSpellCrowdControl then
             if (castBar.casting or castBar.channeling) and castBar.spellID ~= nil then
                 local isCC = C_Spell.IsSpellCrowdControl(castBar.spellID)
                 castBar.barHighlight:SetAlphaFromBoolean(isCC, 1, 0)

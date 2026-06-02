@@ -47,6 +47,7 @@
     <Script file="Modules\ModernCastbar.lua"/>
     <Script file="Modules\Masque.lua"/>
     <Script file="Layouts\BlizzArena.lua"/>
+    <Script file="Layouts\BlizzRaid.lua"/>
     <Script file="Layouts\BlizzRetail.lua"/>
     <Script file="Layouts\BlizzCompact.lua"/>
     <Script file="Layouts\BlizzTourney.lua"/>

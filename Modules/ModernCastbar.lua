@@ -259,7 +259,7 @@ function sArenaMixin:UpdateCastbarIDText()
 end
 
 function sArenaMixin:CreateCastbarHighlight()
-    if not isMidnight then return end
+    if not (PlayerIsSpellTarget or (C_Spell and C_Spell.IsSpellCrowdControl)) then return end
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         local castBar = frame.CastBar
@@ -365,7 +365,7 @@ function sArenaMixin:UpdateCastbarTargetText()
 end
 
 local function GetCastbarTargetName(unit)
-    if isMidnight then
+    if UnitSpellTargetName then
         local name = UnitSpellTargetName(unit)
         if not name then return end
 

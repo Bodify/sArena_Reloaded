@@ -45,6 +45,7 @@
     <Script file="Modules\ModernCastbar.lua"/>
     <Script file="Modules\Masque.lua"/>
     <Script file="Layouts\BlizzArena.lua"/>
+    <Script file="Layouts\BlizzRaid.lua"/>
     <Script file="Layouts\BlizzRetail.lua"/>
     <Script file="Layouts\BlizzCompact.lua"/>
     <Script file="Layouts\BlizzTourney.lua"/>
@@ -117,7 +118,7 @@
         </Scripts>
     </Frame>
 
-    <StatusBar name="sArenaCastBarFrameTemplate" enablemouse="true" movable="true" virtual="true" hidden="true">
+    <StatusBar name="sArenaCastBarFrameTemplate" mixin="CastingBarMixin"  enablemouse="true" movable="true" virtual="true" hidden="true">
         <Layers>
             <Layer level="BACKGROUND">
                 <Texture parentKey="Background" setAllPoints="true">
@@ -143,7 +144,7 @@
 
             <Layer level="OVERLAY">
                 <Texture parentKey="Spark" file="Interface\CastingBar\UI-CastingBar-Spark" alphaMode="ADD">
-                    <Size x="14" y="37"/>
+                    <Size x="12" y="21"/>
                     <Anchors>
                         <Anchor point="CENTER"/>
                     </Anchors>
@@ -157,14 +158,16 @@
                 </Texture>
             </Layer>
         </Layers>
-        <Scripts>
-            <OnLoad function="CastingBarFrame_OnLoad"/>
-            <OnEvent function="CastingBarFrame_OnEvent"/>
-            <OnUpdate function="CastingBarFrame_OnUpdate"/>
-            <OnShow function="CastingBarFrame_OnShow"/>
-        </Scripts>
         <BarTexture file="Interface\TargetingFrame\UI-StatusBar"/>
         <BarColor r="1.0" g="0.7" b="0.0"/>
+        <Scripts>
+            <OnLoad>
+                self:OnLoad(nil, true, false);
+            </OnLoad>
+            <OnEvent method="OnEvent" />
+            <OnUpdate method="OnUpdate" />
+            <OnShow method="OnShow" />
+        </Scripts>
     </StatusBar>
 
     <Frame name="sArenaIconFrameTemplate" enablemouse="true" movable="true" virtual="true">
@@ -263,7 +266,6 @@
                     </Layer>
                 </Layers>
             </StatusBar>
-            <StatusBar parentKey="CastBar" inherits="sArenaCastBarFrameTemplate"/>
             <Frame parentKey="ClassIcon" frameLevel="7" enablemouse="true" movable="true">
                 <Layers>
                     <Layer level="BORDER" textureSubLevel="1">
@@ -438,20 +440,6 @@
                     <OnEvent method="OnEvent"/>
                 </Scripts>
             </Button>
-
-            <Frame parentKey="Incapacitate" inherits="sArenaDRFrameTemplate"/>
-            <Frame parentKey="Stun" inherits="sArenaDRFrameTemplate"/>
-            <Frame parentKey="RandomStun" inherits="sArenaDRFrameTemplate"/>
-            <Frame parentKey="RandomRoot" inherits="sArenaDRFrameTemplate"/>
-			<Frame parentKey="Root" inherits="sArenaDRFrameTemplate"/>
-			<Frame parentKey="Disarm" inherits="sArenaDRFrameTemplate"/>
-			<Frame parentKey="Fear" inherits="sArenaDRFrameTemplate"/>
-            <Frame parentKey="Disorient" inherits="sArenaDRFrameTemplate"/>
-			<Frame parentKey="Silence" inherits="sArenaDRFrameTemplate"/>
-			<Frame parentKey="Horror" inherits="sArenaDRFrameTemplate"/>
-			<Frame parentKey="MindControl" inherits="sArenaDRFrameTemplate"/>
-			<Frame parentKey="Cyclone" inherits="sArenaDRFrameTemplate"/>
-			<Frame parentKey="Charge" inherits="sArenaDRFrameTemplate"/>
         </Frames>
 
         <Scripts>
