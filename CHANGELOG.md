@@ -1,3 +1,7 @@
+# sArena Reloaded 2.5.5b
+## Tweak
+- Update MoP toc version number.
+
 # sArena Reloaded 2.5.5
 ## Tweak
 - Update MoP version to support new WoW patch 5.5.4
