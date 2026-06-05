@@ -135,7 +135,7 @@ else
 		[7744] = 120, -- Will of the Forsaken
 		[20554] = 180, -- Berserking
 		[20572] = 120, -- Blood Fury
-		[58984] = 10, -- Shadowmeld
+		[58984] = 120, -- Shadowmeld
 		[20589] = 105, -- Escape Artist
 		[20594] = 180, -- Stoneform
 		[59752] = 120, -- Will to Survive
