@@ -173,6 +173,7 @@ sArenaMixin.drList = {
 	[115268] = "Fear",       -- Mesmerize (Shivarra)
 	[104045] = "Fear",       -- Sleep (Metamorphosis) -- TODO: verify this is the correct category
 	[20511]  = "Fear",       -- Intimidating Shout (secondary targets)
+	[105421] = "Fear",       -- Blinding Light
 
 	[339]    = "Root",       -- Entangling Roots
 	[19975]  = "Root",       -- Nature's Grasp
@@ -201,7 +202,6 @@ sArenaMixin.drList = {
 	--[127797] = "PseudoRoot", -- Ursol's Vortex
 	[81210]  = "Root",       -- Net
 	[135373] = "Root",       -- Entrapment (MoP)
-	[45334]  = "Root",       -- Immobilized (MoP)
     [115757]  = "Root",      -- Frost nova
 
 	[12494]  = "RandomRoot", -- Frostbite
@@ -214,6 +214,7 @@ sArenaMixin.drList = {
 	[111340] = "RandomRoot", -- Ice Ward
 	[123407] = "RandomRoot", -- Spinning Fire Blossom
 	[64695]  = "RandomRoot", -- Earthgrab Totem
+	--[45334]  = "RandomRoot",       -- Immobilized (MoP)
 
 	[53359]  = "Disarm",     -- Chimera Shot (Scorpid)
 	[50541]  = "Disarm",     -- Clench
@@ -225,6 +226,7 @@ sArenaMixin.drList = {
 	[126458] = "Disarm",     -- Grapple Weapon (Symbiosis)
 	[137461] = "Disarm",     -- Ring of Peace (Disarm effect)
 	[118093] = "Disarm",     -- Disarm (Voidwalker/Voidlord)
+	[142896] = "Disarm",     -- Ring of Peace Disarm Effect
 
 	[47476]  = "Silence",    -- Strangulate
 	[34490]  = "Silence",    -- Silencing Shot
@@ -236,8 +238,6 @@ sArenaMixin.drList = {
 	[1330]   = "Silence",    -- Garrote - Silence
 	[18425]  = "Silence",    -- Silenced - Improved Kick
 	[24259]  = "Silence",    -- Spell Lock
-	[43523]  = "Silence",    -- Unstable Affliction 1
-	[31117]  = "Silence",    -- Unstable Affliction 2
 	[18498]  = "Silence",    -- Silenced - Gag Order (Shield Slam)
 	[50613]  = "Silence",    -- Arcane Torrent (Racial, Runic Power)
 	[28730]  = "Silence",    -- Arcane Torrent (Racial, Mana)
@@ -251,6 +251,7 @@ sArenaMixin.drList = {
 	[115782] = "Silence",    -- Optical Blast (Observer)
 	[69179]  = "Silence",    -- Arcane Torrent (Racial, Rage)
 	[80483]  = "Silence",    -- Arcane Torrent (Racial, Focus)
+	[142895] = "Silence",    -- Ring of Peace Silence Effect
 
 	[64044]  = "Horror",     -- Psychic Horror
 	[6789]   = "Horror",     -- Death Coil
