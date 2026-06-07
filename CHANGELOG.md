@@ -1,3 +1,7 @@
+# sArena Reloaded 2.5.6c
+## Bugfix
+- MoP: Yet another trinket cd tweak handling.
+
 # sArena Reloaded 2.5.6b
 ## Bugfix
 - MoP: Yet another trinket cd tweak handling.
