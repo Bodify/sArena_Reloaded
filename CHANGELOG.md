@@ -1,3 +1,7 @@
+# sArena Reloaded 2.5.6b
+## Bugfix
+- MoP: Yet another trinket cd tweak handling.
+
 # sArena Reloaded 2.5.6
 ## Tweak
 - Updates for MoP 5.5.4 and its broken patch with broken API. Huge thanks to Nukkz, Somatics, Rat and Vezir for helping me getting info and testing the beta versions.
