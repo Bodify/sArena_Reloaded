@@ -1451,7 +1451,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
 
         self:Initialize()
     elseif (event == "PLAYER_ENTERING_WORLD") or (event == "ARENA_PREP_OPPONENT_SPECIALIZATIONS") then
-        if noEarlyFrames and self:IsInArena() and self.ogShow then
+        if noEarlyFrames and self.parent:IsInArena() and self.ogShow then
             self.ogShow(self)
             self:SetAlpha(0)
         end
