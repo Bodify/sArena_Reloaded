@@ -5,6 +5,7 @@
 
 local isRetail = sArenaMixin.isRetail
 local isMidnight = sArenaMixin.isMidnight
+local isMoP = sArenaMixin.isMoP
 local LSM = LibStub("LibSharedMedia-3.0")
 
 function sArenaFrameMixin:GetFactionTrinketIcon()
@@ -59,10 +60,15 @@ function sArenaFrameMixin:UpdateTrinketIcon(available)
     end
 end
 
-local function GetArenaCCInfo(unit)
+function sArenaFrameMixin:GetArenaCCInfo()
+    local unit = self.unit
     if isMidnight then
         local durationObj = C_PvP.GetArenaCrowdControlDuration(unit)
         return durationObj
+    elseif isMoP then
+        local durationObj = C_PvP.GetArenaCrowdControlDuration(unit)
+        local spellID, startTime, duration = self.Trinket.spellID, durationObj:GetStartTime(), durationObj:GetRemainingDuration()
+        return spellID, startTime, duration
     else
         local spellID, itemID, startTime, duration = C_PvP.GetArenaCrowdControlInfo(unit)
         return spellID, startTime, duration
@@ -70,7 +76,7 @@ local function GetArenaCCInfo(unit)
 end
 
 function sArenaFrameMixin:UpdateTrinket()
-    local spellID, startTime, duration = GetArenaCCInfo(self.unit)
+    local spellID, startTime, duration = self:GetArenaCCInfo()
 
     if (spellID) then
         local colors = self.parent.db.profile.trinketColors
@@ -91,8 +97,10 @@ function sArenaFrameMixin:UpdateTrinket()
             -- end
         else
             if (startTime ~= 0 and duration ~= 0 and self.Trinket.spellID) then
-                if self.Trinket.spellID and (self.Trinket.Texture:GetTexture() ~= self.parent.noTrinketTexture) then
-                    if not self.Trinket.Cooldown:IsShown() then
+                local currentTexture = self.Trinket.Texture:GetTexture()
+                if self.Trinket.spellID and (currentTexture ~= self.parent.noTrinketTexture) then
+                    local cdIsShown = self.Trinket.Cooldown:IsShown()
+                    if not cdIsShown then
                         local db = self.parent and self.parent.db
                         if db and db.profile.playTrinketSound then
                             local isHealer = self.isHealer

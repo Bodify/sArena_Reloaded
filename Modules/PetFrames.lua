@@ -487,7 +487,7 @@ end
 function sArenaPetFrameMixin:HandlePetUnitWatch()
     local owner = self.OwnerFrame
     local shouldShow = ShouldShowPet(owner)
-    local isInArena = owner.parent.isInArena
+    local isInArena = owner.parent:IsInArena()
 
     local desired
     if shouldShow and owner.parent and owner.parent.testMode then

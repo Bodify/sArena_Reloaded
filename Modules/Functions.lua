@@ -28,7 +28,7 @@ function sArenaMixin:FindPartyFrame(i)
     if self.db and self.db.profile.useDefaultPartyFrames then
         return GetDefaultPartyFrame(i)
     elseif C_AddOns.IsAddOnLoaded("DandersFrames") then
-        if self.isInArena then
+        if self:IsInArena() then
             local arenaPartyFrame = _G["DandersArenaHeaderUnitButton" .. i]
             if arenaPartyFrame then
                 return arenaPartyFrame
@@ -649,7 +649,7 @@ function sArenaMixin:UpdateBlizzArenaFrameVisibility()
             self.blizzFrame:Hide()
         end
 
-        if self.isInArena then
+        if self:IsInArena() then
             if prepFrame then
                 prepFrame:SetParent(self.blizzFrame)
                 self.changedDefaultFrameParent = true
@@ -672,31 +672,52 @@ function sArenaMixin:UpdateBlizzArenaFrameVisibility()
 end
 
 function sArenaMixin:CheckMatchStatus(event)
-    local state = C_PvP.GetActiveMatchState()
+    if C_PvP.GetActiveMatchState then
+        local state = C_PvP.GetActiveMatchState()
 
-    if state == Enum.PvPMatchState.Engaged then
-        self.waitingForMatch = nil
-        self.engagedInMatch = true
-        -- Small delay on UpdatePlayer because UnitExists return false for all immediately if not
-        C_Timer.After(0.3, function()
-            for i = 1, self.maxArenaOpponents do
-                local frame = self["arena" .. i]
-                frame:UpdatePlayer(UnitExists(frame.unit) and "seen" or "unseen")
+        if state == Enum.PvPMatchState.Engaged then
+            self.waitingForMatch = nil
+            self.engagedInMatch = true
+            -- Small delay on UpdatePlayer because UnitExists return false for all immediately if not
+            C_Timer.After(0.3, function()
+                for i = 1, self.maxArenaOpponents do
+                    local frame = self["arena" .. i]
+                    frame:UpdatePlayer(UnitExists(frame.unit) and "seen" or "unseen")
+                end
+            end)
+
+            -- Delay reset of this flag so Blizzards SetCooldown doesnt put a CD on Trinket on round start when there isn't a cooldown
+            -- from equip swapping in spawn, or potentially accidentally trinketing I suppose.
+            C_Timer.After(0.5, function() self.waitingForMatchDelayedReset = nil end)
+        else
+            self.engagedInMatch = nil
+            self.waitingForMatch = true
+            self.waitingForMatchDelayedReset = true
+            if event == "PVP_MATCH_ACTIVE" then
+                for i = 1, self.maxArenaOpponents do
+                    local frame = self["arena" .. i]
+                    frame:UpdatePlayer(UnitExists(frame.unit) and "seen" or "unseen")
+                end
             end
-         end)
-
-         -- Delay reset of this flag so Blizzards SetCooldown doesnt put a CD on Trinket on round start when there isn't a cooldown
-         -- from equip swapping in spawn, or potentially accidentally trinketing I suppose.
-         C_Timer.After(0.5, function() self.waitingForMatchDelayedReset = nil end)
+        end
     else
-        self.engagedInMatch = nil
-        self.waitingForMatch = true
-        self.waitingForMatchDelayedReset = true
-        if event == "PVP_MATCH_ACTIVE" then
-            for i = 1, self.maxArenaOpponents do
-                local frame = self["arena" .. i]
-                frame:UpdatePlayer(UnitExists(frame.unit) and "seen" or "unseen")
+        local inArena = self:IsInArena()
+        if inArena and self:GetNumArenaOpponentsFallback() > 0 then
+            self.waitingForMatch = nil
+            self.engagedInMatch = true
+            -- Small delay on UpdatePlayer because UnitExists return false for all immediately if not
+            C_Timer.After(0.3, function()
+                for i = 1, self.maxArenaOpponents do
+                    local frame = self["arena" .. i]
+                    frame:UpdatePlayer(UnitExists(frame.unit) and "seen" or "unseen")
+                end
+            end)
+        elseif inArena then
+            if not self:IsEventRegistered("ARENA_OPPONENT_UPDATE") then
+                self:RegisterEvent("ARENA_OPPONENT_UPDATE")
             end
+            self.engagedInMatch = nil
+            self.waitingForMatch = true
         end
     end
 end

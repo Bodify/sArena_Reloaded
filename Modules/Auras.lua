@@ -36,6 +36,11 @@ function sArenaFrameMixin:FindInterrupt(event, spellID, sourceName, sourceGUID)
         castBar.interruptedBy = interruptedByName
         castBar.Text:SetText(interruptedByName)
         castBar:Show()
+        C_Timer.After(1.2, function()
+            if not (UnitCastingInfo(unit) or UnitChannelInfo(unit)) then
+                castBar:Hide()
+            end
+        end)
         C_Timer.After(1, function()
             castBar.interruptedBy = nil
         end)

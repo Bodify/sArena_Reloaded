@@ -316,12 +316,12 @@ end
 
 -- Parent Frame
 function sArenaMixin:OnLoad()
-    self.isInArena = self:IsInArena()
     self:RegisterEvent("PLAYER_LOGIN")
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
     self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
     if not isMidnight then
         self:RegisterEvent("ARENA_PREP_OPPONENT_SPECIALIZATIONS")
+        self:RegisterEvent("ARENA_OPPONENT_UPDATE")
     elseif isMidnight then
         self:RegisterEvent("PVP_MATCH_ACTIVE")
         self:RegisterEvent("PVP_MATCH_STATE_CHANGED")
@@ -347,11 +347,11 @@ function sArenaMixin:OnEvent(event, ...)
 
             -- Old Arena Spec Detection
             if noEarlyFrames then
-
                 if (self.specCasts[spellID] or self.specBuffs[spellID]) then
                     for i = 1, self.maxArenaOpponents do
-                        if (sourceGUID == UnitGUID("arena" .. i)) then
-                            local ArenaFrame = self["arena" .. i]
+                        local unit = "arena" .. i
+                        if (sourceGUID == UnitGUID(unit)) then
+                            local ArenaFrame = self[unit]
                             if ArenaFrame:CheckForSpecSpell(spellID) then
                                 break
                             end
@@ -383,9 +383,21 @@ function sArenaMixin:OnEvent(event, ...)
             -- Racials
             if self.racialSpells[spellID] then
                 for i = 1, self.maxArenaOpponents do
-                    if (sourceGUID == UnitGUID("arena" .. i)) then
-                        local ArenaFrame = self["arena" .. i]
+                    local unit = "arena" .. i
+                    if (sourceGUID == UnitGUID(unit)) then
+                        local ArenaFrame = self[unit]
                         ArenaFrame:FindRacial(spellID)
+                    end
+                end
+            end
+
+            -- Trinket (Event doesnt trigger on MoP sometimes because yes)
+            if spellID == self.trinketID and self.isMoP then
+                for i = 1, self.maxArenaOpponents do
+                    local unit = "arena" .. i
+                    if (sourceGUID == UnitGUID(unit)) then
+                        local ArenaFrame = self[unit]
+                        ArenaFrame:UpdateTrinket()
                     end
                 end
             end
@@ -408,10 +420,11 @@ function sArenaMixin:OnEvent(event, ...)
         if combatEvent == "SPELL_DISPEL" then
             if self.dispelData[spellID] and db.profile.showDispels then
                 for i = 1, self.maxArenaOpponents do
-                    local ArenaFrame = self["arena" .. i]
+                    local unit = "arena" .. i
+                    local ArenaFrame = self[unit]
 
-                    local arenaGUID = UnitGUID("arena" .. i)
-                    local petGUID = UnitGUID("arena" .. i .. "pet")
+                    local arenaGUID = UnitGUID(unit)
+                    local petGUID = UnitGUID(unit .. "pet")
 
                     -- Check if dispel was cast by arena player or their pet
                     if sourceGUID == arenaGUID or (sourceGUID == petGUID and spellID == 119905) then
@@ -425,8 +438,9 @@ function sArenaMixin:OnEvent(event, ...)
         -- DRs
         if self.drList[spellID] then
             for i = 1, self.maxArenaOpponents do
-                if ( destGUID == UnitGUID("arena" .. i) and (auraType == "DEBUFF") ) then
-                    local ArenaFrame = self["arena" .. i]
+                local unit = "arena" .. i
+                if ( destGUID == UnitGUID(unit) and (auraType == "DEBUFF") ) then
+                    local ArenaFrame = self[unit]
                     ArenaFrame:FindDR(combatEvent, spellID)
                     break
                 end
@@ -437,8 +451,9 @@ function sArenaMixin:OnEvent(event, ...)
         if self.interruptList[spellID] then
             if combatEvent == "SPELL_INTERRUPT" or combatEvent == "SPELL_CAST_SUCCESS" then
                 for i = 1, self.maxArenaOpponents do
-                    if (destGUID == UnitGUID("arena" .. i)) then
-                        local ArenaFrame = self["arena" .. i]
+                    local unit = "arena" .. i
+                    if (destGUID == UnitGUID(unit)) then
+                        local ArenaFrame = self[unit]
                         ArenaFrame:FindInterrupt(combatEvent, spellID, sourceName, sourceGUID)
                         break
                     end
@@ -448,19 +463,22 @@ function sArenaMixin:OnEvent(event, ...)
 
     elseif (event == "PLAYER_TARGET_CHANGED") then
         for i = 1, self.maxArenaOpponents do
-            local frame = self["arena" .. i]
+            local unit = "arena" .. i
+            local frame = self[unit]
             frame:UpdateTarget(frame.unit)
         end
 
     elseif (event == "PLAYER_FOCUS_CHANGED") then
         for i = 1, self.maxArenaOpponents do
-            local frame = self["arena" .. i]
+            local unit = "arena" .. i
+            local frame = self[unit]
             frame:UpdateFocus(frame.unit)
         end
 
     elseif (event == "UNIT_TARGET") then
         for i = 1, self.maxArenaOpponents do
-            local frame = self["arena" .. i]
+            local unit = "arena" .. i
+            local frame = self[unit]
             frame:UpdateArenaTargets(frame.unit)
             frame:UpdateArenaTargetText(frame.unit)
         end
@@ -490,17 +508,16 @@ function sArenaMixin:OnEvent(event, ...)
 
         self:UnregisterEvent("PLAYER_LOGIN")
     elseif (event == "PLAYER_ENTERING_WORLD") then
-        self.isInArena = self:IsInArena()
         self:UpdatePartyFrameReferences(true)
         self:UpdateBlizzArenaFrameVisibility()
-        self:SetMouseState(not self.isInArena)
+        self:SetMouseState(not self:IsInArena())
         self.testMode = nil
         self.arenaMatchStarted = nil
         self:RefreshAllAuraHighlights()
 
         if noEarlyFrames then
             self.seenArenaUnits = {}
-            if self.isInArena then
+            if self:IsInArena() then
                 self.justEnteredArena = true
                 C_Timer.After(6, function()
                     self.justEnteredArena = nil
@@ -512,15 +529,15 @@ function sArenaMixin:OnEvent(event, ...)
 
         if isMidnight then
             self:InitializeMidnightDRFrames()
-            self:CheckMatchStatus(event)
         end
+        self:CheckMatchStatus(event)
 
         self:SetupCustomCD()
         self:UpdateArenaTargetsOnPartyFrames()
         self:PositionArenaTargetTextOnPartyFrames()
         self:UpdateArenaTargetTextOnPartyFrames()
 
-        if self.isInArena then
+        if self:IsInArena() then
             self:PrintConflictMessage()
             if not isMidnight then
                 self:ResetDetectedDispels()
@@ -577,10 +594,14 @@ function sArenaMixin:OnEvent(event, ...)
     elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
         self:UpdatePlayerSpec()
     elseif event == "ARENA_PREP_OPPONENT_SPECIALIZATIONS" then
+        self:CheckMatchStatus(event)
         self:ResetDetectedDispels()
         if isTBC then
             wipe(self.activeStanceAuras)
         end
+    elseif event == "ARENA_OPPONENT_UPDATE" then
+        self:CheckMatchStatus(event)
+        self:UnregisterEvent(event)
     elseif event == "PVP_MATCH_STATE_CHANGED" or event == "PVP_MATCH_ACTIVE" then
         self:CheckMatchStatus(event)
         if db and db.profile.shadowSightTimer and self.engagedInMatch and not IsSoloShuffle() then
@@ -1276,7 +1297,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
         elseif (event == "ARENA_OPPONENT_UPDATE") then
             self:UpdatePlayer(arg1)
         elseif (event == "ARENA_COOLDOWNS_UPDATE") then
-             self:UpdateTrinket()
+            self:UpdateTrinket()
         elseif (event == "ARENA_CROWD_CONTROL_SPELL_UPDATE") then
             -- arg1 == spellID
             if (arg1 ~= self.Trinket.spellID) then
@@ -1429,7 +1450,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
 
         self:Initialize()
     elseif (event == "PLAYER_ENTERING_WORLD") or (event == "ARENA_PREP_OPPONENT_SPECIALIZATIONS") then
-        if noEarlyFrames and self.parent:IsInArena() and self.ogShow then
+        if noEarlyFrames and self:IsInArena() and self.ogShow then
             self.ogShow(self)
             self:SetAlpha(0)
         end
@@ -1635,7 +1656,7 @@ function sArenaFrameMixin:UpdateSpecNameColor()
 end
 
 function sArenaFrameMixin:UpdatePlayer(unitEvent)
-    if not self.parent.isInArena then return end
+    if not self.parent:IsInArena() then return end
 
     local unit = self.unit
 
@@ -2619,6 +2640,34 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                 else
                     castBar:SetStatusBarColor(1, 0.7, 0)
                 end
+            end
+        end
+        if self.highlightCastsOnMe and castBar.barHighlight and PlayerIsSpellTarget and unitToken then
+            if (castBar.casting or castBar.channeling) and castBar.spellID ~= nil then
+                local spellTarget = PlayerIsSpellTarget(unitToken)
+                castBar.barHighlight:SetAlphaFromBoolean(spellTarget, 1, 0)
+                if self.glowCastbarIcon then
+                    castBar.iconHighlight:SetAlphaFromBoolean(spellTarget, 1, 0)
+                end
+            else
+                castBar.barHighlight:SetAlpha(0)
+                if castBar.iconHighlight then castBar.iconHighlight:SetAlpha(0) end
+            end
+        elseif self.highlightCC and castBar.barHighlight and C_Spell.IsSpellCrowdControl then
+            if (castBar.casting or castBar.channeling) and castBar.spellID ~= nil then
+                local isCC = C_Spell.IsSpellCrowdControl(castBar.spellID)
+                castBar.barHighlight:SetAlphaFromBoolean(isCC, 1, 0)
+                if self.glowCastbarIcon then
+                    castBar.iconHighlight:SetAlphaFromBoolean(isCC, 1, 0)
+                end
+            else
+                castBar.barHighlight:SetAlpha(0)
+                castBar.iconHighlight:SetAlpha(0)
+            end
+        else
+            if castBar.barHighlight then
+                castBar.barHighlight:SetAlpha(0)
+                castBar.iconHighlight:SetAlpha(0)
             end
         end
     end

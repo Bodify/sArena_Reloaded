@@ -2,6 +2,7 @@ local GetTime = GetTime
 local isRetail = sArenaMixin.isRetail
 local isMidnight = sArenaMixin.isMidnight
 local isTBC = sArenaMixin.isTBC
+local isMoP = sArenaMixin.isMoP
 
 local racialSpells
 local racialData
@@ -172,6 +173,8 @@ else
 
 	if isTBC then -- Wotf does not share CD in TBC
 		racialData["Scourge"].sharedCD = nil
+	elseif isMoP then
+		racialData["Scourge"].sharedCD = 30
 	end
 
 	trinkets = {
@@ -215,10 +218,12 @@ function sArenaFrameMixin:FindRacial(spellID)
 		-- Check if we're using replaceHumanRacialWithTrinket (MoP specific)
 		if not isRetail and self.race == "Human" and (self.parent.db.profile.replaceHumanRacialWithTrinket or self.parent.db.profile.forceShowTrinketOnHuman) then
 			if self.parent.db.profile.forceShowTrinketOnHuman then
-			if self.Trinket.spellID and (self.Trinket.Texture:GetTexture() ~= self.parent.noTrinketTexture) then
+				if self.Trinket.spellID and (self.Trinket.Texture:GetTexture() ~= self.parent.noTrinketTexture) then
 					self.Trinket.Cooldown:SetCooldown(currTime, duration)
 				end
-				self.Racial.Cooldown:SetCooldown(currTime, duration)
+				if self.Racial.Texture:GetTexture() then
+					self.Racial.Cooldown:SetCooldown(currTime, duration)
+				end
 				self:UpdateTrinketIcon(false)
 			else
 				if self.Racial.Texture:GetTexture() then

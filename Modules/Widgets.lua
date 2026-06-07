@@ -602,7 +602,7 @@ function sArenaMixin:UpdateArenaTargetTextOnPartyFrames()
     local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
     local ptt = widgetSettings and widgetSettings.partyTargetText
     local aop = ptt and ptt.arenaOnParty
-    if (not ptt or not ptt.enabled or not aop or not aop.enabled) or (not self.isInArena and (not aop or not aop.alwaysOn)) then
+    if (not ptt or not ptt.enabled or not aop or not aop.enabled) or (not self:IsInArena() and (not aop or not aop.alwaysOn)) then
         for i = 1, 5 do
             local partyFrame = self:GetPartyFrame(i)
             if partyFrame and partyFrame.WidgetOverlay and partyFrame.WidgetOverlay.partyTargetText then

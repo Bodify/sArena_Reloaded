@@ -1,6 +1,6 @@
 -- Auras we want tooltip info from to display as stacks
 sArenaMixin.tooltipInfoAuras = {
-    --[115867] = true, -- Mana Tea
+    [115867] = true, -- Mana Tea
     [1247275] = true,     -- Tigereye Brew
 }
 
