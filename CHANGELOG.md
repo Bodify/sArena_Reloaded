@@ -1,3 +1,7 @@
+# sArena Reloaded 2.5.6d
+## Bugfix
+- TBC: Fix typo causing a nil error and frames not to work for TBC.
+
 # sArena Reloaded 2.5.6c
 ## Bugfix
 - MoP: Yet another trinket cd tweak handling.
