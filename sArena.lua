@@ -1,6 +1,7 @@
 local isRetail = sArenaMixin.isRetail
 local isMidnight = sArenaMixin.isMidnight
 local isTBC = sArenaMixin.isTBC
+local isMoP = sArenaMixin.isMoP
 local L = sArenaMixin.L
 
 -- Older clients dont show opponents in spawn
@@ -392,7 +393,7 @@ function sArenaMixin:OnEvent(event, ...)
             end
 
             -- Trinket (Event doesnt trigger on MoP sometimes because yes)
-            if spellID == self.trinketID and self.isMoP then
+            if spellID == self.trinketID and isMoP then
                 for i = 1, self.maxArenaOpponents do
                     local unit = "arena" .. i
                     if (sourceGUID == UnitGUID(unit)) then
