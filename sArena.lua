@@ -397,7 +397,8 @@ function sArenaMixin:OnEvent(event, ...)
                     local unit = "arena" .. i
                     if (sourceGUID == UnitGUID(unit)) then
                         local ArenaFrame = self[unit]
-                        ArenaFrame:UpdateTrinket()
+                        --ArenaFrame:UpdateTrinket()
+                        ArenaFrame:FindTrinket()
                     end
                 end
             end

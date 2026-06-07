@@ -17,6 +17,51 @@ function sArenaFrameMixin:GetFactionTrinketIcon()
     end
 end
 
+-- Old trinket func for MoP until I can figure out whats going on
+function sArenaFrameMixin:FindTrinket()
+    local trinket = self.Trinket
+    local cdIsShown = trinket.Cooldown:IsShown()
+    if not cdIsShown then
+        local db = self.parent and self.parent.db
+        if db and db.profile.playTrinketSound then
+            local isHealer = self.isHealer
+            local fileID = isHealer and db.profile.healerTrinketSoundFileID or db.profile.trinketSoundFileID
+            local soundName = isHealer and (db.profile.healerTrinketSoundName or "Lossa Trinket") or (db.profile.trinketSoundName or "Lossa Trinket")
+            local channel = db.profile.trinketSoundChannel or "Master"
+            if fileID and fileID ~= 0 then
+                PlaySound(fileID, channel)
+            else
+                local soundPath = LSM:Fetch(LSM.MediaType.SOUND, soundName)
+                if soundPath then
+                    PlaySoundFile(soundPath, channel)
+                end
+            end
+        end
+
+        if db and db.profile.trinketUseGlow and (not db.profile.trinketUseGlowHealerOnly or self.isHealer) then
+            local LCG = LibStub("LibCustomGlow-1.0", true)
+            if LCG then
+                local glowColor = db.profile.trinketUseGlowColorEnabled and db.profile.trinketUseGlowColor or nil
+                LCG.ButtonGlow_Start(self.Trinket, glowColor)
+                if self.trinketGlowTimer then self.trinketGlowTimer:Cancel() end
+                self.trinketGlowTimer = C_Timer.NewTimer(1, function()
+                    LCG.ButtonGlow_Stop(self.Trinket)
+                    self.trinketGlowTimer = nil
+                end)
+            end
+        end
+    end
+
+    trinket.Cooldown:SetCooldown(GetTime(), 120)
+
+    if self.Racial.Texture:GetTexture() and not self.Racial.Cooldown:IsShown() then
+        local sharedCD = self:GetSharedCD()
+        if sharedCD then
+            self.Racial.Cooldown:SetCooldown(GetTime(), sharedCD)
+        end
+    end
+end
+
 -- Helper function to check if we should force trinket display for humans in MoP
 function sArenaFrameMixin:ShouldForceHumanTrinket()
     return not isRetail and self.race == "Human" and self.parent.db.profile.forceShowTrinketOnHuman
