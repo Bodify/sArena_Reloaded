@@ -66,8 +66,7 @@ function sArenaFrameMixin:GetArenaCCInfo()
         local durationObj = C_PvP.GetArenaCrowdControlDuration(unit)
         return durationObj
     elseif isMoP then
-        local durationObj = C_PvP.GetArenaCrowdControlDuration(unit)
-        local spellID, startTime, duration = self.Trinket.spellID, durationObj:GetStartTime(), durationObj:GetRemainingDuration()
+        local spellID, startTime, duration = self.Trinket.spellID, GetTime(), 120
         return spellID, startTime, duration
     else
         local spellID, itemID, startTime, duration = C_PvP.GetArenaCrowdControlInfo(unit)
@@ -98,7 +97,7 @@ function sArenaFrameMixin:UpdateTrinket()
         else
             if (startTime ~= 0 and duration ~= 0 and self.Trinket.spellID) then
                 local currentTexture = self.Trinket.Texture:GetTexture()
-                if self.Trinket.spellID and (currentTexture ~= self.parent.noTrinketTexture) then
+                if (currentTexture ~= self.parent.noTrinketTexture) then
                     local cdIsShown = self.Trinket.Cooldown:IsShown()
                     if not cdIsShown then
                         local db = self.parent and self.parent.db
