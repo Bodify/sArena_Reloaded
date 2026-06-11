@@ -280,8 +280,7 @@ function sArenaMixin:HandleArenaStart()
     self.arenaMatchStarted = true
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        if frame:IsShown() then break end
-        if UnitExists("arena"..i) then
+        if not frame:IsShown() and UnitExists("arena"..i) then
             if noEarlyFrames then
                 self.seenArenaUnits[i] = true
             end
@@ -1393,20 +1392,22 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
                 self:UpdateAbsorb()
                 if (isDead) then
                     --self.HealthBar:SetValue(0)
+                    self.isDead = isDead
                     self.SpecNameText:SetText("")
                     self.WidgetOverlay:Hide()
                 end
-                self.DeathIcon:SetShown(isDead)
+                self.DeathIcon:SetShown(self.isDead)
                 self.DisconnectedIcon:SetShown(not UnitIsConnected(unit))
                 self:SetStatusText()
             else
                 local currentHealth = UnitHealth(unit)
                 if currentHealth ~= 0 then
+                    self.isDead = UnitIsDeadOrGhost(unit) -- (Released Spirit might show as 1hp, need to confirm)
                     self:SetStatusText()
                     self.HealthBar:SetValue(currentHealth)
                     self:UpdateHealPrediction()
                     self:UpdateAbsorb()
-                    self.DeathIcon:SetShown(false)
+                    self.DeathIcon:SetShown(self.isDead)
                     self.hideStatusText = false
                     self.currentHealth = currentHealth
                     if self.isFeigningDeath then
@@ -1458,13 +1459,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
         end
 
         self:StopStealthHealthTicker()
-        self.Name:SetText("")
-        self.CastBar:Hide()
-        self.specTexture = nil
-        self.class = nil
-        self.currentClassIconTexture = nil
-        self.currentClassIconStartTime = 0
-        self.updateRacialOnTrinketSlot = nil
+        self:ResetUnitInfo()
         self:UpdateVisible()
         self:ResetTrinket()
         self:ResetRacial()
@@ -1670,9 +1665,10 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
     self:FindAura()
 
     if (unitEvent and unitEvent ~= "seen") or (UnitGUID(self.unit) == nil) then
-        self:SetMysteryPlayer()
+        self:SetMysteryPlayer(unitEvent)
         return
     end
+    self.isDead = UnitIsDeadOrGhost(unit)
     self:StopStealthHealthTicker()
     C_PvP.RequestCrowdControlSpell(unit)
 
@@ -1746,7 +1742,7 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
     end
 end
 
-function sArenaFrameMixin:SetMysteryPlayer()
+function sArenaFrameMixin:SetMysteryPlayer(unitEvent)
     local hp = self.HealthBar
     local pp = self.PowerBar
 
@@ -1808,63 +1804,73 @@ function sArenaFrameMixin:SetMysteryPlayer()
     self:SetStatusText()
     self.WidgetOverlay:Hide()
 
-    self.DeathIcon:Hide()
     self.DisconnectedIcon:Hide()
+    if self.isDead then
+        self:StopStealthHealthTicker()
+    end
+    if unitEvent ~= "destroyed" and unitEvent ~= "unseen" then
+        self.DeathIcon:Hide()
+    end
+end
+
+function sArenaFrameMixin:ResetUnitInfo()
+    self.isDead = false
+    self.Name:SetText("")
+    self.CastBar:Hide()
+    self.specTexture = nil
+    self.specName = nil
+    self.isHealer = nil
+    self.class = nil
+    self.currentClassIconTexture = nil
+    self.currentClassIconStartTime = 0
+    self.updateRacialOnTrinketSlot = nil
+    self.classLocal = nil
+    self.specID = nil
+    self:UpdateAuraHighlightEnabled()
+    self.SpecIcon:Hide()
+    self.SpecNameText:SetText("")
+    self.DeathIcon:Hide()
 end
 
 function sArenaFrameMixin:GetClass()
-    local _, instanceType = IsInInstance()
+    if self.class then return end
 
-    if (instanceType ~= "arena") then
-        self.specTexture = nil
-        self.class = nil
-        self.classLocal = nil
-        self.specName = nil
-        self.specID = nil
-        self.isHealer = nil
-        self:UpdateAuraHighlightEnabled()
-        self.SpecIcon:Hide()
-        self.SpecNameText:SetText("")
-    elseif (not self.class) then
-        local id = self:GetID()
+    local id = self:GetID()
 
-        if not noEarlyFrames then
-            if (GetNumArenaOpponentSpecs() >= id) then
-                local specID = GetArenaOpponentSpec(id) or 0
-                if (specID > 0) then
-                    local _, specName, _, specTexture, _, class, classLocal = GetSpecializationInfoByID(specID)
-                    self.class = class
-                    self.classLocal = classLocal
-                    self.specID = specID
-                    self.specName = specName
-                    self.isHealer = self.parent.healerSpecIDs[specID] or false
-                    self:UpdateAuraHighlightEnabled()
-                    self:UpdateHealerStatus()
-                    self.SpecNameText:SetText(specName)
-                    self.SpecNameText:SetShown(db.profile.layoutSettings[db.profile.currentLayout].showSpecManaText)
-                    self:UpdateSpecNameColor()
-                    self.specTexture = specTexture
-                    self.class = class
-                    self:UpdateSpecIcon()
-                    self:UpdateFrameColors()
-                    self.parent:UpdateTextures()
+    if not noEarlyFrames then
+        if (GetNumArenaOpponentSpecs() >= id) then
+            local specID = GetArenaOpponentSpec(id) or 0
+            if (specID > 0) then
+                local _, specName, _, specTexture, _, class, classLocal = GetSpecializationInfoByID(specID)
+                self.class = class
+                self.classLocal = classLocal
+                self.specID = specID
+                self.specName = specName
+                self.isHealer = self.parent.healerSpecIDs[specID] or false
+                self:UpdateAuraHighlightEnabled()
+                self:UpdateHealerStatus()
+                self.SpecNameText:SetText(specName)
+                self.SpecNameText:SetShown(db.profile.layoutSettings[db.profile.currentLayout].showSpecManaText)
+                self:UpdateSpecNameColor()
+                self.specTexture = specTexture
+                self.class = class
+                self:UpdateSpecIcon()
+                self:UpdateFrameColors()
+                self.parent:UpdateTextures()
 
-                    local currentLayout = self.parent.layouts[db.profile.currentLayout]
-                    if currentLayout and currentLayout.UpdateHealthbarOrientation then
-                        if InCombatLockdown() then
-                            self.needsHealthbarOrientationUpdate = true
-                            self:RegisterEvent("PLAYER_REGEN_ENABLED")
-                        else
-                            currentLayout:UpdateHealthbarOrientation(self)
-                        end
+                local currentLayout = self.parent.layouts[db.profile.currentLayout]
+                if currentLayout and currentLayout.UpdateHealthbarOrientation then
+                    if InCombatLockdown() then
+                        self.needsHealthbarOrientationUpdate = true
+                        self:RegisterEvent("PLAYER_REGEN_ENABLED")
+                    else
+                        currentLayout:UpdateHealthbarOrientation(self)
                     end
                 end
             end
         end
-
-        if (not self.class and (noEarlyFrames or UnitExists(self.unit))) then
-            self.classLocal, self.class = UnitClass(self.unit)
-        end
+    else
+        self.classLocal, self.class = UnitClass(self.unit)
     end
 end
 
@@ -2165,9 +2171,9 @@ function sArenaFrameMixin:SetLifeState()
     local isFeigningDeath = self.class == "HUNTER" and AuraUtil.FindAuraByName(FEIGN_DEATH, unit, "HELPFUL")
     local isDead = UnitIsDeadOrGhost(unit) and not isFeigningDeath
 
-    self.DeathIcon:SetShown(isDead)
     self.hideStatusText = isDead
     if (isDead) then
+        self.isDead = isDead
         self:SetStatusText()
         self.HealthBar:SetValue(0)
         self:UpdateHealPrediction()
@@ -2179,6 +2185,7 @@ function sArenaFrameMixin:SetLifeState()
         self.HealthBar:SetAlpha(0.55)
         self.isFeigningDeath = true
     end
+    self.DeathIcon:SetShown(self.isDead)
 end
 
 local function FormatLargeNumbers(value)

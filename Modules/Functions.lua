@@ -1010,6 +1010,8 @@ end
 function sArenaFrameMixin:StartStealthHealthTicker()
     self:StopStealthHealthTicker()
 
+    if self.isDead then return end
+
     local hp = self.HealthBar
 
     if isMidnight then

@@ -238,7 +238,7 @@
             </Layer>
 
             <Layer level="OVERLAY" textureSubLevel="7">
-                <Texture parentKey="DeathIcon" atlas="DeathIcon" hidden="true">
+                <Texture parentKey="DeathIcon" atlas="DeathIcon" hidden="true" ignoreParentAlpha="true">
                     <TexCoords left="0" right="1" top="0" bottom="0.5"/>
                 </Texture>
                 <Texture parentKey="DisconnectedIcon" file="interface/characterframe/disconnect-icon.blp" hidden="true">

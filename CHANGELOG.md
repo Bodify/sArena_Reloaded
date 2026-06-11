@@ -1,3 +1,10 @@
+# sArena Reloaded 2.5.6e
+## Tweak
+- Tweak Death Icon and death handling a little bit. Should now more consistently "stay dead" even though the arena unit releases/leaves arena.
+## Bugfix
+- TBC: Fix stale spec info between arena games resulting in wrong spec icons/text.
+- Fix stealth health ticker feature filling the hp bars of dead units if they left/released in arena.
+
 # sArena Reloaded 2.5.6d
 ## Bugfix
 - TBC: Fix typo causing a nil error and frames not to work for TBC.
