@@ -1388,11 +1388,11 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
             if isMidnight then
                 local isDead = UnitIsDeadOrGhost(unit)
                 self.hideStatusText = isDead
+                self.isDead = isDead
                 self.HealthBar:SetValue(UnitHealth(unit))
                 self:UpdateAbsorb()
                 if (isDead) then
                     --self.HealthBar:SetValue(0)
-                    self.isDead = isDead
                     self.SpecNameText:SetText("")
                     self.WidgetOverlay:Hide()
                 end
