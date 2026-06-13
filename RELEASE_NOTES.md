@@ -1,3 +1,7 @@
+# sArena Reloaded 2.5.6f
+## Bugfix
+- Fix Hunter's Feign Death causing the Death Icon to be stuck visible for the rest of the game after the tweak in 2.5.6e and an oversight.
+
 # sArena Reloaded 2.5.6e
 ## Tweak
 - Tweak Death Icon and death handling a little bit. Should now more consistently "stay dead" even though the arena unit releases/leaves arena.
