@@ -107,11 +107,12 @@ function sArenaFrameMixin:FindAura(updateInfo)
     if spellID then auraCategory = "cc" end
 
     if prioImportant then
-        -- Important buffs
-        if not spellID then
-            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|IMPORTANT", C_Spell.IsSpellImportant, unit, seen, importantSortRule, importantSortDirection, importantSortFunc)
-            if spellID then auraCategory = "important" end
-        end
+        -- -- Important buffs
+        -- if not spellID then
+        --     spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|IMPORTANT", C_Spell.IsSpellImportant, unit, seen, importantSortRule, importantSortDirection, importantSortFunc)
+        --     if spellID then auraCategory = "important" end
+        -- end
+        -- -- Commented out cuz bugged on 12.0.7 launch and shows bunch of trash auras
 
         -- Big Defensives
         if not spellID then
@@ -137,11 +138,12 @@ function sArenaFrameMixin:FindAura(updateInfo)
             if spellID then auraCategory = "defensive" end
         end
 
-        -- Important buffs
-        if not spellID then
-            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|IMPORTANT", C_Spell.IsSpellImportant, unit, seen, importantSortRule, importantSortDirection, importantSortFunc)
-            if spellID then auraCategory = "important" end
-        end
+        -- -- Important buffs
+        -- if not spellID then
+        --     spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|IMPORTANT", C_Spell.IsSpellImportant, unit, seen, importantSortRule, importantSortDirection, importantSortFunc)
+        --     if spellID then auraCategory = "important" end
+        -- end
+        -- -- Commented out cuz bugged on 12.0.7 launch and shows bunch of trash auras
     end
 
     local profile = self.parent and self.parent.db and self.parent.db.profile

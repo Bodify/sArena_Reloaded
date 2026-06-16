@@ -1,3 +1,7 @@
+# sArena Reloaded 2.5.6g
+## Tweak
+- WoW 12.0.7 comes with more bugs. Important aura filter is broken because of Blizzard and shows a bunch of trash auras. Temporarily disabled important auras until Blizzard fixes it.
+
 # sArena Reloaded 2.5.6f
 ## Bugfix
 - Fix Hunter's Feign Death causing the Death Icon to be stuck visible for the rest of the game after the tweak in 2.5.6e and an oversight.
