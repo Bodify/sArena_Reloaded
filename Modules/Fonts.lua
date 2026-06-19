@@ -111,6 +111,7 @@ function sArenaMixin:UpdateFonts()
             fs:SetFont(path, sizeOverride or size, outlineToUse)
             if outlineToUse ~= "OUTLINE" and outlineToUse ~= "THICKOUTLINE" then
                 fs:SetShadowOffset(1, -1)
+                fs:SetShadowColor(0, 0, 0, 1)
             else
                 fs:SetShadowOffset(0, 0)
             end

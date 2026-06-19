@@ -227,8 +227,8 @@
             <Layer level="ARTWORK" textureSubLevel="3">
                 <FontString parentKey="Name" inherits="GameFontNormalSmall"/>
                 <FontString parentKey="SpecNameText" inherits="GameFontNormalSmall"/>
-                <FontString parentKey="HealthText"/>
-                <FontString parentKey="PowerText"/>
+                <FontString parentKey="HealthText" inherits="GameFontNormalSmall"/>
+                <FontString parentKey="PowerText" inherits="GameFontNormalSmall"/>
                 <Texture parentKey="overAbsorbGlow" inherits="OverAbsorbGlowTemplate"/>
                 <Texture parentKey="overHealAbsorbGlow" inherits="OverHealAbsorbGlowTemplate"/>
                 <Texture parentKey="totalAbsorbBarOverlay" inherits="TotalAbsorbBarOverlayTemplate"/>
