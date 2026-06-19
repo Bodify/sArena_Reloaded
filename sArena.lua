@@ -616,7 +616,23 @@ function sArenaMixin:OnEvent(event, ...)
     end
 end
 
+function sArenaMixin:HandleFirstUse()
+    if sArena_ReloadedDB and sArena_ReloadedDB.isFirstUse then
+        sArena_ReloadedDB.isFirstUse = nil
+        LibStub("AceConfigDialog-3.0"):Close("sArena")
+        if SettingsPanel and SettingsPanel:IsShown() then
+            SettingsPanel:Hide()
+        end
+        self:ShowWelcomePopup()
+        self:Test()
+    end
+end
+
 function sArenaMixin:ChatCommand(input)
+    if sArena_ReloadedDB.isFirstUse then
+        self:HandleFirstUse()
+        return
+    end
     local cmd = (input or ""):trim():lower()
     if cmd == "" then
         LibStub("AceConfigDialog-3.0"):Open("sArena")
@@ -698,17 +714,15 @@ function sArenaMixin:Initialize()
         self:ApplyAllClickActions()
         self:RebuildClickActionsOptions()
         self:CreateRangeCheckFrames()
-        LibStub("AceConfigDialog-3.0"):AddToBlizOptions("sArena", "sArena |cffff8000Reloaded|r |T135884:13:13|t")
+        local optionsPanel = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("sArena", "sArena |cffff8000Reloaded|r |T135884:13:13|t")
+        if optionsPanel and sArena_ReloadedDB.isFirstUse then
+            optionsPanel:HookScript("OnShow", function()
+                self:HandleFirstUse()
+            end)
+        end
         self:SetLayout(_, db.profile.currentLayout)
     else
         self:PrintConflictMessage(conflictType)
-    end
-
-    if sArena_ReloadedDB.isFirstUse then
-        self:ShowWelcomePopup()
-        C_Timer.After(1, function()
-            self:Test()
-        end)
     end
 end
 
