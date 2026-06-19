@@ -3,6 +3,8 @@
 - New JFarm profile (www.twitch.tv/jfarm_). Thank you for sharing.
 ## Tweak
 - Only show first time sArena welcome screen when entering settings instead of automatically when first loading the addon on login.
+## Bugfix
+- Fix font drop shadow not showing on Health, Power and SpecName Text.
 
 # sArena Reloaded 2.5.6h
 ## Tweak
