@@ -1,3 +1,9 @@
+# sArena Reloaded 2.5.6i
+## New
+- New JFarm profile (www.twitch.tv/jfarm_). Thank you for sharing.
+## Tweak
+- Only show first time sArena welcome screen when entering settings instead of automatically when first loading the addon on login.
+
 # sArena Reloaded 2.5.6h
 ## Tweak
 - Update TOC version number.
