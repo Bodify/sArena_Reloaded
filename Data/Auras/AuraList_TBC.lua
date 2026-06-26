@@ -133,13 +133,9 @@ sArenaMixin.auraList = {
     [1090]    = {9, "cc"},    -- Sleep
     [10326]   = {9, "cc"},    -- Turn Evil
     [19386]   = {9, "cc"},    -- Wyvern Sting
-    [24131]   = {9, "cc"},    -- Wyvern Sting
     [24132]   = {9, "cc"},    -- Wyvern Sting
-    [24133]   = {9, "cc"},    -- Wyvern Sting
-    [24134]   = {9, "cc"},    -- Wyvern Sting
     [24135]   = {9, "cc"},    -- Wyvern Sting
     [27068]   = {9, "cc"},    -- Wyvern Sting
-    [27069]   = {9, "cc"},    -- Wyvern Sting
     [710]     = {9, "cc"},    -- Banish
     [18647]   = {9, "cc"},    -- Banish
 
