@@ -1318,13 +1318,154 @@ function sArenaMixin:ReparentBlizzardDRFrames()
     end
 end
 
-function sArenaMixin:ToggleEditMode(show)
-    if (not (EditModeManagerFrame and EditModeManagerFrame.AccountSettings)) or sArena_ReloadedDB.skipEMDR then return end
-    if show then
-        ShowUIPanel(EditModeManagerFrame)
-    else
-        HideUIPanel(EditModeManagerFrame)
+function sArenaMixin:CreateMidnightDRFrame(arenaFrame)
+    arenaFrame.drFrames = arenaFrame.drFrames or {}
+    local drIndex = #arenaFrame.drFrames + 1
+    local i = arenaFrame:GetID()
+
+    local name = "sArenaEnemyFrame" .. i .. "_DR" .. drIndex
+    local sArenaDRFrame = CreateFrame("Frame", name, arenaFrame, "sArenaDRFrameTemplate")
+    sArenaDRFrame:SetFrameStrata("MEDIUM")
+    sArenaDRFrame:SetFrameLevel(11)
+    arenaFrame.drFrames[drIndex] = sArenaDRFrame
+
+    local drTextFrame = sArenaDRFrame.DRTextFrame
+    local drText = drTextFrame.DRText
+    drText:SetText("½")
+    drText:SetVertexColor(0, 1, 0)
+    local fontFile, fontHeight, fontFlags = drText:GetFont()
+    local drTextImmune = drTextFrame:CreateFontString(nil, "OVERLAY")
+    drTextImmune:SetFont(fontFile, fontHeight, fontFlags)
+    drTextImmune:SetJustifyH("RIGHT")
+    drTextImmune:SetJustifyV("BOTTOM")
+    drTextImmune:SetPoint("BOTTOMRIGHT", 4, -4)
+    drTextImmune:SetText("%")
+    drTextImmune:SetTextColor(1, 0, 0)
+    drTextImmune:SetAlpha(0)
+    drTextFrame.DRTextImmune = drTextImmune
+
+    if drIndex == 1 then
+        self:SetupDrag(sArenaDRFrame, sArenaDRFrame, "dr", "UpdateDRSettings")
     end
+
+    return sArenaDRFrame
+end
+
+function sArenaMixin:HookMidnightDRFrame(blizzDRFrame)
+    if not blizzDRFrame or blizzDRFrame.sArenaHooked then return end
+    if not blizzDRFrame.Icon then return end
+
+    local drTray = blizzDRFrame:GetParent()
+    if not drTray then return end
+
+    local arenaFrame = drTray:GetParent()
+    if not arenaFrame or not arenaFrame.GetID then return end
+
+    local i = arenaFrame:GetID()
+    if self["arena" .. i] ~= arenaFrame then return end
+
+    blizzDRFrame.sArenaHooked = true
+
+    arenaFrame.drFrames = arenaFrame.drFrames or {}
+    arenaFrame.drFrameHookCount = (arenaFrame.drFrameHookCount or 0) + 1
+    local drIndex = arenaFrame.drFrameHookCount
+
+    local sArenaDRFrame = arenaFrame.drFrames[drIndex] or self:CreateMidnightDRFrame(arenaFrame)
+
+    sArenaDRFrame.blizzFrame = blizzDRFrame
+
+    sArenaDRFrame.Icon:SetTexture(blizzDRFrame.Icon:GetTexture())
+
+    hooksecurefunc(blizzDRFrame.Icon, "SetTexture", function(_, texture)
+        sArenaDRFrame.Icon:SetTexture(texture)
+    end)
+
+    hooksecurefunc(blizzDRFrame, "Show", function()
+        sArenaDRFrame:Show()
+        arenaFrame:UpdateDRPositions()
+        sArenaDRFrame.DRSeverity = 1
+    end)
+
+    hooksecurefunc(blizzDRFrame, "Hide", function()
+        if sArenaDRFrame.Cooldown:IsShown() then return end
+        sArenaDRFrame.Icon:SetTexture(nil)
+        sArenaDRFrame.Cooldown:Clear()
+        sArenaDRFrame:Hide()
+        sArenaDRFrame.DRSeverity = 0
+        arenaFrame:UpdateDRPositions()
+    end)
+
+    sArenaDRFrame.Cooldown:HookScript("OnCooldownDone", function()
+        sArenaDRFrame.Icon:SetTexture(nil)
+        sArenaDRFrame.Cooldown:Clear()
+        sArenaDRFrame:Hide()
+        sArenaDRFrame.DRSeverity = 0
+        arenaFrame:UpdateDRPositions()
+    end)
+
+    hooksecurefunc(blizzDRFrame.Cooldown, "SetCooldown", function(_, start, duration)
+        sArenaDRFrame:Show()
+        sArenaDRFrame.Cooldown:SetCooldown(GetTime(), self.db.profile.drResetTime or 16.1)
+        sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
+        sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), self.db.profile.drResetTime or 16.1)
+    end)
+
+    local green = CreateColor(0, 1, 0, 1)
+    local red = CreateColor(1, 0, 0, 1)
+
+    hooksecurefunc(blizzDRFrame.ImmunityIndicator, "SetShown", function(_, shown)
+        local layout = self.db.profile.layoutSettings[self.db.profile.currentLayout]
+        local blackBorder = layout and layout.dr and layout.dr.blackDRBorder
+        local borderHidden = layout and layout.dr and layout.dr.disableDRBorder
+
+        sArenaDRFrame.Cooldown:Clear()
+        sArenaDRFrame:Show()
+
+        if not self.db.profile.disableInstantDRCooldown then
+            local drBugFixMidnight = self.db.profile.drBugFixMidnight
+            local drBugFixLonger = drBugFixMidnight and self.db.profile.drBugFixLonger
+            if sArenaDRFrame.DRSeverity == 1 then
+                -- drResetTime + longest CC (6) + 20% roar duration extender + 0.5 leeway
+                local duration = (drBugFixLonger and (self.db.profile.drResetTime + (6 * 1.2) + 0.5))
+                    or (drBugFixMidnight and (self.db.profile.drResetTime + 6 + 0.5))
+                    or (self.db.profile.drResetTime + 4)
+                sArenaDRFrame.Cooldown:SetCooldown(GetTime(), duration)
+                sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
+                sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), duration)
+                sArenaDRFrame.DRSeverity = 2
+            else
+                local duration = (drBugFixLonger and (self.db.profile.drResetTime + (3 * 1.2) + 0.5))
+                    or (drBugFixMidnight and (self.db.profile.drResetTime + 3 + 0.5))
+                    or (self.db.profile.drResetTime + 2)
+                sArenaDRFrame.Cooldown:SetCooldown(GetTime(), duration)
+                sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
+                sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), duration)
+            end
+        end
+
+        if not borderHidden then
+            if blackBorder then
+                sArenaDRFrame.Border:SetVertexColor(0, 0, 0)
+                if sArenaDRFrame.PixelBorder then
+                    sArenaDRFrame.PixelBorder:SetVertexColor(sArenaDRFrame.Border:GetVertexColor())
+                end
+            else
+                sArenaDRFrame.Border:SetVertexColorFromBoolean(shown, red, green)
+                if sArenaDRFrame.PixelBorder then
+                    sArenaDRFrame.PixelBorder:SetVertexColor(sArenaDRFrame.Border:GetVertexColor())
+                end
+            end
+        end
+
+        if self.db and self.db.profile.colorDRCooldownText then
+            sArenaDRFrame.Cooldown.Text:SetVertexColorFromBoolean(shown, red, green)
+        end
+
+        local drText = sArenaDRFrame.DRTextFrame.DRText
+        local drTextImmune = sArenaDRFrame.DRTextFrame.DRTextImmune
+        drText:SetAlphaFromBoolean(shown, 0, 1)
+        drTextImmune:SetAlphaFromBoolean(shown, 1, 0)
+    end)
 end
 
 function sArenaMixin:InitializeMidnightDRFrames()
@@ -1335,153 +1476,27 @@ function sArenaMixin:InitializeMidnightDRFrames()
         return
     end
 
-    self:ToggleEditMode(true)
+    -- Blizzard only shows 4 DRs atm, Incap, Stun, Fear, Root.
+    -- Create them upfront for test mode. Creates more dynamically if needed.
+    local defaultDRFrameCount = 4
 
     for i = 1, self.maxArenaOpponents do
-        local blizzArenaFrame = _G["CompactArenaFrameMember" .. i]
         local arenaFrame = self["arena" .. i]
-
-        if not blizzArenaFrame then return end
-
-        local drTray = blizzArenaFrame.SpellDiminishStatusTray
-        if not drTray then return end
-
-        local blizzDRFrames = {drTray:GetChildren()}
-        local NUM_DR_FRAMES = #blizzDRFrames
-
-        if not arenaFrame.drFrames then
-            arenaFrame.drFrames = {}
-
-            for drIndex = 1, NUM_DR_FRAMES do
-                local name = "sArenaEnemyFrame" .. i .. "_DR" .. drIndex
-                local sArenaDRFrame = CreateFrame("Frame", name, arenaFrame, "sArenaDRFrameTemplate")
-                sArenaDRFrame:SetFrameStrata("MEDIUM")
-                sArenaDRFrame:SetFrameLevel(11)
-                arenaFrame.drFrames[drIndex] = sArenaDRFrame
-
-                local drTextFrame = sArenaDRFrame.DRTextFrame
-                local drText = drTextFrame.DRText
-                drText:SetText("½")
-                drText:SetVertexColor(0, 1, 0)
-                local fontFile, fontHeight, fontFlags = drText:GetFont()
-                local drTextImmune = drTextFrame:CreateFontString(nil, "OVERLAY")
-                drTextImmune:SetFont(fontFile, fontHeight, fontFlags)
-                drTextImmune:SetJustifyH("RIGHT")
-                drTextImmune:SetJustifyV("BOTTOM")
-                drTextImmune:SetPoint("BOTTOMRIGHT", 4, -4)
-                drTextImmune:SetText("%")
-                drTextImmune:SetTextColor(1, 0, 0)
-                drTextImmune:SetAlpha(0)
-                drTextFrame.DRTextImmune = drTextImmune
-
-                local blizzDRFrame = blizzDRFrames[drIndex]
-                if blizzDRFrame and blizzDRFrame.Icon then
-                    sArenaDRFrame.blizzFrame = blizzDRFrame
-
-                    hooksecurefunc(blizzDRFrame.Icon, "SetTexture", function(_, texture)
-                        sArenaDRFrame.Icon:SetTexture(texture)
-                    end)
-
-                    hooksecurefunc(blizzDRFrame, "Show", function()
-                        sArenaDRFrame:Show()
-                        arenaFrame:UpdateDRPositions()
-                        sArenaDRFrame.DRSeverity = 1
-                    end)
-
-                    hooksecurefunc(blizzDRFrame, "Hide", function()
-                        if sArenaDRFrame.Cooldown:IsShown() then return end
-                        sArenaDRFrame.Icon:SetTexture(nil)
-                        sArenaDRFrame.Cooldown:Clear()
-                        sArenaDRFrame:Hide()
-                        sArenaDRFrame.DRSeverity = 0
-                        arenaFrame:UpdateDRPositions()
-                    end)
-
-                    sArenaDRFrame.Cooldown:HookScript("OnCooldownDone", function()
-                        sArenaDRFrame.Icon:SetTexture(nil)
-                        sArenaDRFrame.Cooldown:Clear()
-                        sArenaDRFrame:Hide()
-                        sArenaDRFrame.DRSeverity = 0
-                        arenaFrame:UpdateDRPositions()
-                    end)
-
-                    hooksecurefunc(blizzDRFrame.Cooldown, "SetCooldown", function(_, start, duration)
-                        sArenaDRFrame:Show()
-                        sArenaDRFrame.Cooldown:SetCooldown(GetTime(), self.db.profile.drResetTime or 16.1)
-                        sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
-                        sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), self.db.profile.drResetTime or 16.1)
-                    end)
-
-                    local green = CreateColor(0, 1, 0, 1)
-                    local red = CreateColor(1, 0, 0, 1)
-
-                    hooksecurefunc(blizzDRFrame.ImmunityIndicator, "SetShown", function(_, shown)
-                        local layout = self.db.profile.layoutSettings[self.db.profile.currentLayout]
-                        local blackBorder = layout and layout.dr and layout.dr.blackDRBorder
-                        local borderHidden = layout and layout.dr and layout.dr.disableDRBorder
-
-                        sArenaDRFrame.Cooldown:Clear()
-                        sArenaDRFrame:Show()
-
-                        if not self.db.profile.disableInstantDRCooldown then
-                            local drBugFixMidnight = self.db.profile.drBugFixMidnight
-                            local drBugFixLonger = drBugFixMidnight and self.db.profile.drBugFixLonger
-                            if sArenaDRFrame.DRSeverity == 1 then
-                                -- drResetTime + longest CC (6) + 20% roar duration extender + 0.5 leeway
-                                local duration = (drBugFixLonger and (self.db.profile.drResetTime + (6 * 1.2) + 0.5))
-                                    or (drBugFixMidnight and (self.db.profile.drResetTime + 6 + 0.5))
-                                    or (self.db.profile.drResetTime + 4)
-                                sArenaDRFrame.Cooldown:SetCooldown(GetTime(), duration)
-                                sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
-                                sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), duration)
-                                sArenaDRFrame.DRSeverity = 2
-                            else
-                                local duration = (drBugFixLonger and (self.db.profile.drResetTime + (3 * 1.2) + 0.5))
-                                    or (drBugFixMidnight and (self.db.profile.drResetTime + 3 + 0.5))
-                                    or (self.db.profile.drResetTime + 2)
-                                sArenaDRFrame.Cooldown:SetCooldown(GetTime(), duration)
-                                sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
-                                sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), duration)
-                            end
-                        end
-
-                        if not borderHidden then
-                            if blackBorder then
-                                sArenaDRFrame.Border:SetVertexColor(0, 0, 0)
-                                if sArenaDRFrame.PixelBorder then
-                                    sArenaDRFrame.PixelBorder:SetVertexColor(sArenaDRFrame.Border:GetVertexColor())
-                                end
-                            else
-                                sArenaDRFrame.Border:SetVertexColorFromBoolean(shown, red, green)
-                                if sArenaDRFrame.PixelBorder then
-                                    sArenaDRFrame.PixelBorder:SetVertexColor(sArenaDRFrame.Border:GetVertexColor())
-                                end
-                            end
-                        end
-
-                        if self.db and self.db.profile.colorDRCooldownText then
-                            sArenaDRFrame.Cooldown.Text:SetVertexColorFromBoolean(shown, red, green)
-                        end
-
-                        local drText = sArenaDRFrame.DRTextFrame.DRText
-                        local drTextImmune = sArenaDRFrame.DRTextFrame.DRTextImmune
-                        drText:SetAlphaFromBoolean(shown, 0, 1)
-                        drTextImmune:SetAlphaFromBoolean(shown, 1, 0)
-                    end)
-                end
-            end
-
-            if arenaFrame.drFrames[1] then
-                self:SetupDrag(arenaFrame.drFrames[1], arenaFrame.drFrames[1], "dr", "UpdateDRSettings")
+        if arenaFrame then
+            arenaFrame.drFrames = arenaFrame.drFrames or {}
+            for _ = #arenaFrame.drFrames + 1, defaultDRFrameCount do
+                self:CreateMidnightDRFrame(arenaFrame)
             end
         end
     end
 
+    hooksecurefunc(SpellDiminishStatusTrayItemMixin, "SetCategoryInfo", function(DRFrame)
+        self:HookMidnightDRFrame(DRFrame)
+    end)
+
     if self.layoutdb and self.layoutdb.dr then
         self:UpdateDRSettings(self.layoutdb.dr)
     end
-
-    self:ToggleEditMode(false)
 
     self.drFramesInitialized = true
 end
