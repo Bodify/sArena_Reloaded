@@ -1233,9 +1233,11 @@ function sArenaFrameMixin:OnLoad()
     end)
 
     if isMidnight then
-        hooksecurefunc(self.CastBar, "PlayFinishAnim", function(self)
-            if not self.activeTexture then return end
-            self:SetStatusBarTexture(self.activeTexture)
+        hooksecurefunc(self.CastBar, "PlayFinishAnim", function()
+            if not self.CastBar.activeTexture then return end
+            --self.CastBar:SetStatusBarTexture(self.CastBar.activeTexture)
+            -- Castbar changes texture and flashes white, do another OnEvent.
+            self.parent:CastbarOnEvent(self.CastBar)
         end)
     end
 
