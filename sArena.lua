@@ -664,6 +664,7 @@ function sArenaMixin:UpdatePlayerSpec()
             self.playerSpecID = specID
             self.playerSpecName = specName
             self:UpdatePlayerRangeSpell()
+            self:UpdateShadowWordDeathInterrupt()
             LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
         end
     end

@@ -826,8 +826,27 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                         info.handler:RefreshTestModeCastbars()
                                     end,
                                 },
-                                interruptNotReady = {
+                                includeShadowWordDeath = {
                                     order = 2,
+                                    type = "toggle",
+                                    width = "full",
+                                    name = L["Castbar_IncludeShadowWordDeath"],
+                                    desc = L["Castbar_IncludeShadowWordDeath_Desc"],
+                                    hidden = function() return select(2, UnitClass("player")) ~= "PRIEST" end,
+                                    disabled = function(info)
+                                        local layout = info.handler.db.profile.layoutSettings[layoutName]
+                                        return not (layout.castBar.interruptStatusColorOn)
+                                    end,
+                                    get = function(info)
+                                        return info.handler.db.profile.includeShadowWordDeath or false
+                                    end,
+                                    set = function(info, val)
+                                        info.handler.db.profile.includeShadowWordDeath = val
+                                        info.handler:UpdateShadowWordDeathInterrupt()
+                                    end,
+                                },
+                                interruptNotReady = {
+                                    order = 3,
                                     type = "color",
                                     name = L["Castbar_InterruptNotReadyColor"],
                                     width = "full",

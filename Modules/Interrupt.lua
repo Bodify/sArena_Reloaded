@@ -17,6 +17,23 @@ end
 local isMidnight = sArenaMixin.isMidnight
 local playerKick = GetInterruptSpell()
 
+function sArenaMixin:UpdateShadowWordDeathInterrupt()
+    local enabled = self.db and self.db.profile.includeShadowWordDeath
+    local isHealerPriest = self.healerSpecIDs[self.playerSpecID]
+    local shadowWordDeathSpellId = 32379
+
+    if enabled and isHealerPriest then
+        interruptList[shadowWordDeathSpellId] = 0
+    else
+        interruptList[shadowWordDeathSpellId] = nil
+    end
+
+    playerKick = GetInterruptSpell()
+
+    self:UpdateInterruptTracking()
+    self:UpdateCastbarInterruptStatus()
+end
+
 -- Recheck interrupt spells when lock resummons/sacrifices pet
 local petSummonSpells = {
     [30146]  = true, -- Summon Felguard (Demonology)
