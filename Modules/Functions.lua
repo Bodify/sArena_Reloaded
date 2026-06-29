@@ -1388,7 +1388,7 @@ function sArenaMixin:HookMidnightDRFrame(blizzDRFrame)
 
     hooksecurefunc(blizzDRFrame, "Hide", function()
         if sArenaDRFrame.Cooldown:IsShown() then return end
-        sArenaDRFrame.Icon:SetTexture(nil)
+        --sArenaDRFrame.Icon:SetTexture(nil)
         sArenaDRFrame.Cooldown:Clear()
         sArenaDRFrame:Hide()
         sArenaDRFrame.DRSeverity = 0
@@ -1396,7 +1396,7 @@ function sArenaMixin:HookMidnightDRFrame(blizzDRFrame)
     end)
 
     sArenaDRFrame.Cooldown:HookScript("OnCooldownDone", function()
-        sArenaDRFrame.Icon:SetTexture(nil)
+        --sArenaDRFrame.Icon:SetTexture(nil)
         sArenaDRFrame.Cooldown:Clear()
         sArenaDRFrame:Hide()
         sArenaDRFrame.DRSeverity = 0
