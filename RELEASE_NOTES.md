@@ -1,3 +1,7 @@
+# sArena Reloaded 2.5.7b
+## Tweak
+- Update Dissonance profile (www.twitch.tv/dissonancewow)
+
 # sArena Reloaded 2.5.7
 ## New
 - Add an option to include Shadow Word: Death in the interrupt list for the interrupt castbar color setting (Layout -> Castbar). Only applied to healers, not Shadow.
