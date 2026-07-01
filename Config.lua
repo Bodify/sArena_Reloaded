@@ -7508,6 +7508,18 @@ else
                                             info.handler:Test()
                                         end,
                                     },
+                                    onlyShowCCAuras = {
+                                        order = 2.5,
+                                        name = L["Option_OnlyShowCCAuras"],
+                                        type = "toggle",
+                                        width = "full",
+                                        disabled = function(info) return info.handler.db.profile.hideClassIcon or info.handler.db.profile.disableAurasOnClassIcon end,
+                                        get = function(info) return info.handler.db.profile.onlyShowCCAuras end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.onlyShowCCAuras = val
+                                            info.handler:Test()
+                                        end,
+                                    },
                                     disableAurasOnClassIcon = {
                                         order = 3,
                                         name = L["Option_DisableAurasOnClassIcon"],

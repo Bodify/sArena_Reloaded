@@ -106,47 +106,51 @@ function sArenaFrameMixin:FindAura(updateInfo)
     spellID, texture, auraInstanceID = IterateAuras("HARMFUL|CROWD_CONTROL", C_Spell.IsSpellCrowdControl, unit, seen, ccSortRule, ccSortDirection, ccSortFunc)
     if spellID then auraCategory = "cc" end
 
-    if prioImportant then
-        -- -- Important buffs
-        -- if not spellID then
-        --     spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|IMPORTANT", C_Spell.IsSpellImportant, unit, seen, importantSortRule, importantSortDirection, importantSortFunc)
-        --     if spellID then auraCategory = "important" end
-        -- end
-        -- -- Commented out cuz bugged on 12.0.7 launch and shows bunch of trash auras
+    local profile = self.parent and self.parent.db and self.parent.db.profile
+    local onlyCC = profile and profile.onlyShowCCAuras
 
-        -- Big Defensives
-        if not spellID then
-            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|BIG_DEFENSIVE", C_UnitAuras.AuraIsBigDefensive, unit, seen, defensiveSortRule, defensiveSortDirection, defensiveSortFunc)
-            if spellID then auraCategory = "defensive" end
-        end
+    if not onlyCC then
+        if prioImportant then
+            -- -- Important buffs
+            -- if not spellID then
+            --     spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|IMPORTANT", C_Spell.IsSpellImportant, unit, seen, importantSortRule, importantSortDirection, importantSortFunc)
+            --     if spellID then auraCategory = "important" end
+            -- end
+            -- -- Commented out cuz bugged on 12.0.7 launch and shows bunch of trash auras
 
-        -- External Defensives
-        if not spellID then
-            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|EXTERNAL_DEFENSIVE", nil, unit, seen, defensiveSortRule, defensiveSortDirection, defensiveSortFunc)
-            if spellID then auraCategory = "defensive" end
-        end
-    else
-        -- Big Defensives
-        if not spellID then
-            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|BIG_DEFENSIVE", C_UnitAuras.AuraIsBigDefensive, unit, seen, defensiveSortRule, defensiveSortDirection, defensiveSortFunc)
-            if spellID then auraCategory = "defensive" end
-        end
+            -- Big Defensives
+            if not spellID then
+                spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|BIG_DEFENSIVE", C_UnitAuras.AuraIsBigDefensive, unit, seen, defensiveSortRule, defensiveSortDirection, defensiveSortFunc)
+                if spellID then auraCategory = "defensive" end
+            end
 
-        -- External Defensives
-        if not spellID then
-            spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|EXTERNAL_DEFENSIVE", nil, unit, seen, defensiveSortRule, defensiveSortDirection, defensiveSortFunc)
-            if spellID then auraCategory = "defensive" end
-        end
+            -- External Defensives
+            if not spellID then
+                spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|EXTERNAL_DEFENSIVE", nil, unit, seen, defensiveSortRule, defensiveSortDirection, defensiveSortFunc)
+                if spellID then auraCategory = "defensive" end
+            end
+        else
+            -- Big Defensives
+            if not spellID then
+                spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|BIG_DEFENSIVE", C_UnitAuras.AuraIsBigDefensive, unit, seen, defensiveSortRule, defensiveSortDirection, defensiveSortFunc)
+                if spellID then auraCategory = "defensive" end
+            end
 
-        -- -- Important buffs
-        -- if not spellID then
-        --     spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|IMPORTANT", C_Spell.IsSpellImportant, unit, seen, importantSortRule, importantSortDirection, importantSortFunc)
-        --     if spellID then auraCategory = "important" end
-        -- end
-        -- -- Commented out cuz bugged on 12.0.7 launch and shows bunch of trash auras
+            -- External Defensives
+            if not spellID then
+                spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|EXTERNAL_DEFENSIVE", nil, unit, seen, defensiveSortRule, defensiveSortDirection, defensiveSortFunc)
+                if spellID then auraCategory = "defensive" end
+            end
+
+            -- -- Important buffs
+            -- if not spellID then
+            --     spellID, texture, auraInstanceID, applications = IterateAuras("HELPFUL|IMPORTANT", C_Spell.IsSpellImportant, unit, seen, importantSortRule, importantSortDirection, importantSortFunc)
+            --     if spellID then auraCategory = "important" end
+            -- end
+            -- -- Commented out cuz bugged on 12.0.7 launch and shows bunch of trash auras
+        end
     end
 
-    local profile = self.parent and self.parent.db and self.parent.db.profile
     local hideOnIcon = profile and (profile.disableAurasOnClassIcon or profile.hideClassIcon)
 
     if spellID and not hideOnIcon then
