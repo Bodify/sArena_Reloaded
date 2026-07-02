@@ -1351,6 +1351,15 @@ function sArenaMixin:CreateMidnightDRFrame(arenaFrame)
     return sArenaDRFrame
 end
 
+function sArenaMixin:ToggleEditMode(show)
+    if (not (EditModeManagerFrame and EditModeManagerFrame.AccountSettings)) or sArena_ReloadedDB.skipEMDR then return end
+    if show then
+        ShowUIPanel(EditModeManagerFrame)
+    else
+        HideUIPanel(EditModeManagerFrame)
+    end
+end
+
 function sArenaMixin:HookMidnightDRFrame(blizzDRFrame)
     if not blizzDRFrame or blizzDRFrame.sArenaHooked then return end
     if not blizzDRFrame.Icon then return end
@@ -1476,23 +1485,44 @@ function sArenaMixin:InitializeMidnightDRFrames()
         return
     end
 
-    -- Blizzard only shows 4 DRs atm, Incap, Stun, Fear, Root.
-    -- Create them upfront for test mode. Creates more dynamically if needed.
-    local defaultDRFrameCount = 4
+    if self.db and self.db.profile.newMidnightDRHandling then
+        -- New method, some issues reported but probably due to taint.
+        -- Keep as alternative for now until more tests/reports.
+        local defaultDRFrameCount = 4
 
-    for i = 1, self.maxArenaOpponents do
-        local arenaFrame = self["arena" .. i]
-        if arenaFrame then
-            arenaFrame.drFrames = arenaFrame.drFrames or {}
-            for _ = #arenaFrame.drFrames + 1, defaultDRFrameCount do
-                self:CreateMidnightDRFrame(arenaFrame)
+        for i = 1, self.maxArenaOpponents do
+            local arenaFrame = self["arena" .. i]
+            if arenaFrame then
+                arenaFrame.drFrames = arenaFrame.drFrames or {}
+                for _ = #arenaFrame.drFrames + 1, defaultDRFrameCount do
+                    self:CreateMidnightDRFrame(arenaFrame)
+                end
             end
         end
-    end
 
-    hooksecurefunc(SpellDiminishStatusTrayItemMixin, "SetCategoryInfo", function(DRFrame)
-        self:HookMidnightDRFrame(DRFrame)
-    end)
+        hooksecurefunc(SpellDiminishStatusTrayItemMixin, "SetCategoryInfo", function(DRFrame)
+            self:HookMidnightDRFrame(DRFrame)
+        end)
+    else
+        -- Older method of toggling Edit Mode so Blizzard creates the DR Frames and we hook them early.
+        self:ToggleEditMode(true)
+
+        for i = 1, self.maxArenaOpponents do
+            local blizzArenaFrame = _G["CompactArenaFrameMember" .. i]
+            local arenaFrame = self["arena" .. i]
+
+            if not blizzArenaFrame then return end
+
+            local drTray = blizzArenaFrame.SpellDiminishStatusTray
+            if drTray then
+                for _, blizzDRFrame in ipairs({drTray:GetChildren()}) do
+                    self:HookMidnightDRFrame(blizzDRFrame)
+                end
+            end
+        end
+
+        self:ToggleEditMode(false)
+    end
 
     if self.layoutdb and self.layoutdb.dr then
         self:UpdateDRSettings(self.layoutdb.dr)

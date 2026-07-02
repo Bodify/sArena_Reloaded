@@ -8418,6 +8418,28 @@ else
                                 fontSize = "medium",
                                 hidden = function() return not isMidnight end,
                             },
+                            drDebug = {
+                                order = 5,
+                                name = L["Category_Debug"],
+                                type = "group",
+                                inline = true,
+                                hidden = function() return not isMidnight end,
+                                args = {
+                                    newMidnightDRHandling = {
+                                        order = 1,
+                                        name = L["Option_NewMidnightDRHandling"],
+                                        desc = L["Option_NewMidnightDRHandling_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        get = function(info) return info.handler.db.profile.newMidnightDRHandling end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.newMidnightDRHandling = val
+                                            sArena_ReloadedDB.reOpenOptions = true
+                                            ReloadUI()
+                                        end,
+                                    },
+                                },
+                            },
                         },
                     },
                     dispelGroup = {

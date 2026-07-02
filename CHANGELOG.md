@@ -1,3 +1,9 @@
+# sArena Reloaded 2.5.7c
+## New
+- New "Only show CC Auras" setting (in Global -> Class Icon)
+## Tweak
+- Revert back to old method to hook Blizzard DR frames (opening Edit Mode) due to a few people reporting issues. The new method is still available as a setting in Global -> Diminishing Returns at the very bottom in the new "Debug" block. Please enable this if you want to help and report any issues. Thank you!
+
 # sArena Reloaded 2.5.7b
 ## Tweak
 - Update Dissonance profile (www.twitch.tv/dissonancewow)
