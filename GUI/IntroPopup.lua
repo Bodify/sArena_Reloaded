@@ -110,7 +110,7 @@ function sArenaMixin:ShowWelcomePopup()
         button:SetNormalFontObject("GameFontNormal")
         button:SetHighlightFontObject("GameFontHighlight")
         local f, s = button.Text:GetFont()
-        button.Text:SetFont(f, s, "OUTLINE")
+        button.Text:SetFont(f, s, self:GetFontFlags("OUTLINE"))
         local _, b, _, _, e = button.Text:GetPoint()
         button.Text:SetPoint("LEFT", b, "LEFT", 10, e - 0.6)
         button:SetScript("OnClick", function() if onClick then onClick() end end)
@@ -345,7 +345,7 @@ function sArenaMixin:ShowWelcomePopup()
     layoutLabel:SetPoint("TOP", description, "BOTTOM", 0, -15)
     layoutLabel:SetText(L["Intro_LayoutsHeader"])
     layoutLabel:SetJustifyH("CENTER")
-    layoutLabel:SetFont(sArenaMixin.pFont, 20, "OUTLINE")
+    layoutLabel:SetFont(sArenaMixin.pFont, 20, self:GetFontFlags("OUTLINE"))
 
     local layoutOrder = {}
     for key in pairs(sArenaMixin.layouts) do table.insert(layoutOrder, key) end
@@ -376,7 +376,7 @@ function sArenaMixin:ShowWelcomePopup()
     profileLabel:SetPoint("TOP", lastCol1Layout, "BOTTOM", 114, -15)
     profileLabel:SetText(L["Intro_StreamerProfilesHeader"])
     profileLabel:SetJustifyH("CENTER")
-    profileLabel:SetFont(sArenaMixin.pFont, 18, "OUTLINE")
+    profileLabel:SetFont(sArenaMixin.pFont, 18, self:GetFontFlags("OUTLINE"))
 
     local sortedProfiles = {}
     for _, profile in ipairs(sArenaMixin.streamProfiles) do
@@ -435,7 +435,7 @@ function sArenaMixin:ShowWelcomePopup()
     end)
     HookTooltip(exitButton, function() return L["Intro_Tooltip_ExitNoProfile"] end)
     local f, s = exitButton.Text:GetFont()
-    exitButton.Text:SetFont(f, s, "OUTLINE")
+    exitButton.Text:SetFont(f, s, self:GetFontFlags("OUTLINE"))
 
     window.CloseButton:HookScript("OnClick", RevertActivePreview)
     window:HookScript("OnHide", RevertActivePreview)

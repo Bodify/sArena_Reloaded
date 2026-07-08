@@ -222,11 +222,11 @@ function layout:Initialize(frame)
     healthText:SetPoint("CENTER", healthBar, "CENTER", 0, 0)
     healthText:SetDrawLayer("OVERLAY", 4)
     local font, size, flags = healthText:GetFont()
-    healthText:SetFont(font, size, "OUTLINE")
+    healthText:SetFont(font, size, frame.parent:GetFontFlags("OUTLINE"))
 
     local specNameText = frame.SpecNameText
     local font, size, flags = specNameText:GetFont()
-    specNameText:SetFont(font, size, "OUTLINE")
+    specNameText:SetFont(font, size, frame.parent:GetFontFlags("OUTLINE"))
 
     local powerText = frame.PowerText
     powerText:SetDrawLayer("OVERLAY", 4)

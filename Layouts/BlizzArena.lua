@@ -289,7 +289,7 @@ function layout:Initialize(frame)
     f:SetPoint("BOTTOMLEFT", healthBar, "TOPLEFT", 2, 2)
     f:SetPoint("BOTTOMRIGHT", healthBar, "TOPRIGHT", -2, 2)
     f:SetHeight(12)
-    f:SetFont("Fonts\\FRIZQT__.TTF", 11, "")
+    f:SetFont("Fonts\\FRIZQT__.TTF", 11, frame.parent:GetFontFlags(""))
 
     f = frame.CastBar
     f:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
@@ -300,17 +300,17 @@ function layout:Initialize(frame)
     f:SetSize(26, 26)
 
     local fn, fs, fstyle = frame.HealthText:GetFont()
-    frame.HealthText:SetFont(fn, 10, "OUTLINE")
+    frame.HealthText:SetFont(fn, 10, frame.parent:GetFontFlags("OUTLINE"))
     local fn, fs, fstyle = frame.HealthText:GetFont()
-    frame.PowerText:SetFont(fn, 10, "OUTLINE")
+    frame.PowerText:SetFont(fn, 10, frame.parent:GetFontFlags("OUTLINE"))
     frame.PowerText:SetAlpha(frame.parent.db.profile.hidePowerText and 0 or 1)
 
     local fn, fs, fstyle = frame.SpecNameText:GetFont()
-    frame.SpecNameText:SetFont(fn, fs, "OUTLINE")
+    frame.SpecNameText:SetFont(fn, fs, frame.parent:GetFontFlags("OUTLINE"))
     frame.SpecNameText:SetTextColor(1,1,1)
 
     frame.AuraStacks:SetPoint("BOTTOMLEFT", frame.ClassIcon, "BOTTOMLEFT", 1, -4)
-    frame.AuraStacks:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 11, "THICKOUTLINE")
+    frame.AuraStacks:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 11, frame.parent:GetFontFlags("THICKOUTLINE"))
 
     -- Frame background texture
     local frameTexture = frame.frameTexture

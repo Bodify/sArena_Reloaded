@@ -722,7 +722,29 @@ function sArenaMixin:Test()
             frame.TargetFocusBorder:Hide()
         end
 
-        frame.WidgetOverlay.combatIndicator:SetShown(combatIndicatorOn)
+        local ci = widgetSettings.combatIndicator
+        local ciShowOutOfCombat = ci.showOutOfCombat ~= false
+        local ciShowInCombat = ci.showInCombat
+
+        local ciSimulateInCombat = ciShowInCombat and (not ciShowOutOfCombat or (i == 2 or i == 3))
+        local ciShouldShow = ci.enabled and (ciSimulateInCombat or ciShowOutOfCombat)
+        local ciIndicator = frame.WidgetOverlay.combatIndicator
+        ciIndicator:SetShown(ciShouldShow)
+        if ciShouldShow then
+            if ciSimulateInCombat then
+                if ci.useSapIcon then
+                    ciIndicator.Texture:SetTexture("Interface\\Icons\\ABILITY_DUALWIELD")
+                else
+                    ciIndicator.Texture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\combat_swords-icon")
+                end
+            else
+                if ci.useSapIcon then
+                    ciIndicator.Texture:SetTexture("Interface\\Icons\\Ability_Sap")
+                else
+                    ciIndicator.Texture:SetAtlas("Food")
+                end
+            end
+        end
         frame.WidgetOverlay.healerIndicator:SetShown(healerIndicatorOn and (frame.isHealer == true))
 
         if rangeCheckOn then

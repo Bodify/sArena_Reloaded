@@ -250,7 +250,7 @@ function layout:Initialize(frame)
     f:SetJustifyH("LEFT")
     f:SetJustifyV("BOTTOM")
     f:SetFontObject("SystemFont_Shadow_Med3")
-    f:SetFont("Fonts\\FRIZQT__.TTF", 14, "")
+    f:SetFont("Fonts\\FRIZQT__.TTF", 14, frame.parent:GetFontFlags(""))
     f:SetHeight(12)
 
     f = frame.DeathIcon
@@ -260,9 +260,9 @@ function layout:Initialize(frame)
 
     frame.PowerText:SetPoint("CENTER", frame.PowerBar)
     local fn, fs, fstyle = frame.HealthText:GetFont()
-    frame.HealthText:SetFont(fn, 10, "OUTLINE")
+    frame.HealthText:SetFont(fn, 10, frame.parent:GetFontFlags("OUTLINE"))
     local fn, fs, fstyle = frame.HealthText:GetFont()
-    frame.PowerText:SetFont(fn, 10, "OUTLINE")
+    frame.PowerText:SetFont(fn, 10, frame.parent:GetFontFlags("OUTLINE"))
     frame.PowerText:SetShadowOffset(0, 0)
     frame.HealthText:SetShadowOffset(0, 0)
 

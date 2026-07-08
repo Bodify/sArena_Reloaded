@@ -73,9 +73,10 @@ end
 local drTime = (isMidnight and 16.1) or 20
 function sArenaMixin:UpdateDRTimeSetting()
 	if isMidnight and not self.db.profile.drResetTimeFixMidnight then
+		local doPopup = self.db.profile.drResetTime ~= nil and self.db.profile.drResetTime ~= 16.1
 		self.db.profile.drResetTime = 16.1
 		self.db.profile.drResetTimeFixMidnight = true
-		if not self.isFirstUse then
+		if not self.isFirstUse and doPopup then
 			StaticPopupDialogs["SARENA_DR_LEEWAY_ADJUSTMENT"] = {
 				text = sArenaMixin.popupHeader .. L["DR_LeewayAdjustment_Info"],
 				button1 = OKAY,

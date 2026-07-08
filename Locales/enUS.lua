@@ -292,6 +292,10 @@ L["DR_SpecificSizeAdjustment"] = "DR Specific Size Adjustment"
 L["Widget_CombatIndicator"] = "Combat Indicator"
 L["Widget_CombatIndicator_Enable"] = "Enable Combat Indicator"
 L["Widget_CombatIndicator_Desc"] = "Shows a food icon when the enemy is not in combat"
+L["Widget_CombatIndicator_ShowOutOfCombat"] = "Show Out of Combat"
+L["Widget_CombatIndicator_ShowInCombat"] = "Show In Combat"
+L["Widget_CombatIndicator_UseSapIcon"] = "Use Sap & Square Icons"
+L["Widget_CombatIndicator_UseSapIcon_Desc"] = "Uses the Sap icon out of combat and Dual Wield icon in combat instead of the default icons"
 L["Widget_HealerIndicator"] = "Healer Indicator"
 L["Widget_HealerIndicator_Enable"] = "Enable Healer Indicator"
 L["Widget_HealerIndicator_Desc"] = "Shows an icon on enemy healers"
@@ -398,6 +402,8 @@ L["Option_StealthAlpha_Desc"] = "Alpha value for frames when the enemy is stealt
 L["Text_Fonts"] = "Fonts"
 L["Text_ChangeFont"] = "Change Font"
 L["Text_ChangeFont_Desc"] = "Change the fonts used by sArena"
+L["Text_ImproveTextRendering"] = "Improve Text Rendering"
+L["Text_ImproveTextRendering_Desc"] = "Enables SLUG font rendering for clearer and smoother text."
 L["Text_FrameFont"] = "Frame Font"
 L["Text_FrameFont_Desc"] = "Used for labels like name, health/power values, cast text, etc."
 L["Text_CooldownFont"] = "Cooldown Font"
@@ -825,6 +831,8 @@ L["ClickAction_ResetAll_Confirm"] = sArenaMixin.popupHeader.."Are you sure you w
 L["ClickAction_PetFrames"] = "Pet Frames"
 L["ClickAction_UsePetFrameClickActions"] = "Use different click actions for Pet Frames"
 L["ClickAction_UsePetFrameClickActions_Desc"] = "When enabled, Pet Frames will use their own dedicated click actions configured below. When disabled, Pet Frames follow the same click actions as the arena frames above."
+L["ClickAction_Clickthrough"] = "Clickthrough Frames"
+L["ClickAction_Clickthrough_Desc"] = "Enable clickthrough frames. Arena frames will no longer be clickable during arena."
 
 ---------------------------------------
 -- Welcome Intro Popup

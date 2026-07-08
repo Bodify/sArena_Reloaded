@@ -1,3 +1,11 @@
+# sArena Reloaded 2.5.8
+## New
+- New settings for Widget: Combat Indicator. "Show in Combat" and "Use Sap and Square Icons". (Layout -> Widgets -> Combat Indicator)
+- New "Clickthrough Frames" setting in Global->Click Actions that makes the arena frames clickthrough in Arena.
+- New "Improve Text Rendering" setting in Layout->Text Settings that enables SLUG font rendering and will make text be less jagged and smoother in general.
+## Bugfix
+- Fix Trinket Cooldown on TBC after new WoW patch.
+
 # sArena Reloaded 2.5.7c
 ## New
 - New "Only show CC Auras" setting (in Global -> Class Icon)

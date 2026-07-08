@@ -392,7 +392,7 @@ function sArenaMixin:OnEvent(event, ...)
             end
 
             -- Trinket (Event doesnt trigger on MoP sometimes because yes)
-            if spellID == self.trinketID and isMoP then
+            if spellID == self.trinketID and self.useHardcodedTrinketDuration then
                 for i = 1, self.maxArenaOpponents do
                     local unit = "arena" .. i
                     if (sourceGUID == UnitGUID(unit)) then
@@ -612,6 +612,11 @@ function sArenaMixin:OnEvent(event, ...)
         self:UnregisterEvent("PLAYER_REGEN_ENABLED")
         if self.pendingClickActions then
             self:ApplyAllClickActions()
+        end
+        if self.pendingMouseState ~= nil then
+            local pendingState = self.pendingMouseState
+            self.pendingMouseState = nil
+            self:SetMouseState(pendingState)
         end
     end
 end
@@ -1027,7 +1032,16 @@ function sArenaMixin:SetupDrag(frameToClick, frameToMove, settingsTable, updateM
     frameToClick.dragSetup = true
 end
 
-function sArenaMixin:SetMouseState(state)    for i = 1, self.maxArenaOpponents do
+function sArenaMixin:SetMouseState(state)
+    local clickthroughEnabled = db and db.profile.clickthroughFrames
+    local needsFrameMouseUpdate = noEarlyFrames or clickthroughEnabled
+
+    if needsFrameMouseUpdate and InCombatLockdown() then
+        self.pendingMouseState = state
+        self:RegisterEvent("PLAYER_REGEN_ENABLED")
+    end
+
+    for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
 
         if frame.midnightCastBarMoveFrame then
@@ -1038,8 +1052,8 @@ function sArenaMixin:SetMouseState(state)    for i = 1, self.maxArenaOpponents d
         local drList = frame.drFrames or self.drCategories
         if drList then
             local mouseState = useDrFrames and false or state
-            for i = 1, #drList do
-                local drFrame = useDrFrames and drList[i] or frame[drList[i]]
+            for j = 1, #drList do
+                local drFrame = useDrFrames and drList[j] or frame[drList[j]]
                 if drFrame then
                     drFrame:EnableMouse(mouseState)
                 end
@@ -1061,13 +1075,16 @@ function sArenaMixin:SetMouseState(state)    for i = 1, self.maxArenaOpponents d
             child:EnableMouse(state)
         end
 
-        if noEarlyFrames and not InCombatLockdown() then
+        if needsFrameMouseUpdate and not InCombatLockdown() then
             local shouldEnableMouse
             if state then
                 -- Outside arena: always clickable
                 shouldEnableMouse = true
+            elseif clickthroughEnabled then
+                -- Clickthrough mode: disable all frames in arena
+                shouldEnableMouse = false
             else
-                -- Inside arena: only clickable up to party size
+                -- noEarlyFrames: only clickable up to party size
                 local partySize = GetNumGroupMembers() or 2
                 shouldEnableMouse = (i <= partySize)
             end
@@ -2033,9 +2050,9 @@ function sArenaFrameMixin:ResetLayout()
     self.ClassIcon.Cooldown:SetUseCircularEdge(false)
     self.ClassIcon.Cooldown:SetSwipeTexture(1)
     self.AuraStacks:SetPoint("BOTTOMLEFT", self.ClassIcon.Texture, "BOTTOMLEFT", 2, 0)
-    self.AuraStacks:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 13, "THICKOUTLINE")
+    self.AuraStacks:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 13, self.parent:GetFontFlags("THICKOUTLINE"))
     self.DispelStacks:SetPoint("BOTTOMLEFT", self.Dispel.Texture, "BOTTOMLEFT", 2, 0)
-    self.DispelStacks:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 15, "THICKOUTLINE")
+    self.DispelStacks:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 15, self.parent:GetFontFlags("THICKOUTLINE"))
 
     self.ClassIcon.Mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask")
     self.ClassIcon.Texture:RemoveMaskTexture(self.ClassIcon.Mask)
@@ -2171,7 +2188,7 @@ function sArenaFrameMixin:ResetLayout()
     f = self.CastBar
     f.Icon:SetTexCoord(0, 1, 0, 1)
     local fontName,s,o = f.Text:GetFont()
-    f.Text:SetFont(fontName, s, "OUTLINE")
+    f.Text:SetFont(fontName, s, self.parent:GetFontFlags("OUTLINE"))
 
     self.TexturePool:ReleaseAll()
 end

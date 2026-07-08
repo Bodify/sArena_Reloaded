@@ -90,7 +90,7 @@ function sArenaMixin:ModernOrClassicCastbar()
                 self:UpdateFonts()
             end
             local fontName, s = frame.CastBar.Text:GetFont()
-            frame.CastBar.Text:SetFont(fontName, s, "OUTLINE")
+            frame.CastBar.Text:SetFont(fontName, s, self:GetFontFlags("OUTLINE"))
             self:SetupDrag(frame.CastBar, frame.CastBar, "castBar", "UpdateCastBarSettings")
             frame.CastBar:SetFrameLevel(9)
         end
@@ -113,7 +113,7 @@ function sArenaMixin:ModernOrClassicCastbar()
                     self:UpdateFonts()
                 end
                 local fontName, s = frame.CastBar.Text:GetFont()
-                frame.CastBar.Text:SetFont(fontName, s, "OUTLINE")
+                frame.CastBar.Text:SetFont(fontName, s, self:GetFontFlags("OUTLINE"))
                 self:SetupDrag(frame.CastBar, frame.CastBar, "castBar", "UpdateCastBarSettings")
                 frame.CastBar:SetFrameLevel(9)
             end

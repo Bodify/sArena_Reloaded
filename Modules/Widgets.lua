@@ -118,15 +118,67 @@ function sArenaMixin:UpdateWidgetSettings(db, info, val)
     end
 end
 
+local function SetCombatIndicatorTexture(indicator, inCombat, ci)
+    if inCombat then
+        if ci.useSapIcon then
+            indicator.Texture:SetTexture("Interface\\Icons\\ABILITY_DUALWIELD")
+        else
+            indicator.Texture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\combat_swords-icon")
+        end
+    else
+        if ci.useSapIcon then
+            indicator.Texture:SetTexture("Interface\\Icons\\Ability_Sap")
+        else
+            indicator.Texture:SetAtlas("Food")
+        end
+    end
+end
+
 function sArenaFrameMixin:UpdateCombatStatus(unit)
     local ws = self.parent.db.profile.layoutSettings[self.parent.db.profile.currentLayout].widgets
     local ci = ws and ws.combatIndicator
-    self.WidgetOverlay.combatIndicator:SetShown(ci and ci.enabled and unit and not UnitAffectingCombat(unit) and not self.DeathIcon:IsShown() or false)
+    local indicator = self.WidgetOverlay.combatIndicator
+
+    if ci and ci.enabled and unit and not self.DeathIcon:IsShown() then
+        local inCombat = UnitAffectingCombat(unit)
+        local showOutOfCombat = ci.showOutOfCombat ~= false  -- default true
+        local showInCombat = ci.showInCombat
+
+        if inCombat and showInCombat then
+            SetCombatIndicatorTexture(indicator, true, ci)
+            indicator:Show()
+        elseif not inCombat and showOutOfCombat then
+            SetCombatIndicatorTexture(indicator, false, ci)
+            indicator:Show()
+        else
+            indicator:Hide()
+        end
+    else
+        indicator:Hide()
+    end
 
     local pet = self.PetFrame
     local pci = pet:GetWidgetSettings().combatIndicator
     local petUnit = pet:IsShown() and pet.unit
-    pet.WidgetOverlay.combatIndicator:SetShown(pci and pci.enabled and petUnit and UnitExists(petUnit) and not UnitAffectingCombat(petUnit) or false)
+    local petIndicator = pet.WidgetOverlay.combatIndicator
+
+    if pci and pci.enabled and petUnit and UnitExists(petUnit) then
+        local petInCombat = UnitAffectingCombat(petUnit)
+        local showOutOfCombat = pci.showOutOfCombat ~= false
+        local showInCombat = pci.showInCombat
+
+        if petInCombat and showInCombat then
+            SetCombatIndicatorTexture(petIndicator, true, pci)
+            petIndicator:Show()
+        elseif not petInCombat and showOutOfCombat then
+            SetCombatIndicatorTexture(petIndicator, false, pci)
+            petIndicator:Show()
+        else
+            petIndicator:Hide()
+        end
+    else
+        petIndicator:Hide()
+    end
 end
 
 function sArenaFrameMixin:UpdateHealerStatus()

@@ -226,7 +226,7 @@ function layout:Initialize(frame)
     frame.Dispel:SetSize(25, 25)
 
     frame.AuraStacks:SetPoint("BOTTOMLEFT", frame.ClassIcon, "BOTTOMLEFT", 1, -2)
-    frame.AuraStacks:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 14, "THICKOUTLINE")
+    frame.AuraStacks:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 14, frame.parent:GetFontFlags("THICKOUTLINE"))
 
     local hp = frame.HealthBar
     hp:SetSize(87, 23)
@@ -320,13 +320,13 @@ function layout:Initialize(frame)
     frame.PowerBar:SetHeight(10)
 
     local fn, fs, fstyle = frame.HealthText:GetFont()
-    frame.HealthText:SetFont(fn, fs, "OUTLINE")
+    frame.HealthText:SetFont(fn, fs, frame.parent:GetFontFlags("OUTLINE"))
     local fn, fs, fstyle = frame.HealthText:GetFont()
-    frame.PowerText:SetFont(fn, fs, "OUTLINE")
+    frame.PowerText:SetFont(fn, fs, frame.parent:GetFontFlags("OUTLINE"))
     frame.PowerText:SetAlpha(frame.parent.db.profile.hidePowerText and 0 or 1)
 
     local fn, fs, fstyle = frame.SpecNameText:GetFont()
-    frame.SpecNameText:SetFont(fn, fs, "OUTLINE")
+    frame.SpecNameText:SetFont(fn, fs, frame.parent:GetFontFlags("OUTLINE"))
     frame.SpecNameText:SetTextColor(1,1,1)
 
     local underlay = frame.TexturePool:Acquire()

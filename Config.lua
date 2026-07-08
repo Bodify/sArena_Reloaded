@@ -1572,6 +1572,18 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             get   = getSetting,
                             set   = setSetting,
                         },
+                        improveTextRendering = {
+                            order = 0.5,
+                            type = "toggle",
+                            name  = L["Text_ImproveTextRendering"],
+                            desc  = L["Text_ImproveTextRendering_Desc"],
+                            width = "full",
+                            get   = function(info) return info.handler.db.profile.improveTextRendering end,
+                            set   = function(info, val)
+                                info.handler.db.profile.improveTextRendering = val
+                                if self.RefreshConfig then self:RefreshConfig() end
+                            end,
+                        },
                         frameFont = {
                             order = 1, type = "select",
                             name  = L["Text_FrameFont"],
@@ -3037,6 +3049,69 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                 }
                                 self:UpdateWidgetSettings(layout.widgets, info, nil)
                                 LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                            end,
+                        },
+                        showOutOfCombat = {
+                            order = 6,
+                            name = L["Widget_CombatIndicator_ShowOutOfCombat"],
+                            type = "toggle",
+                            width = "full",
+                            get = function(info)
+                                local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                local ci = widgets and widgets.combatIndicator
+                                return ci == nil or ci.showOutOfCombat ~= false
+                            end,
+                            set = function(info, val)
+                                local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                widgets = widgets or {}
+                                widgets.combatIndicator = widgets.combatIndicator or {}
+                                widgets.combatIndicator.showOutOfCombat = val
+                                info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                self:UpdateWidgetSettings(widgets, info, val)
+                                info.handler:Test()
+                            end,
+                            disabled = function(info)
+                                local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                return not (widgets and widgets.combatIndicator and widgets.combatIndicator.enabled)
+                            end,
+                        },
+                        showInCombat = {
+                            order = 7,
+                            name = L["Widget_CombatIndicator_ShowInCombat"],
+                            type = "toggle",
+                            width = "full",
+                            set = function(info, val)
+                                local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                widgets = widgets or {}
+                                widgets.combatIndicator = widgets.combatIndicator or {}
+                                widgets.combatIndicator.showInCombat = val
+                                info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                self:UpdateWidgetSettings(widgets, info, val)
+                                info.handler:Test()
+                            end,
+                            disabled = function(info)
+                                local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                return not (widgets and widgets.combatIndicator and widgets.combatIndicator.enabled)
+                            end,
+                        },
+                        useSapIcon = {
+                            order = 8,
+                            name = L["Widget_CombatIndicator_UseSapIcon"],
+                            desc = L["Widget_CombatIndicator_UseSapIcon_Desc"],
+                            type = "toggle",
+                            width = "full",
+                            set = function(info, val)
+                                local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                widgets = widgets or {}
+                                widgets.combatIndicator = widgets.combatIndicator or {}
+                                widgets.combatIndicator.useSapIcon = val
+                                info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                self:UpdateWidgetSettings(widgets, info, val)
+                                info.handler:Test()
+                            end,
+                            disabled = function(info)
+                                local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                return not (widgets and widgets.combatIndicator and widgets.combatIndicator.enabled)
                             end,
                         },
                     },
@@ -4957,10 +5032,10 @@ function sArenaMixin:UpdateFrameSettings(db, info, val)
         if layoutCF then
             fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
         end
-        text:SetFont(fontToUse, db.classIconFontSize, "OUTLINE")
+        text:SetFont(fontToUse, db.classIconFontSize, self:GetFontFlags("OUTLINE"))
         local sArenaText = self["arena" .. i].ClassIcon.Cooldown.sArenaText
         if sArenaText then
-            sArenaText:SetFont(fontToUse, db.classIconFontSize, "OUTLINE")
+            sArenaText:SetFont(fontToUse, db.classIconFontSize, self:GetFontFlags("OUTLINE"))
         end
     end
 
@@ -5306,10 +5381,10 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
                 if layoutCF then
                     fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
                 end
-                text:SetFont(fontToUse, db.fontSize, "OUTLINE")
+                text:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
                 local sArenaText = dr.Cooldown.sArenaText
                 if sArenaText then
-                    sArenaText:SetFont(fontToUse, db.fontSize, "OUTLINE")
+                    sArenaText:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
                 end
 
                 if dr.Cooldown then
@@ -5470,7 +5545,7 @@ function sArenaMixin:UpdateTrinketSettings(db, info, val)
         if layoutCF then
             fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
         end
-        text:SetFont(fontToUse, db.fontSize, "OUTLINE")
+        text:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
     end
 end
 
@@ -5492,7 +5567,7 @@ function sArenaMixin:UpdateRacialSettings(db, info, val)
         if layoutCF then
             fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
         end
-        text:SetFont(fontToUse, db.fontSize, "OUTLINE")
+        text:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
     end
 end
 
@@ -5515,7 +5590,7 @@ function sArenaMixin:UpdateDispelSettings(db, info, val)
         if layoutCF then
             fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
         end
-        text:SetFont(fontToUse, db.fontSize, "OUTLINE")
+        text:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
 
         frame.Dispel:SetShown(self.db.profile.showDispels)
     end
@@ -7847,7 +7922,7 @@ else
                                     type = "group",
                                     name = L["ClickAction_Add"],
                                     inline = true,
-                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport end,
+                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport or info.handler.db.profile.clickthroughFrames end,
                                     args = {
                                         addButton = {
                                             order = 1,
@@ -7895,7 +7970,7 @@ else
                                     type = "group",
                                     name = L["ClickAction_Existing"],
                                     inline = true,
-                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport end,
+                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport or info.handler.db.profile.clickthroughFrames end,
                                     args = {},
                                 },
                                 petFrameGroup = {
@@ -7903,7 +7978,7 @@ else
                                     type = "group",
                                     name = L["ClickAction_PetFrames"],
                                     inline = true,
-                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport end,
+                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport or info.handler.db.profile.clickthroughFrames end,
                                     args = {
                                         usePetFrameClickActions = {
                                             order = 1,
@@ -7995,13 +8070,25 @@ else
                                         },
                                     },
                                 },
+                                clickthroughFrames = {
+                                    order = 98,
+                                    type = "toggle",
+                                    name = L["ClickAction_Clickthrough"],
+                                    desc = L["ClickAction_Clickthrough_Desc"],
+                                    width = "full",
+                                    get = function(info) return info.handler.db.profile.clickthroughFrames end,
+                                    set = function(info, value)
+                                        info.handler.db.profile.clickthroughFrames = value
+                                        info.handler:SetMouseState(not info.handler:IsInArena())
+                                    end,
+                                },
                                 resetAll = {
                                     order = 99,
                                     name = L["ClickAction_ResetAll"],
                                     desc = L["ClickAction_ResetAll_Desc"],
                                     type = "execute",
                                     width = 0.7,
-                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport end,
+                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport or info.handler.db.profile.clickthroughFrames end,
                                     confirm = function() return L["ClickAction_ResetAll_Confirm"] end,
                                     func = function(info)
                                         local defaults = sArenaMixin.defaultSettings.profile.clickAttributes
@@ -8364,51 +8451,51 @@ else
                                         name = "",
                                         type = "header",
                                     },
-                                                                drIconsSection = {
-                                order = 4,
-                                type = "group",
-                                name = "",
-                                inline = true,
-                                disabled = function(info) return not info.handler.db.profile.drStaticIcons end,
-                                get = function(info)
-                                    local key = info[#info]
-                                    local db = info.handler.db
-                                    if db.profile.drStaticIconsPerSpec then
-                                        local specKey = info.handler.playerSpecID or 0
-                                        local perSpec = db.profile.drIconsPerSpec or {}
-                                        local specIcons = perSpec[specKey] or {}
-                                        return tostring(specIcons[key] or "")
-                                    elseif db.profile.drStaticIconsPerClass then
-                                        local classKey = info.handler.playerClass
-                                        local perClass = db.profile.drIconsPerClass or {}
-                                        local classIcons = perClass[classKey] or {}
-                                        return tostring(classIcons[key] or "")
-                                    else
-                                        return tostring(db.profile.drIcons[key] or drIcons[key])
-                                    end
-                                end,
-                                set = function(info, value)
-                                    local key = info[#info]
-                                    local db = info.handler.db
-                                    local num = tonumber(value)
-                                    if db.profile.drStaticIconsPerSpec then
-                                        db.profile.drIconsPerSpec = db.profile.drIconsPerSpec or {}
-                                        local specKey = info.handler.playerSpecID or 0
-                                        db.profile.drIconsPerSpec[specKey] = db.profile.drIconsPerSpec[specKey] or {}
-                                        db.profile.drIconsPerSpec[specKey][key] = num or value
-                                    elseif db.profile.drStaticIconsPerClass then
-                                        db.profile.drIconsPerClass = db.profile.drIconsPerClass or {}
-                                        local classKey = info.handler.playerClass
-                                        db.profile.drIconsPerClass[classKey] = db.profile.drIconsPerClass[classKey] or {}
-                                        db.profile.drIconsPerClass[classKey][key] = num or value
-                                    else
-                                        db.profile.drIcons = db.profile.drIcons or {}
-                                        db.profile.drIcons[key] = num or value
-                                    end
-                                    LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-                                end,
-                                args = setDRIcons(),
-                            },
+                                    drIconsSection = {
+                                        order = 4,
+                                        type = "group",
+                                        name = "",
+                                        inline = true,
+                                        disabled = function(info) return not info.handler.db.profile.drStaticIcons end,
+                                        get = function(info)
+                                            local key = info[#info]
+                                            local db = info.handler.db
+                                            if db.profile.drStaticIconsPerSpec then
+                                                local specKey = info.handler.playerSpecID or 0
+                                                local perSpec = db.profile.drIconsPerSpec or {}
+                                                local specIcons = perSpec[specKey] or {}
+                                                return tostring(specIcons[key] or "")
+                                            elseif db.profile.drStaticIconsPerClass then
+                                                local classKey = info.handler.playerClass
+                                                local perClass = db.profile.drIconsPerClass or {}
+                                                local classIcons = perClass[classKey] or {}
+                                                return tostring(classIcons[key] or "")
+                                            else
+                                                return tostring(db.profile.drIcons[key] or drIcons[key])
+                                            end
+                                        end,
+                                        set = function(info, value)
+                                            local key = info[#info]
+                                            local db = info.handler.db
+                                            local num = tonumber(value)
+                                            if db.profile.drStaticIconsPerSpec then
+                                                db.profile.drIconsPerSpec = db.profile.drIconsPerSpec or {}
+                                                local specKey = info.handler.playerSpecID or 0
+                                                db.profile.drIconsPerSpec[specKey] = db.profile.drIconsPerSpec[specKey] or {}
+                                                db.profile.drIconsPerSpec[specKey][key] = num or value
+                                            elseif db.profile.drStaticIconsPerClass then
+                                                db.profile.drIconsPerClass = db.profile.drIconsPerClass or {}
+                                                local classKey = info.handler.playerClass
+                                                db.profile.drIconsPerClass[classKey] = db.profile.drIconsPerClass[classKey] or {}
+                                                db.profile.drIconsPerClass[classKey][key] = num or value
+                                            else
+                                                db.profile.drIcons = db.profile.drIcons or {}
+                                                db.profile.drIcons[key] = num or value
+                                            end
+                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                        end,
+                                        args = setDRIcons(),
+                                    },
                                 },
                             },
                             midnightDisclaimerBottom = {

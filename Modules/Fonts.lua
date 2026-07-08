@@ -22,6 +22,17 @@ function sArenaMixin:FontOutlineValues()
     }
 end
 
+function sArenaMixin:GetFontFlags(flags)
+    flags = flags or ""
+    if not (self.db and self.db.profile and self.db.profile.improveTextRendering) then
+        return flags
+    end
+    if flags == "" then
+        return "SLUG"
+    end
+    return flags .. ", SLUG"
+end
+
 local function captureFont(fs)
     if not fs or not fs.GetFont then return nil end
     local path, size, flags = fs:GetFont()
@@ -50,7 +61,7 @@ function sArenaMixin:UpdateFonts()
                 applyFont(f.PetFrame.Name,       og.PetName)
                 applyFont(f.PetFrame.HealthText, og.PetHealthText)
                 local fontName, s, o = f.CastBar.Text:GetFont()
-                f.CastBar.Text:SetFont(fontName, s, "OUTLINE")
+                f.CastBar.Text:SetFont(fontName, s, self:GetFontFlags("OUTLINE"))
                 if f.CastBar and f.CastBar.ArenaIDText then
                     applyFont(f.CastBar.ArenaIDText, og.CastBarIDText)
                     local _, cbSize = f.CastBar.Text:GetFont()
@@ -76,7 +87,7 @@ function sArenaMixin:UpdateFonts()
             for i = 1, self.maxArenaOpponents do
                 local f = self["arena" .. i]
                 local fontName, s, o = f.CastBar.Text:GetFont()
-                f.CastBar.Text:SetFont(fontName, s, "OUTLINE")
+                f.CastBar.Text:SetFont(fontName, s, self:GetFontFlags("OUTLINE"))
             end
         end
         return
@@ -101,19 +112,19 @@ function sArenaMixin:UpdateFonts()
     local function setFont(fs, path, isCastbarText, sizeOverride)
         if fs and path and fs.SetFont then
             local _, s = fs:GetFont()
-            local outlineToUse = outline
+            local outlineToUse = self:GetFontFlags(outline)
 
             -- Force outline on castbar text if modern + simple castbar is enabled
             if isCastbarText and forceOutlineOnCastbar and (outline == "" or outline == nil) then
-                outlineToUse = "OUTLINE"
+                outlineToUse = self:GetFontFlags("OUTLINE")
             end
 
             fs:SetFont(path, sizeOverride or size, outlineToUse)
-            if outlineToUse ~= "OUTLINE" and outlineToUse ~= "THICKOUTLINE" then
+            if outlineToUse and outlineToUse:find("OUTLINE") then
+                fs:SetShadowOffset(0, 0)
+            else
                 fs:SetShadowOffset(1, -1)
                 fs:SetShadowColor(0, 0, 0, 1)
-            else
-                fs:SetShadowOffset(0, 0)
             end
         end
     end

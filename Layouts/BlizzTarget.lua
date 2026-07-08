@@ -223,7 +223,7 @@ function layout:Initialize(frame)
     frame.Dispel:SetSize(22, 22)
 
     frame.AuraStacks:SetPoint("BOTTOMLEFT", frame.ClassIcon, "BOTTOMLEFT", 6, -1)
-    frame.AuraStacks:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 18, "THICKOUTLINE")
+    frame.AuraStacks:SetFont("Interface\\AddOns\\sArena_Reloaded\\Textures\\arialn.ttf", 18, frame.parent:GetFontFlags("THICKOUTLINE"))
 
     if not frame.NameBackground then
         local bg = frame:CreateTexture(nil, "BACKGROUND", nil, 2)
@@ -268,7 +268,7 @@ function layout:Initialize(frame)
     --f:SetPoint("BOTTOMLEFT", healthBar, "TOPLEFT", 2, 4)
     --f:SetPoint("BOTTOMRIGHT", healthBar, "TOPRIGHT", -2, 4)
     f:SetHeight(12)
-    f:SetFont("Fonts\\FRIZQT__.TTF", 11, "")
+    f:SetFont("Fonts\\FRIZQT__.TTF", 11, frame.parent:GetFontFlags(""))
 
     f = frame.CastBar
     f:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
