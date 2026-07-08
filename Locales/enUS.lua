@@ -753,6 +753,7 @@ L["Option_DiscordLink_Desc"] = "|cff32f795Ctrl+A|r to select all, |cff32f795Ctrl
 L["Unknown"] = "Unknown"
 L["Unknown_Spell"] = "Unknown Spell"
 L["Cooldown_Seconds"] = "Cooldown: %d seconds"
+L["Cooldown_Shared_Seconds"] = "Shared CD: %d seconds"
 L["SelectAll"] = "Select All"
 
 ---------------------------------------

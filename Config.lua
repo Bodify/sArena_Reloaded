@@ -8736,10 +8736,56 @@ else
                                 categories = {
                                     order = 1,
                                     name = L["Option_Categories"],
-                                    type = "multiselect",
-                                    get = function(info, key) return info.handler.db.profile.racialCategories[key] end,
-                                    set = function(info, key, val) info.handler.db.profile.racialCategories[key] = val end,
-                                    values = racialCategories,
+                                    type = "group",
+                                    inline = true,
+                                    args = (function()
+                                        local toggles = {}
+                                        local sortedKeys = {}
+                                        for raceKey in pairs(racialCategories) do
+                                            sortedKeys[#sortedKeys + 1] = raceKey
+                                        end
+                                        table.sort(sortedKeys)
+                                        if C_Spell and C_Spell.RequestLoadSpellData then
+                                            for _, raceKey in ipairs(sortedKeys) do
+                                                local d = sArenaMixin.racialData and sArenaMixin.racialData[raceKey]
+                                                if d and d.spellID then
+                                                    C_Spell.RequestLoadSpellData(d.spellID)
+                                                end
+                                            end
+                                        end
+                                        for idx, raceKey in ipairs(sortedKeys) do
+                                            local displayName = racialCategories[raceKey]
+                                            local data = sArenaMixin.racialData and sArenaMixin.racialData[raceKey]
+                                            local spellID = data and data.spellID
+                                            local capturedSpellID = spellID
+                                            local capturedData = data
+                                            toggles[raceKey] = {
+                                                order = idx,
+                                                name = displayName,
+                                                type = "toggle",
+                                                desc = function()
+                                                    if not capturedSpellID then return "" end
+                                                    local spellName = GetSpellInfoCompat(capturedSpellID)
+                                                    local spellDesc = GetSpellDescriptionCompat(capturedSpellID)
+                                                    spellName = spellName or raceKey
+                                                    local lines = {}
+                                                    table.insert(lines, "|cFFFFD700" .. spellName .. "|r")
+                                                    if spellDesc and spellDesc ~= "" then
+                                                        table.insert(lines, spellDesc)
+                                                    end
+                                                    local cd = capturedData and capturedData.sharedCD
+                                                    if cd and cd > 0 then
+                                                        table.insert(lines, "|cFF00FF00" .. string.format(L["Cooldown_Shared_Seconds"], cd) .. "|r")
+                                                    end
+                                                    table.insert(lines, "|cFF808080Spell ID: " .. capturedSpellID .. "|r")
+                                                    return table.concat(lines, "\n\n")
+                                                end,
+                                                get = function(info) return info.handler.db.profile.racialCategories[raceKey] end,
+                                                set = function(info, val) info.handler.db.profile.racialCategories[raceKey] = val end,
+                                            }
+                                        end
+                                        return toggles
+                                    end)(),
                                 },
                                 enableAll = {
                                     order = 1.1,
