@@ -19,7 +19,7 @@ sArenaMixin.maxArenaOpponents = (sArenaMixin.isRetail and 3) or 5
 sArenaMixin.noTrinketTexture = (sArenaMixin.isTBC and 132311) or 638661 --temp texture for tbc. todo: export retail and include in sarena
 sArenaMixin.trinketTexture = (sArenaMixin.isRetail and 1322720) or 133453
 sArenaMixin.trinketID = (sArenaMixin.isRetail and 336126) or 42292
-sArenaMixin.useHardcodedTrinketDuration = sArenaMixin.isMoP or sArenaMixin.isTBC
+sArenaMixin.useHardcodedTrinketDuration = sArenaMixin.isMoP-- or sArenaMixin.isTBC
 
 sArenaMixin.shadowsightStartTime = 95
 sArenaMixin.shadowsightResetTime = 122

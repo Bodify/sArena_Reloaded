@@ -1313,6 +1313,12 @@ end
 function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
     local unit = self.unit
 
+    -- No wonder this didnt work when eventUnit is nil.
+    -- Do it for TBC only atm since thats the only version that needs it right now and others need more testing.
+    if event == "ARENA_COOLDOWNS_UPDATE" and isTBC then
+        self:UpdateTrinket()
+    end
+
     if (eventUnit and eventUnit == unit) then
         if (event == "UNIT_NAME_UPDATE") then
             if (db.profile.showArenaNumber) then

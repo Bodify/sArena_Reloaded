@@ -1,3 +1,7 @@
+# sArena Reloaded 2.5.8c
+## Bugfix
+- Fix TBC trinket cooldown.
+
 # sArena Reloaded 2.5.8b
 ## Tweak
 - Fix Human racial for TBC (Perception, not Will to Survive).
