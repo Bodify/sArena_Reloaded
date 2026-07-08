@@ -1,3 +1,9 @@
+# sArena Reloaded 2.5.8b
+## Tweak
+- Fix Human racial for TBC (Perception, not Will to Survive).
+- Improve racial tooltips with spell info
+- Remove MoP races from being shown in TBC settings.
+
 # sArena Reloaded 2.5.8
 ## New
 - New settings for Widget: Combat Indicator. "Show in Combat" and "Use Sap and Square Icons". (Layout -> Widgets -> Combat Indicator)
