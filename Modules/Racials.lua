@@ -173,6 +173,19 @@ else
 
 	if isTBC then -- Wotf does not share CD in TBC
 		racialData["Scourge"].sharedCD = nil
+
+		racialSpells[20600] = 180 -- Perception (Human Racial)
+		racialData["Human"].sharedCD = nil
+		racialData["Human"].texture = GetSpellTexture(20600)
+		racialData["Human"].spellID = 20600
+
+		racialSpells[20580] = 10 -- Shadowmeld (Nelf Racial)
+		racialData["NightElf"].texture = GetSpellTexture(20580)
+		racialData["NightElf"].spellID = 20580
+
+		racialData["Goblin"] = nil
+		racialData["Worgen"] = nil
+		racialData["Pandaren"] = nil
 	elseif isMoP then
 		racialData["Scourge"].sharedCD = 30
 	end
@@ -216,7 +229,7 @@ function sArenaFrameMixin:FindRacial(spellID)
 	-- Racial used
 	if duration and not trinkets[spellID] then
 		-- Check if we're using replaceHumanRacialWithTrinket (MoP specific)
-		if not isRetail and self.race == "Human" and (self.parent.db.profile.replaceHumanRacialWithTrinket or self.parent.db.profile.forceShowTrinketOnHuman) then
+		if not isRetail and not isTBC and self.race == "Human" and (self.parent.db.profile.replaceHumanRacialWithTrinket or self.parent.db.profile.forceShowTrinketOnHuman) then
 			if self.parent.db.profile.forceShowTrinketOnHuman then
 				if self.Trinket.spellID and (self.Trinket.Texture:GetTexture() ~= self.parent.noTrinketTexture) then
 					self.Trinket.Cooldown:SetCooldown(currTime, duration)
@@ -289,7 +302,7 @@ function sArenaFrameMixin:UpdateRacial()
 
 		if (self.parent.db and (self.parent.db.profile.racialCategories[self.race] or (self.parent.db.profile.swapRacialTrinket or self.parent.db.profile.swapHumanTrinket) and self.race == "Human")) then
 			-- Handle MoP-specific Human racial replacement with trinket
-			if not isRetail and self.race == "Human" and self.parent.db.profile.replaceHumanRacialWithTrinket then
+			if not isRetail and not isTBC and self.race == "Human" and self.parent.db.profile.replaceHumanRacialWithTrinket then
 				-- Replace Human racial with Alliance trinket texture in racial slot
 				self.Racial.Texture:SetTexture(self:GetFactionTrinketIcon())
 				return

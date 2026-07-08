@@ -884,8 +884,8 @@ function sArenaMixin:Test()
         frame.race = data.race
         frame.unit = "arena" .. i
 
-        local shouldForceHumanTrinket = not isRetail and data.race == "Human" and db.profile.forceShowTrinketOnHuman
-        local shouldReplaceHumanRacial = not isRetail and data.race == "Human" and db.profile.replaceHumanRacialWithTrinket
+        local shouldForceHumanTrinket = not isRetail and not isTBC and data.race == "Human" and db.profile.forceShowTrinketOnHuman
+        local shouldReplaceHumanRacial = not isRetail and not isTBC and data.race == "Human" and db.profile.replaceHumanRacialWithTrinket
         local shouldSwapRacialToTrinket = false
 
         frame.Trinket.Cooldown:SetCooldown(currTime, math.random(5, 35))

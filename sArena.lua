@@ -1357,7 +1357,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
                             trinketTexture = self:GetFactionTrinketIcon()
                         end
                     else
-                        if not isRetail and self.race == "Human" and db.profile.forceShowTrinketOnHuman then
+                        if not isRetail and not isTBC and self.race == "Human" and db.profile.forceShowTrinketOnHuman then
                             trinketTexture = self:GetFactionTrinketIcon()
                             self.Trinket.spellID = self.parent.trinketID
                         else
@@ -1402,7 +1402,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
                         self:UpdateRacial()
                     end
 
-                    if not isRetail and self.race == "Human" and db.profile.forceShowTrinketOnHuman then
+                    if not isRetail and not isTBC and self.race == "Human" and db.profile.forceShowTrinketOnHuman then
                         self.Trinket.spellID = self.parent.trinketID
                         self.Trinket.Texture:SetTexture(self:GetFactionTrinketIcon())
                         self:UpdateTrinketIcon(true)

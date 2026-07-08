@@ -1,6 +1,7 @@
 local LSM = LibStub("LibSharedMedia-3.0")
 local isRetail = sArenaMixin.isRetail
 local isMidnight = sArenaMixin.isMidnight
+local isTBC = sArenaMixin.isTBC
 local L = sArenaMixin.L
 
 local function GetClassOptionName(classToken)
@@ -8786,7 +8787,7 @@ else
                                         desc = L["Human_AlwaysShowTrinket_Desc"],
                                         type = "toggle",
                                         width = "full",
-                                        hidden = function() return isRetail end,
+                                        hidden = function() return isRetail or isTBC end,
                                         get = function(info) return info.handler.db.profile.forceShowTrinketOnHuman end,
                                         set = function(info, val)
                                             info.handler.db.profile.forceShowTrinketOnHuman = val
@@ -8801,7 +8802,7 @@ else
                                         desc = L["Option_ReplaceHumanRacialWithTrinket_Desc"],
                                         type = "toggle",
                                         width = "full",
-                                        hidden = function() return isRetail end,
+                                        hidden = function() return isRetail or isTBC end,
                                         get = function(info) return info.handler.db.profile.replaceHumanRacialWithTrinket end,
                                         set = function(info, val)
                                             info.handler.db.profile.replaceHumanRacialWithTrinket = val

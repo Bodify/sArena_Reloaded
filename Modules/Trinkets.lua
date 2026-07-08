@@ -5,6 +5,7 @@
 
 local isRetail = sArenaMixin.isRetail
 local isMidnight = sArenaMixin.isMidnight
+local isTBC = sArenaMixin.isTBC
 local useHardcodedTrinketDuration = sArenaMixin.useHardcodedTrinketDuration
 local LSM = LibStub("LibSharedMedia-3.0")
 
@@ -64,7 +65,7 @@ end
 
 -- Helper function to check if we should force trinket display for humans in MoP
 function sArenaFrameMixin:ShouldForceHumanTrinket()
-    return not isRetail and self.race == "Human" and self.parent.db.profile.forceShowTrinketOnHuman
+    return not isRetail and not isTBC and self.race == "Human" and self.parent.db.profile.forceShowTrinketOnHuman
 end
 
 function sArenaFrameMixin:UpdateTrinketIcon(available)
