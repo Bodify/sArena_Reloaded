@@ -1855,7 +1855,7 @@ function sArenaFrameMixin:SetMysteryPlayer(unitEvent)
     if self.isDead then
         self:StopStealthHealthTicker()
     end
-    if unitEvent ~= "destroyed" and unitEvent ~= "unseen" then
+    if (unitEvent ~= "destroyed" and unitEvent ~= "unseen") or not matchActive then
         self.DeathIcon:Hide()
     end
 end
