@@ -1889,3 +1889,25 @@ function sArenaMixin:GladTracker()
 
     self.gladTrackerOn = true
 end
+
+-- function sArenaFrameMixin:SetPreGatesUnknownPlayer()
+--     -- Active for noEarlyFrames (TBC & Wrath)
+--     local hpTex = self.HealthBar:GetStatusBarTexture()
+--     local powerTex = self.PowerBar:GetStatusBarTexture()
+--     local classIcon = self.ClassIcon.Texture
+
+--     local leaveGray = self.parent.db and self.parent.db.profile.colorMysteryGray
+
+--     classIcon:SetDesaturated(true)
+--     classIcon:SetTexture(134148)
+
+--     if not leaveGray then
+--         local dark = CreateColor(0.2, 0.2, 0.2)
+--         local darkRed = CreateColor(0.6, 0, 0)
+--         local darkBlue = CreateColor(0, 0, 0.3)
+
+--         hpTex:SetGradient("HORIZONTAL", dark, darkRed)
+--         powerTex:SetGradient("HORIZONTAL", dark, darkBlue)
+--         classIcon:SetVertexColor(1, 0.5, 0.5)
+--     end
+-- end

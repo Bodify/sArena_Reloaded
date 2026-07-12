@@ -1433,8 +1433,11 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
                 self:UpdateAbsorb()
                 if (isDead) then
                     --self.HealthBar:SetValue(0)
-                    self.SpecNameText:SetText("")
                     self.WidgetOverlay:Hide()
+                else
+                    if not self.WidgetOverlay:IsShown() then
+                        self.WidgetOverlay:Show()
+                    end
                 end
                 self.DeathIcon:SetShown(self.isDead)
                 self.DisconnectedIcon:SetShown(not UnitIsConnected(unit))
@@ -1839,6 +1842,10 @@ function sArenaFrameMixin:SetMysteryPlayer(unitEvent)
         end
     end
 
+    -- if not matchActive and noEarlyFrames then
+    --     self:SetPreGatesUnknownPlayer()
+    -- end
+
     self:SetAlpha(self.parent.waitingForMatch and 1 or self.parent.stealthAlpha)
     self.hideStatusText = true
     self:SetStatusText()
@@ -2219,7 +2226,6 @@ function sArenaFrameMixin:SetLifeState()
         self:UpdateHealPrediction()
         self:UpdateAbsorb()
         self.currentHealth = 0
-        self.SpecNameText:SetText("")
         self.WidgetOverlay:Hide()
     elseif isFeigningDeath then
         self.HealthBar:SetAlpha(0.55)
