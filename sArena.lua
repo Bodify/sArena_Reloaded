@@ -1231,9 +1231,6 @@ function sArenaFrameMixin:OnLoad()
                 local cast = UnitCastingInfo(unit) or UnitChannelInfo(unit)
                 if not cast then
                     castBar:Hide()
-                    if isRetail then
-                        return
-                    end
                 end
             end
         elseif CastStartEvents[event] and eventUnit == unit then
@@ -1249,7 +1246,7 @@ function sArenaFrameMixin:OnLoad()
         self.parent:CastbarOnEvent(self.CastBar)
     end)
 
-    if isMidnight then
+    if self.CastBar.PlayFinishAnim then
         hooksecurefunc(self.CastBar, "PlayFinishAnim", function()
             if not self.CastBar.activeTexture then return end
             --self.CastBar:SetStatusBarTexture(self.CastBar.activeTexture)
