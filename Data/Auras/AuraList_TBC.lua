@@ -187,7 +187,8 @@ sArenaMixin.auraList = {
     [28730]   = {6, "cc"},    -- Arcane Torrent (Mana)
     [31935]   = {6, "cc"},    -- Avenger's Shield
 
-    [1766]    = {6, "cc"},    -- Kick (Rogue)
+    [1766]    = {5, "cc"},    -- Kick (Rogue)
+    [38768]   = {5, "cc"},    -- Kick (Rogue)
     [2139]    = {6, "cc"},    -- Counterspell (Mage)
     [6552]    = {6, "cc"},    -- Pummel (Warrior)
     [19647]   = {6, "cc"},    -- Spell Lock (Warlock)
