@@ -15,6 +15,11 @@ layout.defaultSettings = {
     classIconFontSize = 21,
     spacing = 20,
     growthDirection = 1,
+    classIcon = {
+        posX = 0,
+        posY = 0,
+        scale = 1,
+    },
     specIcon = {
         posX = -47.5,
         posY = -26.5,
@@ -190,6 +195,74 @@ local function setupOptionsTable(self)
         get = getSetting,
         set = setSetting,
     }
+
+    layout.optionsTable.classIcon = {
+        order = 1.5,
+        name = L["Category_ClassIcon"],
+        type = "group",
+        get = function(info)
+            return layout.db.classIcon[info[#info]]
+        end,
+        set = function(info, val)
+            layout.db.classIcon[info[#info]] = val
+
+            for i = 1, info.handler.maxArenaOpponents do
+                local frame = info.handler["arena" .. i]
+                layout:UpdateOrientation(frame)
+            end
+        end,
+        args = {
+            positioning = {
+                order = 1,
+                name = L["Positioning"],
+                type = "group",
+                inline = true,
+                args = {
+                    posX = {
+                        order = 1,
+                        name = L["Horizontal"],
+                        type = "range",
+                        min = -700,
+                        max = 700,
+                        softMin = -350,
+                        softMax = 350,
+                        step = 0.1,
+                        bigStep = 1,
+                    },
+                    posY = {
+                        order = 2,
+                        name = L["Vertical"],
+                        type = "range",
+                        min = -700,
+                        max = 700,
+                        softMin = -350,
+                        softMax = 350,
+                        step = 0.1,
+                        bigStep = 1,
+                    },
+                },
+            },
+            sizing = {
+                order = 2,
+                name = L["Sizing"],
+                type = "group",
+                inline = true,
+                args = {
+                    scale = {
+                        order = 1,
+                        name = L["Scale"],
+                        type = "range",
+                        min = 0.1,
+                        max = 5.0,
+                        softMin = 0.5,
+                        softMax = 2.0,
+                        step = 0.01,
+                        isPercent = true,
+                    },
+                },
+            },
+        },
+    }
 end
 
 function layout:Initialize(frame)
@@ -245,7 +318,7 @@ function layout:Initialize(frame)
     classIcon.Texture:AddMaskTexture(frame.ClassIcon.Mask)
     frame.ClassIcon.Cooldown:SetSwipeTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\talentsmasknodechoiceflyout")
     if not classIcon.Texture.BorderParent then
-        classIcon.Texture.BorderParent = CreateFrame("Frame", nil, frame)
+        classIcon.Texture.BorderParent = CreateFrame("Frame", nil, classIcon)
         classIcon.Texture.BorderParent:SetFrameStrata("MEDIUM")
         classIcon.Texture.BorderParent:SetFrameLevel(8)
     end
@@ -603,6 +676,9 @@ function layout:UpdateOrientation(frame)
         end
     end
 
+    local classIconSettings = self.db.classIcon or { posX = 0, posY = 0, scale = 1 }
+    frame.ClassIcon:SetScale(classIconSettings.scale or 1)
+
     if (self.db.mirrored) then
         frameTexture:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -3)
         frameTexture:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 68, 3)
@@ -610,7 +686,7 @@ function layout:UpdateOrientation(frame)
     	healthBar:SetPoint("TOPRIGHT", -4, -16)
         powerBar:SetSize(127, 10.5)
         powerBar:SetPoint("TOPLEFT", healthBar, "BOTTOMLEFT", 0, 1.5)
-        frame.ClassIcon:SetPoint("TOPLEFT", 15, -14.5)
+        frame.ClassIcon:SetPoint("TOPLEFT", 15 + (classIconSettings.posX or 0), -14.5 + (classIconSettings.posY or 0))
     else
     	frameTexture:SetPoint("TOPLEFT", frame, "TOPLEFT", -48, -3)
         frameTexture:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 20, 3)
@@ -618,7 +694,7 @@ function layout:UpdateOrientation(frame)
     	healthBar:SetPoint("TOPLEFT", 16, -16)
     	powerBar:SetSize(127, 10.5)
     	powerBar:SetPoint("TOPLEFT", healthBar, "BOTTOMLEFT", 0, 1.5)
-    	frame.ClassIcon:SetPoint("TOPRIGHT", -3, -14.5)
+    	frame.ClassIcon:SetPoint("TOPRIGHT", -3 + (classIconSettings.posX or 0), -14.5 + (classIconSettings.posY or 0))
     end
 
     self:UpdateHealthbarOrientation(frame)
