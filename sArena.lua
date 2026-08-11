@@ -157,7 +157,7 @@ local emptyLayoutOptionsTable = {
     }
 }
 
-local MAX_INCOMING_HEAL_OVERFLOW = 1.0;
+local MAX_INCOMING_HEAL_OVERFLOW = 1
 function sArenaFrameMixin:UpdateHealPrediction()
     if isMidnight then return end
 	if ( not self.myHealPredictionBar and not self.otherHealPredictionBar and not self.healAbsorbBar and not self.totalAbsorbBar ) then
@@ -274,6 +274,17 @@ function sArenaFrameMixin:UpdateHealPrediction()
 	if ( self.totalAbsorbBar ) then
 		self.totalAbsorbBar:UpdateFillPosition(appendTexture, totalAbsorb);
 	end
+end
+
+function sArenaMixin:UpdatePreGatesFrames()
+    if not db then return end
+    if self.engagedInMatch or self.arenaMatchStarted then return end
+
+    local partySize = GetNumGroupMembers()
+    for i = 1, partySize do
+        local frame = self["arena" .. i]
+        frame:SetPreGatesUnknownPlayer()
+    end
 end
 
 function sArenaMixin:HandleArenaStart()
@@ -523,6 +534,7 @@ function sArenaMixin:OnEvent(event, ...)
                 C_Timer.After(6, function()
                     self.justEnteredArena = nil
                 end)
+                self:UpdatePreGatesFrames()
             else
                 self.justEnteredArena = nil
             end
@@ -547,6 +559,9 @@ function sArenaMixin:OnEvent(event, ...)
                 end
                 self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
                 self:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
+            end
+            if noEarlyFrames then
+                self:RegisterEvent("GROUP_ROSTER_UPDATE")
             end
             self:RegisterWidgetEvents()
             self:RegisterInterruptEvents()
@@ -577,6 +592,9 @@ function sArenaMixin:OnEvent(event, ...)
                 self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
                 self:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
             end
+            if noEarlyFrames then
+                self:UnregisterEvent("GROUP_ROSTER_UPDATE")
+            end
             self:UnregisterWidgetEvents()
             self:UnregisterInterruptEvents()
             self:UnregisterRangeCheckEvents()
@@ -603,10 +621,16 @@ function sArenaMixin:OnEvent(event, ...)
     elseif event == "ARENA_OPPONENT_UPDATE" then
         self:CheckMatchStatus(event)
         self:UnregisterEvent(event)
+    elseif event == "GROUP_ROSTER_UPDATE" then
+        self:UpdatePreGatesFrames()
     elseif event == "PVP_MATCH_STATE_CHANGED" or event == "PVP_MATCH_ACTIVE" then
         self:CheckMatchStatus(event)
-        if db and db.profile.shadowSightTimer and self.engagedInMatch and not IsSoloShuffle() then
-            self:StartShadowsightTimer(self.shadowsightStartTime)
+        if self:IsInArena() then
+            if db and db.profile.shadowSightTimer and self.engagedInMatch and not IsSoloShuffle() then
+                self:StartShadowsightTimer(self.shadowsightStartTime)
+            end
+        else
+            self:ResetShadowsightTimer()
         end
     elseif event == "PLAYER_REGEN_ENABLED" then
         self:UnregisterEvent("PLAYER_REGEN_ENABLED")
@@ -770,11 +794,17 @@ function sArenaMixin:PreviewLayout(layout)
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         frame:ResetLayout()
+
         self.layouts[layout]:Initialize(frame)
         frame:SetupTargetFocusBorder()
         frame:CreateAuraHighlight()
         frame:UpdateAuraHighlightLayout()
         frame:RefreshAuraHighlight()
+
+        if frame.SetupAuraDisplay then
+            frame:SetupAuraDisplay()
+        end
+
         frame:UpdatePlayer(UnitExists(frame.unit) and "seen" or "unseen")
         frame:UpdateClassIconCooldownReverse()
         frame:UpdateTrinketRacialCooldownReverse()
@@ -1181,6 +1211,7 @@ function sArenaFrameMixin:OnLoad()
         else
             self.CastBar.empoweredFix = true
             self.CastBar:SetUnit(unit, false, true)
+            self.CastBar.Spark:SetWidth(4)
         end
     else
         local blizzArenaFrame = _G["CompactArenaFrameMember" .. self:GetID()]
@@ -1220,7 +1251,7 @@ function sArenaFrameMixin:OnLoad()
     }
 
     self.CastBar:HookScript("OnEvent", function(castBar, event, eventUnit, castGUID, spellID, interruptedByOrCastBarID)
-        if CastStopEvents[event] and eventUnit == unit then
+        if CastStopEvents[event] then
             if event == "UNIT_SPELLCAST_INTERRUPTED" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
                 castBar.stoppedCast = true
                 if isMidnight and interruptedByOrCastBarID ~= nil then
@@ -1231,15 +1262,22 @@ function sArenaFrameMixin:OnLoad()
                 local cast = UnitCastingInfo(unit) or UnitChannelInfo(unit)
                 if not cast then
                     castBar:Hide()
+                    if sArenaDebug then
+                        print("CBE: Hiding Castbar")
+                    end
                 end
             end
-        elseif CastStartEvents[event] and eventUnit == unit then
+        elseif CastStartEvents[event] then
             castBar.wasKicked = nil
             castBar.stoppedCast = nil
         end
 
         self.parent:CastbarOnEvent(self.CastBar, event, interruptedByOrCastBarID)
         self.parent:UpdateCastbarTargetOnEvent(self.CastBar, event)
+
+        if sArenaDebug then
+            print("CBE: ", event, eventUnit, spellID, interruptedByOrCastBarID, castBar.interruptedBy, castBar.wasKicked)
+        end
     end)
 
     hooksecurefunc(self.CastBar.BorderShield, "SetShown", function()
@@ -1247,11 +1285,18 @@ function sArenaFrameMixin:OnLoad()
     end)
 
     if self.CastBar.PlayFinishAnim then
-        hooksecurefunc(self.CastBar, "PlayFinishAnim", function()
-            if not self.CastBar.activeTexture then return end
-            --self.CastBar:SetStatusBarTexture(self.CastBar.activeTexture)
-            -- Castbar changes texture and flashes white, do another OnEvent.
-            self.parent:CastbarOnEvent(self.CastBar)
+        hooksecurefunc(self.CastBar, "PlayFinishAnim", function(castBar)
+            if not (castBar.interruptedBy or castBar.wasKicked) then
+                local cast = UnitCastingInfo(unit) or UnitChannelInfo(unit)
+                if not cast then
+                    castBar:Hide()
+                    if sArenaDebug then
+                        print("CBE: Hiding Castbar2")
+                    end
+                end
+            end
+            if not castBar.activeTexture then return end
+            self.parent:CastbarOnEvent(castBar)
         end)
     end
 
@@ -1420,7 +1465,9 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
                 end
             end
         elseif (event == "UNIT_AURA") then
-            self:FindAura(arg1)
+            if not isMidnight then
+                self:FindAura(arg1)
+            end
         elseif (event == "UNIT_HEALTH") then
             if isMidnight then
                 local isDead = UnitIsDeadOrGhost(unit)
@@ -1448,6 +1495,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
                     self:UpdateHealPrediction()
                     self:UpdateAbsorb()
                     self.DeathIcon:SetShown(self.isDead)
+                    self.DisconnectedIcon:SetShown(not UnitIsConnected(unit))
                     self.hideStatusText = false
                     self.currentHealth = currentHealth
                     if self.isFeigningDeath then
@@ -1636,7 +1684,7 @@ function sArenaFrameMixin:UpdateNameColor()
     if not class then return end
 
     local db = self.parent.db.profile
-    local color = RAID_CLASS_COLORS[class]
+    local color = C_ClassColor.GetClassColor(class)
 
     if db.colorNameEnabled and db.colorNameColor then
         if not self.oldNameColor then
@@ -1663,6 +1711,28 @@ function sArenaFrameMixin:UpdateNameColor()
     end
 end
 
+function sArenaFrameMixin:UpdateSpecNameText(specName)
+    if not self.SpecNameText then return end
+
+    specName = specName or self.specName or ""
+
+    local db = self.parent and self.parent.db
+    local settings = db and db.profile.layoutSettings[db.profile.currentLayout]
+
+    if not (settings and settings.showRaceManaText) then
+        self.SpecNameText:SetText(specName)
+        return
+    end
+
+    local race = self.localizedRace
+
+    if race then
+        self.SpecNameText:SetFormattedText("%s %s", specName, race)
+    else
+        self.SpecNameText:SetText(specName)
+    end
+end
+
 function sArenaFrameMixin:UpdateSpecNameColor()
     if not self.SpecNameText then return end
 
@@ -1670,7 +1740,7 @@ function sArenaFrameMixin:UpdateSpecNameColor()
     if not class then return end
 
     local db = self.parent.db.profile
-    local color = RAID_CLASS_COLORS[class]
+    local color = C_ClassColor.GetClassColor(class)
 
     if db.colorSpecNameEnabled and db.colorSpecNameColor then
         if not self.oldSpecNameColor then
@@ -1747,7 +1817,7 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
         self.Name:SetShown(true)
         self:UpdateNameColor()
     end
-    self.SpecNameText:SetText(self.specName or "")
+    self:UpdateSpecNameText()
     self:UpdateSpecNameColor()
 
     self:UpdateStatusTextVisible()
@@ -1760,12 +1830,19 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
     self:OnEvent("UNIT_DISPLAYPOWER", unit)
     self:OnEvent("UNIT_ABSORB_AMOUNT_CHANGED", unit)
 
-    local color = RAID_CLASS_COLORS[select(2, UnitClass(unit))]
-
-    if (color and db.profile.classColors) then
-        self.HealthBar:SetStatusBarColor(color.r, color.g, color.b, 1.0)
+    if db.profile.classColors then
+        local color = C_ClassColor.GetClassColor(UnitClassBase(unit))
+        if color then
+            self.HealthBar:SetStatusBarColor(color.r, color.g, color.b, 1)
+        end
     else
-        self.HealthBar:SetStatusBarColor(0, 1.0, 0, 1.0)
+        self.HealthBar:SetStatusBarColor(0, 1, 0, 1)
+    end
+
+    -- Workaround to show frames in older arenas in combat.
+    -- Does not actually call Show(), but SetAlpha() on older arenas.
+    if noEarlyFrames or (not self:IsShown() and not InCombatLockdown()) then
+        self:Show()
     end
 
     if noEarlyFrames and not UnitExists(unit) then
@@ -1774,11 +1851,33 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
         self:SetAlpha(1)
         self:UpdateRangeCheck(unit)
     end
+end
 
-    -- Workaround to show frames in older arenas in combat.
-    -- Does not actually call Show(), but SetAlpha() on older arenas.
-    if noEarlyFrames or (not self:IsShown() and not InCombatLockdown()) then
+function sArenaFrameMixin:SetPreGatesUnknownPlayer()
+    -- Active for noEarlyFrames (TBC & Wrath)
+    local id = self:GetID()
+    local partySize = GetNumGroupMembers()
+    if id <= partySize then
+        local hpTex = self.HealthBar:GetStatusBarTexture()
+        local classIcon = self.ClassIcon.Texture
+
+        local leaveGray = self.parent.db and self.parent.db.profile.colorMysteryGray
+
+        classIcon:SetDesaturated(true)
+        classIcon:SetTexture(134148)
+        self.PowerBar:SetValue(100)
+        self.HealthBar:SetValue(100)
+
         self:Show()
+
+        if not leaveGray then
+            local black = CreateColor(0, 0, 0)
+            local darkRed = CreateColor(0.6, 0, 0)
+
+            hpTex:SetGradient("HORIZONTAL", black, darkRed)
+            self.PowerBar:SetStatusBarColor(0, 0, 0, 1)
+            classIcon:SetVertexColor(0.55, 0.1, 0.1)
+        end
     end
 end
 
@@ -1797,51 +1896,55 @@ function sArenaFrameMixin:SetMysteryPlayer(unitEvent)
         pp:SetValue(100)
     end
 
-    if self.parent.db and self.parent.db.profile.colorMysteryGray then -- TODO: Figure out cleaner fix, why db is nil here.
-        hp:SetStatusBarColor(0.5, 0.5, 0.5)
-        pp:SetStatusBarColor(0.5, 0.5, 0.5)
-    else
-        local class = self.class or self.tempClass
-        local color = class and RAID_CLASS_COLORS[class]
-
-        if color and self.parent.db and self.parent.db.profile.classColors then
-            hp:SetStatusBarColor(color.r, color.g, color.b)
+    if self.parent.db then -- TODO: Figure out cleaner fix, why db is nil here.
+        if self.parent.db.profile.colorMysteryGray then
+            hp:SetStatusBarColor(0.5, 0.5, 0.5)
+            pp:SetStatusBarColor(0.5, 0.5, 0.5)
         else
-            hp:SetStatusBarColor(0, 1.0, 0)
-        end
+            local class = self.class or self.tempClass
+            local color = class and C_ClassColor.GetClassColor(class)
 
-        local powerType
-        if class == "DRUID" then
-            local specName = self.specName
-            if specName == "Feral" then
-                powerType = "ENERGY"
-            elseif specName == "Guardian" then
-                powerType = "RAGE"
+            if self.parent.db.profile.classColors then
+                if color then
+                    hp:SetStatusBarColor(color.r, color.g, color.b)
+                end
             else
-                powerType = "MANA"
+                hp:SetStatusBarColor(0, 1, 0)
             end
-        elseif class == "MONK" then
-            local specName = self.specName
-            if specName == "Mistweaver" then
-                powerType = "MANA"
-            else
-                powerType = "ENERGY"
-            end
-        else
-            powerType = class and self.parent.classPowerType[class] or "MANA"
-        end
 
-        local powerColor = PowerBarColor[powerType]
-        if powerColor then
-            pp:SetStatusBarColor(powerColor.r, powerColor.g, powerColor.b)
-        else
-            pp:SetStatusBarColor(0, 0, 1.0)
+            local powerType
+            if class == "DRUID" then
+                local specName = self.specName
+                if specName == "Feral" then
+                    powerType = "ENERGY"
+                elseif specName == "Guardian" then
+                    powerType = "RAGE"
+                else
+                    powerType = "MANA"
+                end
+            elseif class == "MONK" then
+                local specName = self.specName
+                if specName == "Mistweaver" then
+                    powerType = "MANA"
+                else
+                    powerType = "ENERGY"
+                end
+            else
+                powerType = class and self.parent.classPowerType[class] or "MANA"
+            end
+
+            local powerColor = PowerBarColor[powerType]
+            if powerColor then
+                pp:SetStatusBarColor(powerColor.r, powerColor.g, powerColor.b)
+            else
+                pp:SetStatusBarColor(0, 0, 1)
+            end
         end
     end
 
-    -- if not matchActive and noEarlyFrames then
-    --     self:SetPreGatesUnknownPlayer()
-    -- end
+    if not matchActive and noEarlyFrames then
+        self:SetPreGatesUnknownPlayer()
+    end
 
     self:SetAlpha(self.parent.waitingForMatch and 1 or self.parent.stealthAlpha)
     self.hideStatusText = true
@@ -1893,7 +1996,8 @@ function sArenaFrameMixin:GetClass()
                 self.isHealer = self.parent.healerSpecIDs[specID] or false
                 self:UpdateAuraHighlightEnabled()
                 self:UpdateHealerStatus()
-                self.SpecNameText:SetText(specName)
+                --self.SpecNameText:SetText(specName)
+                self:UpdateSpecNameText(specName)
                 self.SpecNameText:SetShown(db.profile.layoutSettings[db.profile.currentLayout].showSpecManaText)
                 self:UpdateSpecNameColor()
                 self.specTexture = specTexture
@@ -1915,6 +2019,10 @@ function sArenaFrameMixin:GetClass()
         end
     else
         self.classLocal, self.class = UnitClass(self.unit)
+        if self.class then
+            self.ClassIcon.Texture:SetDesaturated(false)
+            self.ClassIcon.Texture:SetVertexColor(1, 1, 1)
+        end
     end
 end
 
@@ -1930,13 +2038,8 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
 	end
 
 	if isMidnight then
-		if self.currentAuraSpellID and self.currentAuraDurationObj then
-			self.ClassIcon.Cooldown:SetCooldownFromDurationObject(self.currentAuraDurationObj)
-            self.ClassIcon.Cooldown.durationObj = self.currentAuraDurationObj
-		elseif not self.currentAuraSpellID then
-			self.ClassIcon.Cooldown:Clear()
-            self.ClassIcon.Cooldown.durationObj = nil
-		end
+		self.ClassIcon.Cooldown:Clear()
+		self.ClassIcon.Cooldown.durationObj = nil
 	elseif (self.currentAuraSpellID and self.currentAuraDuration > 0 and self.currentClassIconStartTime ~= self.currentAuraStartTime) then
 		self.ClassIcon.Cooldown:SetCooldown(self.currentAuraStartTime, self.currentAuraDuration)
 		self.currentClassIconStartTime = self.currentAuraStartTime
@@ -1945,7 +2048,12 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
 		self.currentClassIconStartTime = 0
 	end
 
-	local texture = self.currentAuraSpellID and self.currentAuraTexture or self.class and "class" or 134400
+	local texture
+	if isMidnight then
+		texture = self.class and "class" or 134400
+	else
+		texture = self.currentAuraSpellID and self.currentAuraTexture or self.class and "class" or 134400
+	end
 
 	if not isMidnight then -- secret
 		if (self.currentClassIconTexture == texture) and not continue then return end
@@ -1995,7 +2103,6 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
     end
 end
 
--- Returns the spec icon texture based on arena unit ID (1-5)
 function sArenaFrameMixin:UpdateSpecIcon()
     if db.profile.layoutSettings[db.profile.currentLayout].replaceClassIcon then
         self.SpecIcon:Hide()
@@ -2066,6 +2173,7 @@ function sArenaFrameMixin:ResetLayout()
 
     self.ClassIcon.Mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask")
     self.ClassIcon.Texture:RemoveMaskTexture(self.ClassIcon.Mask)
+    self.auraSlotMask = nil
     self.ClassIcon.Texture:SetDrawLayer("BORDER", 1)
     if self.ClassIcon.bgTexture then
         self.ClassIcon.bgTexture:RemoveMaskTexture(self.ClassIcon.Mask)
@@ -2212,7 +2320,12 @@ end
 
 function sArenaFrameMixin:SetLifeState()
     local unit = self.unit
-    local isFeigningDeath = self.class == "HUNTER" and AuraUtil.FindAuraByName(FEIGN_DEATH, unit, "HELPFUL")
+    local isFeigningDeath
+    if isMidnight then
+        isFeigningDeath = self.class == "HUNTER" and UnitIsFeignDeath(unit)
+    else
+        isFeigningDeath = self.class == "HUNTER" and AuraUtil.FindAuraByName(FEIGN_DEATH, unit, "HELPFUL")
+    end
     local isDead = UnitIsDeadOrGhost(unit) and not isFeigningDeath
 
     self.hideStatusText = isDead
@@ -2402,7 +2515,7 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                             castBarTexture:SetVertexColor(unpack(colors.channel))
                         end
                     else
-                        castBar:SetStatusBarColor(1.0, 0.7, 0.0, 1)
+                        castBar:SetStatusBarColor(1, 0.7, 0, 1)
                     end
                 end
                 castBar.changedBarColor = true
@@ -2549,7 +2662,7 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                         castBarTexture:SetVertexColor(unpack(colors.channel))
                     end
                 else
-                    castBar:SetStatusBarColor(1.0, 0.7, 0.0, 1)
+                    castBar:SetStatusBarColor(1, 0.7, 0, 1)
                 end
             end
         end
@@ -2602,11 +2715,11 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                     elseif self.interruptStatusColorOn and self.interruptReady == false then
                         castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
                     elseif castBar.barType == "channel" then
-                        castBar:SetStatusBarColor(unpack(colors.channel or { 0.0, 1.0, 0.0, 1 }))
+                        castBar:SetStatusBarColor(unpack(colors.channel or { 0, 1, 0, 1 }))
                     elseif castBar.barType == "interrupted" then
                         castBar:SetStatusBarColor(1, 0, 0)
                     else
-                        castBar:SetStatusBarColor(unpack(colors.standard or { 1.0, 0.7, 0.0, 1 }))
+                        castBar:SetStatusBarColor(unpack(colors.standard or { 1, 0.7, 0, 1 }))
                     end
                 else
                     if castBar.barType == "uninterruptable" then
@@ -2635,11 +2748,11 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                 elseif self.interruptStatusColorOn and self.interruptReady == false then
                     castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
                 elseif castBar.barType == "channel" then
-                    castBar:SetStatusBarColor(unpack(colors.channel or { 0.0, 1.0, 0.0, 1 }))
+                    castBar:SetStatusBarColor(unpack(colors.channel or { 0, 1, 0, 1 }))
                 elseif castBar.barType == "interrupted" then
                     castBar:SetStatusBarColor(1, 0, 0)
                 else
-                    castBar:SetStatusBarColor(unpack(colors.standard or { 1.0, 0.7, 0.0, 1 }))
+                    castBar:SetStatusBarColor(unpack(colors.standard or { 1, 0.7, 0, 1 }))
                 end
                 castBar.changedBarColor = true
             elseif self.interruptStatusColorOn and self.interruptReady == false and castBar.barType ~= "uninterruptable" then
@@ -2674,11 +2787,11 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                 elseif self.interruptStatusColorOn and self.interruptReady == false then
                     castBar:SetStatusBarColor(unpack(colors.interruptNotReady or { 0.7, 0.7, 0.7, 1 }))
                 elseif castBar.barType == "channel" then
-                    castBar:SetStatusBarColor(unpack(colors.channel or { 0.0, 1.0, 0.0, 1 }))
+                    castBar:SetStatusBarColor(unpack(colors.channel or { 0, 1, 0, 1 }))
                 elseif castBar.barType == "interrupted" then
                     castBar:SetStatusBarColor(1, 0, 0)
                 else
-                    castBar:SetStatusBarColor(unpack(colors.standard or { 1.0, 0.7, 0.0, 1 }))
+                    castBar:SetStatusBarColor(unpack(colors.standard or { 1, 0.7, 0, 1 }))
                 end
             else
                 if castBar.barType == "uninterruptable" then

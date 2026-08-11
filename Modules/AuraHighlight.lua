@@ -4,6 +4,7 @@
 -- in other projects without explicit prior written permission from the author.
 
 local LCG = LibStub("LibCustomGlow-1.0", true)
+local isMidnight = sArenaMixin.isMidnight
 
 local defaultHighlightTexture = "Interface\\AddOns\\sArena_Reloaded\\Textures\\newplayertutorial-drag-slotgreen.tga"
 local defaultTextureMultiplier  = 1.19
@@ -79,29 +80,44 @@ function sArenaFrameMixin:CreateAuraHighlight()
     framePixelGlow:SetPoint("TOPLEFT", self.HealthBar, "TOPLEFT", 0, 0)
     framePixelGlow:SetPoint("BOTTOMRIGHT", self.PowerBar, "BOTTOMRIGHT", 0, 0)
     highlight.FramePixelGlow = framePixelGlow
+
+    local framePulseGlow = CreateFrame("Frame", nil, self)
+    framePulseGlow:SetFrameStrata("MEDIUM")
+    framePulseGlow:SetFrameLevel(48)
+    framePulseGlow:SetPoint("TOPLEFT", self.HealthBar, "TOPLEFT", 0, 0)
+    framePulseGlow:SetPoint("BOTTOMRIGHT", self.PowerBar, "BOTTOMRIGHT", 0, 0)
+    highlight.FramePulseGlow = framePulseGlow
+
+    local pulse = framePulseGlow:CreateAnimationGroup()
+    pulse:SetLooping("BOUNCE")
+    local pulseAlpha = pulse:CreateAnimation("Alpha")
+    pulseAlpha:SetFromAlpha(0)
+    pulseAlpha:SetToAlpha(1)
+    pulseAlpha:SetDuration(0.3)
+    pulseAlpha:SetSmoothing("IN_OUT")
+    framePulseGlow.Pulse = pulse
+    framePulseGlow.PulseAlpha = pulseAlpha
+
+    framePulseGlow:Hide()
 end
 
-function sArenaFrameMixin:UpdateFramePixelGlowAnchors(wrapClass, wrapTrinket, wrapRacial)
-    local highlight = self.AuraHighlights
-    if not highlight then return end
-    local framePixelGlow = highlight.FramePixelGlow
-
+local function AnchorWrapTarget(unitFrame, target, wrapClass, wrapTrinket, wrapRacial)
     if not wrapClass and not wrapTrinket and not wrapRacial then
-        framePixelGlow:ClearAllPoints()
-        framePixelGlow:SetPoint("TOPLEFT", self.HealthBar, "TOPLEFT", 0, 0)
-        framePixelGlow:SetPoint("BOTTOMRIGHT", self.PowerBar, "BOTTOMRIGHT", 0, 0)
+        target:ClearAllPoints()
+        target:SetPoint("TOPLEFT", unitFrame.HealthBar, "TOPLEFT", 0, 0)
+        target:SetPoint("BOTTOMRIGHT", unitFrame.PowerBar, "BOTTOMRIGHT", 0, 0)
         return
     end
 
-    local allFrames = { self.HealthBar, self.PowerBar }
-    if wrapClass and self.ClassIcon then
-        allFrames[#allFrames + 1] = self.ClassIcon
+    local allFrames = { unitFrame.HealthBar, unitFrame.PowerBar }
+    if wrapClass and unitFrame.ClassIcon then
+        allFrames[#allFrames + 1] = unitFrame.ClassIcon
     end
-    if wrapTrinket and self.Trinket then
-        allFrames[#allFrames + 1] = self.Trinket
+    if wrapTrinket and unitFrame.Trinket then
+        allFrames[#allFrames + 1] = unitFrame.Trinket
     end
-    if wrapRacial and self.Racial then
-        allFrames[#allFrames + 1] = self.Racial
+    if wrapRacial and unitFrame.Racial then
+        allFrames[#allFrames + 1] = unitFrame.Racial
     end
 
     local minLeft, maxTop, maxRight, minBottom
@@ -128,17 +144,79 @@ function sArenaFrameMixin:UpdateFramePixelGlowAnchors(wrapClass, wrapTrinket, wr
     end
 
     if not minLeftFrame or not maxTopFrame or not maxRightFrame or not minBottomFrame then
-        framePixelGlow:ClearAllPoints()
-        framePixelGlow:SetPoint("TOPLEFT", self.HealthBar, "TOPLEFT", 0, 0)
-        framePixelGlow:SetPoint("BOTTOMRIGHT", self.PowerBar, "BOTTOMRIGHT", 0, 0)
+        target:ClearAllPoints()
+        target:SetPoint("TOPLEFT", unitFrame.HealthBar, "TOPLEFT", 0, 0)
+        target:SetPoint("BOTTOMRIGHT", unitFrame.PowerBar, "BOTTOMRIGHT", 0, 0)
         return
     end
 
-    framePixelGlow:ClearAllPoints()
-    framePixelGlow:SetPoint("LEFT",   minLeftFrame,   "LEFT",   0, 0)
-    framePixelGlow:SetPoint("RIGHT",  maxRightFrame,  "RIGHT",  0, 0)
-    framePixelGlow:SetPoint("TOP",    maxTopFrame,    "TOP",    0, 0)
-    framePixelGlow:SetPoint("BOTTOM", minBottomFrame, "BOTTOM", 0, 0)
+    target:ClearAllPoints()
+    target:SetPoint("LEFT",   minLeftFrame,   "LEFT",   0, 0)
+    target:SetPoint("RIGHT",  maxRightFrame,  "RIGHT",  0, 0)
+    target:SetPoint("TOP",    maxTopFrame,    "TOP",    0, 0)
+    target:SetPoint("BOTTOM", minBottomFrame, "BOTTOM", 0, 0)
+end
+
+local function CreateInwardPixelBorder(parent, key, size)
+    local holder = parent[key]
+    if not holder then
+        holder = CreateFrame("Frame", nil, parent)
+
+        local edges = {}
+        for i = 1, 4 do
+            local tex = holder:CreateTexture(nil, "OVERLAY", nil, 6)
+            tex:SetColorTexture(1, 1, 1, 1)
+            edges[i] = tex
+        end
+        holder.edges = edges
+
+        function holder:SetVertexColor(r, g, b, a)
+            for _, tex in ipairs(self.edges) do
+                tex:SetColorTexture(r, g, b, a or 1)
+            end
+        end
+
+        parent[key] = holder
+    end
+
+    holder:ClearAllPoints()
+    holder:SetAllPoints(parent)
+
+    local edges = holder.edges
+
+    edges[1]:ClearAllPoints()
+    edges[1]:SetPoint("TOPLEFT", holder, "TOPLEFT")
+    edges[1]:SetPoint("TOPRIGHT", holder, "TOPRIGHT")
+    edges[1]:SetHeight(size)
+
+    edges[2]:ClearAllPoints()
+    edges[2]:SetPoint("TOPRIGHT", holder, "TOPRIGHT", 0, -size)
+    edges[2]:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT", 0, size)
+    edges[2]:SetWidth(size)
+
+    edges[3]:ClearAllPoints()
+    edges[3]:SetPoint("BOTTOMLEFT", holder, "BOTTOMLEFT")
+    edges[3]:SetPoint("BOTTOMRIGHT", holder, "BOTTOMRIGHT")
+    edges[3]:SetHeight(size)
+
+    edges[4]:ClearAllPoints()
+    edges[4]:SetPoint("TOPLEFT", holder, "TOPLEFT", 0, -size)
+    edges[4]:SetPoint("BOTTOMLEFT", holder, "BOTTOMLEFT", 0, size)
+    edges[4]:SetWidth(size)
+
+    return holder
+end
+
+function sArenaFrameMixin:UpdateFramePixelGlowAnchors(wrapClass, wrapTrinket, wrapRacial)
+    local highlight = self.AuraHighlights
+    if not highlight then return end
+    AnchorWrapTarget(self, highlight.FramePixelGlow, wrapClass, wrapTrinket, wrapRacial)
+end
+
+function sArenaFrameMixin:UpdateFramePulseGlowAnchors(wrapTrinket, wrapRacial)
+    local highlight = self.AuraHighlights
+    if not highlight then return end
+    AnchorWrapTarget(self, highlight.FramePulseGlow, false, wrapTrinket, wrapRacial)
 end
 
 function sArenaFrameMixin:UpdateAuraHighlightLayout()
@@ -166,18 +244,24 @@ function sArenaFrameMixin:UpdateAuraHighlightLayout()
     glow:SetPoint("BOTTOMRIGHT", classIcon, "BOTTOMRIGHT", widthOffset, -heightOffset)
 
     local ah = self.parent and self.parent.db and self.parent.db.profile.auraHighlight
-    local pb = ah and ah.pixelBorder
-    self:UpdateFramePixelGlowAnchors(
-        pb and pb.wrapClass,
-        pb and pb.wrapTrinket,
-        pb and pb.wrapRacial
-    )
+
+    if not isMidnight then
+        local pb = ah and ah.pixelBorder
+        self:UpdateFramePixelGlowAnchors(
+            pb and pb.wrapClass,
+            pb and pb.wrapTrinket,
+            pb and pb.wrapRacial
+        )
+    end
+
+    local fp = ah and ah.framePulse
+    self:UpdateFramePulseGlowAnchors(fp and fp.wrapTrinket, fp and fp.wrapRacial)
 end
 
 local function BuildCategoryConfig(ah, category)
     local cc = ah[category]
     if not (cc and cc.enabled) then return nil end
-    local pb, pi = ah.pixelBorder, ah.pixelClassIcon
+    local pb, pi, fp = ah.pixelBorder, ah.pixelClassIcon, ah.framePulse
     return {
         color         = cc.color,
         glowIcon      = ah.glowClassIcon.enabled and true or false,
@@ -194,6 +278,11 @@ local function BuildCategoryConfig(ah, category)
         piFreq        = pi.frequency,
         piLen         = pi.length,
         piThick       = pi.thickness,
+        fpEnabled     = fp and fp.enabled and true or false,
+        fpSpeed       = (fp and fp.speed) or 0.3,
+        fpSize        = (fp and fp.size) or 1.5,
+        fpMinAlpha    = (fp and fp.minAlpha) or 0,
+        fpMaxAlpha    = (fp and fp.maxAlpha) or 1,
     }
 end
 
@@ -214,17 +303,112 @@ function sArenaFrameMixin:ApplyAuraHighlight(category)
         classGlow:Hide()
     end
 
-    LCG.PixelGlow_Stop(highlight.FramePixelGlow)
-    if cfg and cfg.pbEnabled then
-        LCG.PixelGlow_Start(highlight.FramePixelGlow, cfg.color,
-            cfg.pbLines, cfg.pbFreq, cfg.pbLen, cfg.pbThick, 0, 0, false)
+    if not isMidnight then
+        local framePixelGlow = highlight.FramePixelGlow
+        LCG.PixelGlow_Stop(framePixelGlow)
+        if cfg and cfg.pbEnabled then
+            LCG.PixelGlow_Start(framePixelGlow, cfg.color,
+                cfg.pbLines, cfg.pbFreq, cfg.pbLen, cfg.pbThick, 0, 0, false)
+        end
     end
 
-    LCG.PixelGlow_Stop(highlight.ClassIconPixelGlow)
-    if cfg and cfg.piEnabled and not hideClassIcon then
-        LCG.PixelGlow_Start(highlight.ClassIconPixelGlow, cfg.color,
-            cfg.piLines, cfg.piFreq, cfg.piLen, cfg.piThick, 0, 0, false)
+    local framePulseGlow = highlight.FramePulseGlow
+    if cfg and cfg.fpEnabled then
+        local c = cfg.color
+        local border = CreateInwardPixelBorder(framePulseGlow, "border", cfg.fpSize)
+        border:SetVertexColor(c[1], c[2], c[3], c[4] or 1)
+        framePulseGlow.PulseAlpha:SetFromAlpha(cfg.fpMinAlpha)
+        framePulseGlow.PulseAlpha:SetToAlpha(cfg.fpMaxAlpha)
+        framePulseGlow.PulseAlpha:SetDuration(cfg.fpSpeed)
+        framePulseGlow:Show()
+        if not framePulseGlow.Pulse:IsPlaying() then
+            framePulseGlow.Pulse:Play()
+        end
+    else
+        framePulseGlow.Pulse:Stop()
+        framePulseGlow:Hide()
     end
+
+    if not isMidnight then
+        LCG.PixelGlow_Stop(highlight.ClassIconPixelGlow)
+        if cfg and cfg.piEnabled and not hideClassIcon then
+            LCG.PixelGlow_Start(highlight.ClassIconPixelGlow, cfg.color,
+                cfg.piLines, cfg.piFreq, cfg.piLen, cfg.piThick, 0, 0, false)
+        end
+    end
+end
+
+local auraSlotGlowPriority = {
+    defensive = 1,
+    important = 2,
+    cc        = 3,
+}
+
+function sArenaFrameMixin:CreateAuraSlotGlow(button, category)
+    local db = self.parent and self.parent.db
+    local ah = db and db.profile and db.profile.auraHighlight
+    if not (ah and ah.enabled) then return end
+
+    local categorySettings = ah[category]
+    if not (categorySettings and categorySettings.enabled) then return end
+
+    local wantsGlow = (ah.glowClassIcon and ah.glowClassIcon.enabled)
+        or (ah.pixelClassIcon and ah.pixelClassIcon.enabled)
+    if not wantsGlow then return end
+
+    local reference = self.AuraHighlights and self.AuraHighlights.ClassIconGlow
+    if not reference then return end
+
+    local host = CreateFrame("Frame", nil, button)
+    host:SetAllPoints(reference)
+    host:SetFrameStrata(reference:GetFrameStrata())
+    host:SetFrameLevel(reference:GetFrameLevel() + (auraSlotGlowPriority[category] or 0))
+
+    local glow = host:CreateTexture(nil, "OVERLAY", nil, 6)
+    glow:SetAllPoints(host)
+    glow:SetDesaturated(true)
+
+    local atlas = reference.Texture:GetAtlas()
+    if atlas then
+        glow:SetAtlas(atlas)
+    else
+        glow:SetTexture(reference.Texture:GetTexture())
+    end
+
+    local color = categorySettings.color or { 1, 1, 1, 1 }
+    glow:SetVertexColor(color[1] or 1, color[2] or 1, color[3] or 1, color[4] or 1)
+end
+
+function sArenaFrameMixin:CreateAuraSlotFramePulse(button, category)
+    local db = self.parent and self.parent.db
+    local ah = db and db.profile and db.profile.auraHighlight
+    if not (ah and ah.enabled) then return end
+
+    local categorySettings = ah[category]
+    if not (categorySettings and categorySettings.enabled) then return end
+
+    local fp = ah.framePulse
+    if not (fp and fp.enabled) then return end
+
+    local host = CreateFrame("Frame", nil, button)
+    AnchorWrapTarget(self, host, false, fp.wrapTrinket, fp.wrapRacial)
+    host:SetFrameStrata("MEDIUM")
+    host:SetFrameLevel(48 + (auraSlotGlowPriority[category] or 0))
+
+    local border = CreateInwardPixelBorder(host, "border", fp.size or 1.5)
+
+    local color = categorySettings.color or { 1, 1, 1, 1 }
+    border:SetVertexColor(color[1] or 1, color[2] or 1, color[3] or 1, color[4] or 1)
+
+    local pulse = host:CreateAnimationGroup()
+    pulse:SetLooping("BOUNCE")
+    local pulseAlpha = pulse:CreateAnimation("Alpha")
+    pulseAlpha:SetFromAlpha(fp.minAlpha or 0)
+    pulseAlpha:SetToAlpha(fp.maxAlpha or 1)
+    pulseAlpha:SetDuration(fp.speed or 0.3)
+    pulseAlpha:SetSmoothing("IN_OUT")
+
+    pulse:Play()
 end
 
 function sArenaFrameMixin:SetAuraHighlightActive(category)
@@ -290,5 +474,9 @@ function sArenaMixin:RefreshAllAuraHighlights()
         frame:UpdateAuraHighlightLayout()
         frame:UpdateAuraHighlightEnabled()
         frame:SetUnitAuraRegistration()
+
+        if frame.SetupAuraDisplay then
+            frame:SetupAuraDisplay()
+        end
     end
 end

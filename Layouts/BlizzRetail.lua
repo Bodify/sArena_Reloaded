@@ -246,6 +246,7 @@ function layout:Initialize(frame)
     frame.ClassIcon:SetFrameLevel(7)
     frame.ClassIcon.Texture:SetTexCoord(0.05, 0.95, 0.1, 0.9)
     frame.ClassIcon.Texture:AddMaskTexture(frame.ClassIcon.Mask)
+    frame.auraSlotMask = frame.ClassIcon.Mask
     frame.ClassIcon.Mask:ClearAllPoints()
     frame.ClassIcon.Mask:SetPoint("CENTER", frame.ClassIcon, 0,1)
     frame.ClassIcon.Mask:SetSize(60, 57)

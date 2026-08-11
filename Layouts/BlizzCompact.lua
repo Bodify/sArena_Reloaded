@@ -316,12 +316,16 @@ function layout:Initialize(frame)
     frame.ClassIcon.Mask:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\talentsmasknodechoiceflyout", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
     frame.ClassIcon.Mask:SetAllPoints(classIcon.Texture)
     classIcon.Texture:AddMaskTexture(frame.ClassIcon.Mask)
-    frame.ClassIcon.Cooldown:SetSwipeTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\talentsmasknodechoiceflyout")
+    frame.auraSlotMask = frame.ClassIcon.Mask
+    frame.ClassIcon.Cooldown.swipeTexture = "Interface\\AddOns\\sArena_Reloaded\\Textures\\talentsmasknodechoiceflyout"
+    frame.ClassIcon.Cooldown:SetSwipeTexture(frame.ClassIcon.Cooldown.swipeTexture)
     if not classIcon.Texture.BorderParent then
         classIcon.Texture.BorderParent = CreateFrame("Frame", nil, classIcon)
         classIcon.Texture.BorderParent:SetFrameStrata("MEDIUM")
-        classIcon.Texture.BorderParent:SetFrameLevel(8)
     end
+    -- Must clear the aura slots stacked on the class icon (CC/Important/
+    -- BigDef/ExtDef), which occupy ClassIcon+1 .. ClassIcon+4.
+    classIcon.Texture.BorderParent:SetFrameLevel(classIcon:GetFrameLevel() + 5)
     classIconBorder:SetParent(classIcon.Texture.BorderParent)
     classIconBorder:SetAtlas("plunderstorm-actionbar-slot-border")
     classIconBorder:SetPoint("TOPLEFT", classIcon.Texture, "TOPLEFT", -8, 8)

@@ -471,7 +471,7 @@ function layout:Initialize(frame)
         frame.Dispel.DispelPixelBorderHook = true
     end
 
-    if not frame.parent.db.profile.showDispels then
+    if not frame.parent.db.profile.showDispels or not frame.Dispel.Texture:GetTexture() then
         frame.PixelBorders.dispel:Hide()
     end
 

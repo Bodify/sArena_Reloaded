@@ -246,6 +246,7 @@ function layout:Initialize(frame)
     f:SetSize(62, 62)
     f:Show()
     f.Texture:AddMaskTexture(f.Mask)
+    frame.auraSlotMask = f.Mask
 
     f.Mask:SetSize(66, 66)
     f.Mask:ClearAllPoints()

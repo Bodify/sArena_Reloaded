@@ -121,6 +121,7 @@ sArenaMixin.defaultSettings = {
             glowClassIcon  = { enabled = true },
             pixelBorder    = { enabled = true,  lines = 8, frequency = 0.2, length = 15, thickness = 2 },
             pixelClassIcon = { enabled = false, lines = 8, frequency = 0.2, length = 15, thickness = 2 },
+            framePulse     = { speed = 0.3, size = 1.5, minAlpha = 0, maxAlpha = 1 },
         },
     }
 }

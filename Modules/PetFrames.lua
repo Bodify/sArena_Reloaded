@@ -424,7 +424,7 @@ function sArenaPetFrameMixin:UpdateTextureBorderColor()
 
     if profile.classColorFrameTexture then
         local class = owner.class or owner.tempClass or UnitClassBase(owner.unit)
-        local color = class and RAID_CLASS_COLORS[class]
+        local color = C_ClassColor.GetClassColor(class)
         if color then
             desaturate = true
             r, g, b = color.r, color.g, color.b
@@ -560,7 +560,7 @@ function sArenaPetFrameMixin:UpdateColor()
     if not pf then return end
 
     local class = owner.class or owner.tempClass or UnitClassBase(owner.unit)
-    local color = class and RAID_CLASS_COLORS[class]
+    local color = class and C_ClassColor.GetClassColor(class)
     if pf.classColors and color then
         self.HealthBar:SetStatusBarColor(color.r, color.g, color.b, 1)
     else

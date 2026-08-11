@@ -70,25 +70,13 @@ function sArenaFrameMixin:ResetDR()
 	end
 end
 
-local drTime = (isMidnight and 16.1) or 20
+local drTime = (isMidnight and 20.1) or 20
 function sArenaMixin:UpdateDRTimeSetting()
-	if isMidnight and not self.db.profile.drResetTimeFixMidnight then
-		local doPopup = self.db.profile.drResetTime ~= nil and self.db.profile.drResetTime ~= 16.1
-		self.db.profile.drResetTime = 16.1
-		self.db.profile.drResetTimeFixMidnight = true
-		if not self.isFirstUse and doPopup then
-			StaticPopupDialogs["SARENA_DR_LEEWAY_ADJUSTMENT"] = {
-				text = sArenaMixin.popupHeader .. L["DR_LeewayAdjustment_Info"],
-				button1 = OKAY,
-				timeout = 0,
-				whileDead = true,
-			}
-			C_Timer.After(5, function()
-				StaticPopup_Show("SARENA_DR_LEEWAY_ADJUSTMENT")
-			end)
-		end
+	if isMidnight and not self.db.profile.drResetTimeFixMidnightPointOne then
+		self.db.profile.drResetTime = 20.1
+		self.db.profile.drResetTimeFixMidnightPointOne = true
 	end
-    drTime = self.db.profile.drResetTime or (isMidnight and 16.1 or 20)
+    drTime = self.db.profile.drResetTime or (isMidnight and 20.1 or 20)
 end
 
 if isMidnight then return end

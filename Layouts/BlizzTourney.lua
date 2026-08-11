@@ -240,6 +240,7 @@ function layout:Initialize(frame)
     f:SetSize(34, 34)
     f:Show()
     f.Texture:AddMaskTexture(f.Mask)
+    frame.auraSlotMask = f.Mask
 
     f.Mask:SetSize(34, 34)
 

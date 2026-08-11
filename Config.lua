@@ -6,7 +6,7 @@ local L = sArenaMixin.L
 
 local function GetClassOptionName(classToken)
     local icon = sArenaMixin.classIcons[classToken]
-    local color = RAID_CLASS_COLORS[classToken]
+    local color = C_ClassColor.GetClassColor(classToken)
     local name = LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[classToken] or classToken
     local label = name
     if color then
@@ -303,6 +303,14 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             order = 3,
                             type  = "toggle",
                             name  = L["Option_SpecTextOnManabar"],
+                            get   = getSetting,
+                            set   = setSetting,
+                        },
+                        showRaceManaText = {
+                            order = 3.1,
+                            type  = "toggle",
+                            name  = L["Option_RaceTextOnManabar"],
+                            desc  = L["Option_RaceTextOnManabar_Desc"],
                             get   = getSetting,
                             set   = setSetting,
                         },
@@ -5276,13 +5284,9 @@ function sArenaMixin:RefreshTestModeCastbars()
 
                 local coloredName = playerName
                 if playerClass then
-                    local color = C_ClassColor and C_ClassColor.GetClassColor(playerClass) or RAID_CLASS_COLORS[playerClass]
+                    local color = C_ClassColor.GetClassColor(playerClass)
                     if color then
-                        if color.WrapTextInColorCode then
-                            coloredName = color:WrapTextInColorCode(playerName)
-                        elseif color.colorStr then
-                            coloredName = "|c" .. color.colorStr .. playerName .. "|r"
-                        end
+                        coloredName = color:WrapTextInColorCode(playerName)
                     end
                 end
 
@@ -5707,7 +5711,7 @@ local function setDRIcons()
                     local className = select(1, UnitClass("player")) or L["Unknown"]
                     local classKey = select(2, UnitClass("player"))
                     local specName = info.handler.playerSpecName or L["Unknown"]
-                    local classColor = RAID_CLASS_COLORS[classKey]
+                    local classColor = C_ClassColor.GetClassColor(classKey)
                     local coloredText = specName .. " " .. className
                     if classColor then
                         coloredText = "|c" .. classColor.colorStr .. coloredText .. "|r"
@@ -5716,7 +5720,7 @@ local function setDRIcons()
                 elseif db.profile.drStaticIconsPerClass then
                     local className = select(1, UnitClass("player")) or L["Unknown"]
                     local classKey = select(2, UnitClass("player"))
-                    local classColor = RAID_CLASS_COLORS[classKey]
+                    local classColor = C_ClassColor.GetClassColor(classKey)
                     local coloredText = className
                     if classColor then
                         coloredText = "|c" .. classColor.colorStr .. coloredText .. "|r"
@@ -6216,7 +6220,7 @@ else
                                             for i = 1, info.handler.maxArenaOpponents do
                                                 local frame = info.handler["arena" .. i]
                                                 local class = frame.tempClass
-                                                local color = RAID_CLASS_COLORS[class]
+                                                local color = C_ClassColor.GetClassColor(class)
 
                                                 if val and color then
                                                     frame.HealthBar:SetStatusBarColor(color.r, color.g, color.b, 1)
@@ -7328,6 +7332,7 @@ else
                                 name = L["AuraHighlight_PixelBorder"],
                                 type = "group",
                                 inline = true,
+                                hidden = function() return isMidnight end,
                                 get = function(info)
                                     local ah = info.handler.db.profile.auraHighlight
                                     local p = ah and ah.pixelBorder
@@ -7472,11 +7477,137 @@ else
                                     },
                                 },
                             },
+                            framePulseGroup = {
+                                order = 6,
+                                name = L["AuraHighlight_FramePulse"],
+                                type = "group",
+                                inline = true,
+                                get = function(info)
+                                    local ah = info.handler.db.profile.auraHighlight
+                                    local p = ah and ah.framePulse
+                                    return p and p[info[#info]]
+                                end,
+                                set = function(info, val)
+                                    local profile = info.handler.db.profile
+                                    profile.auraHighlight = profile.auraHighlight or {}
+                                    profile.auraHighlight.framePulse = profile.auraHighlight.framePulse or {}
+                                    profile.auraHighlight.framePulse[info[#info]] = val
+                                    info.handler:RefreshAllAuraHighlights()
+                                end,
+                                args = {
+                                    enabled = {
+                                        order = 1,
+                                        name = L["AuraHighlight_FramePulse_Enable"],
+                                        desc = L["AuraHighlight_FramePulse_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        disabled = function(info)
+                                            local ah = info.handler.db.profile.auraHighlight
+                                            return not (ah and ah.enabled)
+                                        end,
+                                    },
+                                    speed = {
+                                        order = 2,
+                                        name = L["AuraHighlight_Speed"],
+                                        type = "range",
+                                        min = 0.05, max = 1, step = 0.05,
+                                        disabled = function(info)
+                                            local ah = info.handler.db.profile.auraHighlight
+                                            local fp = ah and ah.framePulse
+                                            return not (ah and ah.enabled and fp and fp.enabled)
+                                        end,
+                                    },
+                                    size = {
+                                        order = 2.5,
+                                        name = L["AuraHighlight_FramePulse_Size"],
+                                        type = "range",
+                                        min = 0.5, max = 4, step = 0.5,
+                                        disabled = function(info)
+                                            local ah = info.handler.db.profile.auraHighlight
+                                            local fp = ah and ah.framePulse
+                                            return not (ah and ah.enabled and fp and fp.enabled)
+                                        end,
+                                    },
+                                    minAlpha = {
+                                        order = 2.6,
+                                        name = L["AuraHighlight_FramePulse_MinAlpha"],
+                                        type = "range",
+                                        min = 0, max = 1, step = 0.05,
+                                        disabled = function(info)
+                                            local ah = info.handler.db.profile.auraHighlight
+                                            local fp = ah and ah.framePulse
+                                            return not (ah and ah.enabled and fp and fp.enabled)
+                                        end,
+                                    },
+                                    maxAlpha = {
+                                        order = 2.7,
+                                        name = L["AuraHighlight_FramePulse_MaxAlpha"],
+                                        type = "range",
+                                        min = 0, max = 1, step = 0.05,
+                                        disabled = function(info)
+                                            local ah = info.handler.db.profile.auraHighlight
+                                            local fp = ah and ah.framePulse
+                                            return not (ah and ah.enabled and fp and fp.enabled)
+                                        end,
+                                    },
+                                    wrapTrinket = {
+                                        order = 3,
+                                        name = L["Widget_WrapTrinket"],
+                                        desc = L["Widget_WrapTrinket_Desc"],
+                                        type = "toggle",
+                                        width = 0.6,
+                                        get = function(info)
+                                            local ah = info.handler.db.profile.auraHighlight
+                                            local fp = ah and ah.framePulse
+                                            return fp and fp.wrapTrinket
+                                        end,
+                                        set = function(info, val)
+                                            local profile = info.handler.db.profile
+                                            profile.auraHighlight = profile.auraHighlight or {}
+                                            profile.auraHighlight.framePulse = profile.auraHighlight.framePulse or {}
+                                            profile.auraHighlight.framePulse.wrapTrinket = val
+                                            if val then profile.auraHighlight.framePulse.wrapRacial = false end
+                                            info.handler:RefreshAllAuraHighlights()
+                                        end,
+                                        disabled = function(info)
+                                            local ah = info.handler.db.profile.auraHighlight
+                                            local fp = ah and ah.framePulse
+                                            return not (ah and ah.enabled and fp and fp.enabled)
+                                        end,
+                                    },
+                                    wrapRacial = {
+                                        order = 4,
+                                        name = L["Widget_WrapRacial"],
+                                        desc = L["Widget_WrapRacial_Desc"],
+                                        type = "toggle",
+                                        width = 0.6,
+                                        get = function(info)
+                                            local ah = info.handler.db.profile.auraHighlight
+                                            local fp = ah and ah.framePulse
+                                            return fp and fp.wrapRacial
+                                        end,
+                                        set = function(info, val)
+                                            local profile = info.handler.db.profile
+                                            profile.auraHighlight = profile.auraHighlight or {}
+                                            profile.auraHighlight.framePulse = profile.auraHighlight.framePulse or {}
+                                            profile.auraHighlight.framePulse.wrapRacial = val
+                                            if val then profile.auraHighlight.framePulse.wrapTrinket = false end
+                                            info.handler:RefreshAllAuraHighlights()
+                                        end,
+                                        disabled = function(info)
+                                            local ah = info.handler.db.profile.auraHighlight
+                                            local fp = ah and ah.framePulse
+                                            return not (ah and ah.enabled and fp and fp.enabled)
+                                        end,
+                                    },
+                                },
+                            },
                             pixelClassIconGroup = {
                                 order = 5,
                                 name = L["AuraHighlight_PixelClassIcon"],
                                 type = "group",
                                 inline = true,
+                                hidden = function() return isMidnight end,
                                 get = function(info)
                                     local ah = info.handler.db.profile.auraHighlight
                                     local p = ah and ah.pixelClassIcon
@@ -7687,20 +7818,8 @@ else
                                 inline = true,
                                 hidden = not isMidnight,
                                 args = {
-                                    prioImportantOverDefensives = {
-                                        order = 1,
-                                        name = L["Option_PrioImportantOverDefensives"],
-                                        desc = L["Option_PrioImportantOverDefensives_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.prioImportantOverDefensives end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.prioImportantOverDefensives = val
-                                            info.handler:UpdateAuraSortSettings()
-                                        end,
-                                    },
                                     ccSort = {
-                                        order = 2,
+                                        order = 1,
                                         name = L["AuraSort_CC_Sort"],
                                         type = "select",
                                         width = 1.5,
@@ -8138,12 +8257,12 @@ else
                                         name = L["Option_DRResetTime"],
                                         desc = isMidnight and L["Option_DRResetTime_Desc_Midnight"] or L["Option_DRResetTime_Desc"],
                                         type = "range",
-                                        min = isMidnight and 16 or 15,
-                                        max = isMidnight and 16.5 or 20,
+                                        min = isMidnight and 20 or 15,
+                                        max = isMidnight and 20.5 or 20,
                                         step = 0.1,
                                         width = "normal",
                                         get = function(info)
-                                            return info.handler.db.profile.drResetTime or (isMidnight and 16.1 or 20)
+                                            return info.handler.db.profile.drResetTime or (isMidnight and 20.1 or 20)
                                         end,
                                         set = function(info, val)
                                             info.handler.db.profile.drResetTime = val
@@ -8328,7 +8447,7 @@ else
                                                 local className = select(1, UnitClass("player")) or L["Unknown"]
                                                 local classKey = select(2, UnitClass("player"))
                                                 local specName = info.handler.playerSpecName or L["Unknown"]
-                                                local classColor = RAID_CLASS_COLORS[classKey]
+                                                local classColor = C_ClassColor.GetClassColor(classKey)
                                                 local coloredText = specName .. " " .. className
                                                 if classColor then
                                                     coloredText = "|c" .. classColor.colorStr .. coloredText .. "|r"
@@ -8337,7 +8456,7 @@ else
                                             elseif db.profile.drCategoriesPerClass then
                                                 local className = select(1, UnitClass("player")) or L["Unknown"]
                                                 local classKey = select(2, UnitClass("player"))
-                                                local classColor = RAID_CLASS_COLORS[classKey]
+                                                local classColor = C_ClassColor.GetClassColor(classKey)
                                                 local coloredText = className
                                                 if classColor then
                                                     coloredText = "|c" .. classColor.colorStr .. coloredText .. "|r"
@@ -9344,10 +9463,10 @@ else
                                     for classIdx, classKey in ipairs(rangeClassOrder) do
                                       if not hiddenClasses[classKey] then
                                         local displayName = getClassName(classKey)
-                                        local classColor = RAID_CLASS_COLORS[classKey]
+                                        local classColor = C_ClassColor.GetClassColor(classKey)
                                         local coloredName = displayName
                                         if classColor then
-                                            coloredName = "|c" .. classColor.colorStr .. displayName .. "|r"
+                                            coloredName = classColor:WrapTextInColorCode(displayName)
                                         end
 
                                         args["header_" .. classKey] = {

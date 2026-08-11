@@ -114,10 +114,18 @@ function sArenaFrameMixin:SetUnitAuraRegistration()
 
     if not classIconWantsAuras and not highlightWantsAuras then
         self.disabledAuras = true
-        self:UnregisterEvent("UNIT_AURA")
+        if not isMidnight then
+            self:UnregisterEvent("UNIT_AURA")
+        end
     else
         self.disabledAuras = nil
-        self:RegisterUnitEvent("UNIT_AURA", self.unit)
+        if not isMidnight then
+            self:RegisterUnitEvent("UNIT_AURA", self.unit)
+        end
+    end
+
+    if isMidnight and self.UpdateAuraSlotState then
+        self:UpdateAuraSlotState()
     end
 end
 
@@ -368,7 +376,7 @@ function sArenaFrameMixin:ClassColorFrameTexture()
     if not self.parent.db.profile.classColorFrameTexture then return end
 
     local class = self.class or self.tempClass
-    local color = RAID_CLASS_COLORS[class]
+    local color = C_ClassColor.GetClassColor(class)
 
     if not color then return end
 
@@ -673,6 +681,13 @@ end
 
 function sArenaMixin:CheckMatchStatus(event)
     if C_PvP.GetActiveMatchState then
+        if not self:IsInArena() then
+            self.engagedInMatch = nil
+            self.waitingForMatch = nil
+            self.waitingForMatchDelayedReset = nil
+            return
+        end
+
         local state = C_PvP.GetActiveMatchState()
 
         if state == Enum.PvPMatchState.Engaged then
@@ -1142,11 +1157,27 @@ function sArenaFrameMixin:AddPixelBorderToFrame()
     end
 
     self.parent:CreatePixelTextureBorder(borders, self.ClassIcon, "classIcon", size, offset)
+
+    if borders.classIcon then
+        borders.classIcon:SetFrameLevel(self.ClassIcon:GetFrameLevel() + 5)
+        if not self.ClassIcon.Texture:GetTexture() then
+            borders.classIcon:Hide()
+        end
+    end
+
     self.parent:CreatePixelTextureBorder(borders, self.Trinket, "trinket", size, offset)
+    if not self.Trinket.Texture:GetTexture() then
+        borders.trinket:Hide()
+    end
+
     self.parent:CreatePixelTextureBorder(borders, self.Racial, "racial", size, offset)
+    if not self.Racial.Texture:GetTexture() then
+        borders.racial:Hide()
+    end
+
     self.parent:CreatePixelTextureBorder(borders, self.Dispel, "dispel", size, offset)
 
-    if not self.parent.db.profile.showDispels then
+    if not self.parent.db.profile.showDispels or not self.Dispel.Texture:GetTexture() then
         borders.dispel:Hide()
     end
 
@@ -1414,9 +1445,9 @@ function sArenaMixin:HookMidnightDRFrame(blizzDRFrame)
 
     hooksecurefunc(blizzDRFrame.Cooldown, "SetCooldown", function(_, start, duration)
         sArenaDRFrame:Show()
-        sArenaDRFrame.Cooldown:SetCooldown(GetTime(), self.db.profile.drResetTime or 16.1)
+        sArenaDRFrame.Cooldown:SetCooldown(GetTime(), self.db.profile.drResetTime or 20.1)
         sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
-        sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), self.db.profile.drResetTime or 16.1)
+        sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), self.db.profile.drResetTime or 20.1)
     end)
 
     local green = CreateColor(0, 1, 0, 1)
@@ -1807,9 +1838,9 @@ function sArenaMixin:GladTracker()
 
         -- map rows -> {id, name}
         local tracked = {
-            [ConquestFrame.Arena3v3]         = { id = 61188, name = "Gladiator" },
-            [ConquestFrame.RatedSoloShuffle] = { id = 61190, name = "Legend" },
-            [ConquestFrame.RatedBGBlitz]     = { id = 61194, name = "Strategist" },
+            [ConquestFrame.Arena3v3]         = { id = 62930, name = "Gladiator" },
+            [ConquestFrame.RatedSoloShuffle] = { id = 62932, name = "Legend" },
+            [ConquestFrame.RatedBGBlitz]     = { id = 62950, name = "Strategist" },
         }
 
         local function BuildTooltip(holder)
@@ -1889,25 +1920,3 @@ function sArenaMixin:GladTracker()
 
     self.gladTrackerOn = true
 end
-
--- function sArenaFrameMixin:SetPreGatesUnknownPlayer()
---     -- Active for noEarlyFrames (TBC & Wrath)
---     local hpTex = self.HealthBar:GetStatusBarTexture()
---     local powerTex = self.PowerBar:GetStatusBarTexture()
---     local classIcon = self.ClassIcon.Texture
-
---     local leaveGray = self.parent.db and self.parent.db.profile.colorMysteryGray
-
---     classIcon:SetDesaturated(true)
---     classIcon:SetTexture(134148)
-
---     if not leaveGray then
---         local dark = CreateColor(0.2, 0.2, 0.2)
---         local darkRed = CreateColor(0.6, 0, 0)
---         local darkBlue = CreateColor(0, 0, 0.3)
-
---         hpTex:SetGradient("HORIZONTAL", dark, darkRed)
---         powerTex:SetGradient("HORIZONTAL", dark, darkBlue)
---         classIcon:SetVertexColor(1, 0.5, 0.5)
---     end
--- end

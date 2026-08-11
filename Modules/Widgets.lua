@@ -193,10 +193,9 @@ end
 
 local function UnitIsProbablyUnit(unit1, unit2)
     if not UnitExists(unit1) or not UnitExists(unit2) then return end
+    if not UnitIsPlayer(unit1) or not UnitIsPlayer(unit2) then return end
 
-    return UnitClassBase(unit1) == UnitClassBase(unit2)
-       and UnitRace(unit1) == UnitRace(unit2)
-       and UnitHonorLevel(unit1) == UnitHonorLevel(unit2)
+    return UnitName(unit1) == UnitName(unit2)
 end
 
 local function UpdateIndicator(frame, unit, widgetSettings, key, unitType, stateKey)
@@ -546,9 +545,9 @@ function sArenaFrameMixin:UpdateArenaTargetText(unit)
     local targetUnit = unit .. "target"
     local targetName = UnitName(targetUnit)
     if targetName then
-        local class = select(2, UnitClass(targetUnit))
-        if class and RAID_CLASS_COLORS[class] then
-            local color = RAID_CLASS_COLORS[class]
+        local class = UnitClassBase(targetUnit)
+        local color = C_ClassColor.GetClassColor(class)
+        if color then
             fs:SetTextColor(color.r, color.g, color.b)
         else
             fs:SetTextColor(1, 1, 1)
@@ -571,9 +570,9 @@ function sArenaFrameMixin:UpdateArenaTargetTextTestMode()
         return
     end
     local name = UnitName("player")
-    local _, class = UnitClass("player")
-    if class and RAID_CLASS_COLORS[class] then
-        local color = RAID_CLASS_COLORS[class]
+    local class = UnitClassBase("player")
+    local color = C_ClassColor.GetClassColor(class)
+    if color then
         fs:SetTextColor(color.r, color.g, color.b)
     else
         fs:SetTextColor(1, 1, 1)
@@ -674,9 +673,9 @@ function sArenaMixin:UpdateArenaTargetTextOnPartyFrames()
                     local targetUnit = partyUnit .. "target"
                     local targetName = UnitName(targetUnit)
                     if targetName then
-                        local class = select(2, UnitClass(targetUnit))
-                        if class and RAID_CLASS_COLORS[class] then
-                            local color = RAID_CLASS_COLORS[class]
+                        local class = UnitClassBase(targetUnit)
+                        local color = C_ClassColor.GetClassColor(class)
+                        if class and color then
                             fs:SetTextColor(color.r, color.g, color.b)
                         else
                             fs:SetTextColor(1, 1, 1)
@@ -704,8 +703,8 @@ function sArenaMixin:UpdateArenaTargetTextOnPartyFramesTestMode()
                 local pick = self["arena" .. math.random(numArena)]
                 local name = pick and pick.tempName or "Target"
                 local class = pick and pick.tempClass
-                if class and RAID_CLASS_COLORS[class] then
-                    local color = RAID_CLASS_COLORS[class]
+                local color = C_ClassColor.GetClassColor(class)
+                if class and color then
                     fs:SetTextColor(color.r, color.g, color.b)
                 else
                     fs:SetTextColor(1, 1, 1)
@@ -760,10 +759,12 @@ function sArenaFrameMixin:UpdateArenaTargets(unit)
         for i = 1, 4 do
             local indicator = self.WidgetOverlay["partyTarget" .. i]
             if arenaTargets[i] then
-                local class = select(2, UnitClass(arenaTargets[i]))
+                local class = UnitClassBase(arenaTargets[i])
                 if class then
-                    local color = RAID_CLASS_COLORS[class]
-                    indicator.Texture:SetVertexColor(color.r, color.g, color.b)
+                    local color = C_ClassColor.GetClassColor(class)
+                    if color then
+                        indicator.Texture:SetVertexColor(color.r, color.g, color.b)
+                    end
                 end
                 indicator:Show()
             else
@@ -786,10 +787,12 @@ function sArenaFrameMixin:UpdateArenaTargets(unit)
             local indicator = petOverlay["partyTarget" .. i]
             if indicator then
                 if petTargets[i] then
-                    local class = select(2, UnitClass(petTargets[i]))
+                    local class = UnitClassBase(petTargets[i])
                     if class then
-                        local color = RAID_CLASS_COLORS[class]
-                        indicator.Texture:SetVertexColor(color.r, color.g, color.b)
+                        local color = C_ClassColor.GetClassColor(class)
+                        if color then
+                            indicator.Texture:SetVertexColor(color.r, color.g, color.b)
+                        end
                     end
                     indicator:Show()
                 else
@@ -907,10 +910,12 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
                     for j = 1, self.maxArenaOpponents do
                         local indicator = partyFrame.WidgetOverlay["arenaTarget" .. j]
                         if attackers[j] then
-                            local class = select(2, UnitClass(attackers[j]))
+                            local class = UnitClassBase(attackers[j])
                             if class then
-                                local color = RAID_CLASS_COLORS[class]
-                                indicator.Texture:SetVertexColor(color.r, color.g, color.b)
+                                local color = C_ClassColor.GetClassColor(class)
+                                if color then
+                                    indicator.Texture:SetVertexColor(color.r, color.g, color.b)
+                                end
                             end
                             indicator:Show()
                         else

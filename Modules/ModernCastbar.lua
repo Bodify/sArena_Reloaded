@@ -385,13 +385,9 @@ end
 local function GetColoredTargetString(name, class)
     if not name then return end
     if class then
-        local color = C_ClassColor and C_ClassColor.GetClassColor(class) or RAID_CLASS_COLORS[class]
+        local color = C_ClassColor.GetClassColor(class)
         if color then
-            if color.WrapTextInColorCode then
-                return color:WrapTextInColorCode(name)
-            elseif color.colorStr then
-                return "|c" .. color.colorStr .. name .. "|r"
-            end
+            return color:WrapTextInColorCode(name)
         end
     end
     return name

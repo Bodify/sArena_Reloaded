@@ -1178,7 +1178,6 @@ function sArenaMixin:Test()
             frame.tempChannel = data.channel or false
             frame.tempUninterruptible = data.unint or false
 
-            frame.CastBar.fadeOut = nil
             frame.CastBar:Show()
             frame.CastBar:SetAlpha(1)
             frame.CastBar.Icon:SetTexture(data.castIcon)
@@ -1193,13 +1192,9 @@ function sArenaMixin:Test()
                 if anchorInside then
                     local coloredName = playerName
                     if playerClass then
-                        local color = C_ClassColor and C_ClassColor.GetClassColor(playerClass) or RAID_CLASS_COLORS[playerClass]
+                        local color = C_ClassColor and C_ClassColor.GetClassColor(playerClass)
                         if color then
-                            if color.WrapTextInColorCode then
-                                coloredName = color:WrapTextInColorCode(playerName)
-                            elseif color.colorStr then
-                                coloredName = "|c" .. color.colorStr .. playerName .. "|r"
-                            end
+                            coloredName = color:WrapTextInColorCode(playerName)
                         end
                     end
                     frame.CastBar.Text:SetText(data.castName .. ": " .. coloredName)
@@ -1207,13 +1202,9 @@ function sArenaMixin:Test()
                     if frame.CastBar.ArenaTargetText then
                         local coloredName = playerName
                         if playerClass then
-                            local color = C_ClassColor and C_ClassColor.GetClassColor(playerClass) or RAID_CLASS_COLORS[playerClass]
+                            local color = C_ClassColor.GetClassColor(playerClass)
                             if color then
-                                if color.WrapTextInColorCode then
-                                    coloredName = color:WrapTextInColorCode(playerName)
-                                elseif color.colorStr then
-                                    coloredName = "|c" .. color.colorStr .. playerName .. "|r"
-                                end
+                                coloredName = color:WrapTextInColorCode(playerName)
                             end
                         end
                         local justify = (textSettings and textSettings.castbarTargetJustifyH) or "CENTER"
@@ -1294,7 +1285,6 @@ function sArenaMixin:Test()
                 frame.CastBar:SetStatusBarTexture(castPath)
             end
         else
-            frame.CastBar.fadeOut = nil
             frame.CastBar:Hide()
             frame.CastBar:SetAlpha(0)
             if frame.CastBar.ArenaTargetText then

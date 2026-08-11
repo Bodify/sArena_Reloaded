@@ -375,9 +375,9 @@ function sArenaMixin:ImportStreamerProfile(streamerName, profileString, displayN
     local function ApplyMidnightDRFix(profileName)
         if not sArenaMixin.isMidnight then return end
         local profileData = sArena_ReloadedDB.profiles[profileName]
-        if profileData and profileData.drResetTimeFixMidnight == nil then
-            profileData.drResetTime = 16.1
-            profileData.drResetTimeFixMidnight = true
+        if profileData and profileData.drResetTimeFixMidnightPointOne == nil then
+            profileData.drResetTime = 20.1
+            profileData.drResetTimeFixMidnightPointOne = true
         end
     end
 

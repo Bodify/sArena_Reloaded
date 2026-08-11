@@ -213,6 +213,7 @@ function layout:Initialize(frame)
     f:SetSize(24, 24)
     f:Show()
     f.Texture:AddMaskTexture(f.Mask)
+    frame.auraSlotMask = f.Mask
     f.Mask:SetAllPoints(f.Texture)
 
     if not f.bgTexture then
