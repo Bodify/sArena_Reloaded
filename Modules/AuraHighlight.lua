@@ -56,7 +56,7 @@ function sArenaFrameMixin:CreateAuraHighlight()
     highlight:SetFrameLevel(49)
     self.AuraHighlights = highlight
 
-    local classIconGlow = CreateFrame("Frame", nil, highlight)
+    local classIconGlow = CreateFrame("Frame", nil, classIcon)
     classIconGlow:SetFrameStrata("MEDIUM")
     classIconGlow:SetFrameLevel(49)
     classIconGlow:Hide()
@@ -68,7 +68,7 @@ function sArenaFrameMixin:CreateAuraHighlight()
     classIconGlow.Texture = tex
     highlight.ClassIconGlow = classIconGlow
 
-    local classIconPixelGlow = CreateFrame("Frame", nil, highlight)
+    local classIconPixelGlow = CreateFrame("Frame", nil, classIcon)
     classIconPixelGlow:SetFrameStrata("MEDIUM")
     classIconPixelGlow:SetFrameLevel(48)
     classIconPixelGlow:SetAllPoints(classIcon)
@@ -239,9 +239,16 @@ function sArenaFrameMixin:UpdateAuraHighlightLayout()
     else
         glow.Texture:SetTexture(texture)
     end
+
     glow:ClearAllPoints()
     glow:SetPoint("TOPLEFT", classIcon, "TOPLEFT", -widthOffset, heightOffset)
     glow:SetPoint("BOTTOMRIGHT", classIcon, "BOTTOMRIGHT", widthOffset, -heightOffset)
+    glow:SetFrameStrata("MEDIUM")
+    glow:SetFrameLevel(49)
+
+    local pixelGlow = highlight.ClassIconPixelGlow
+    pixelGlow:SetFrameStrata("MEDIUM")
+    pixelGlow:SetFrameLevel(48)
 
     local ah = self.parent and self.parent.db and self.parent.db.profile.auraHighlight
 

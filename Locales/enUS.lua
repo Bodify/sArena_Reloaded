@@ -527,7 +527,7 @@ L["DR_SpecSpecificIcons_Desc"] = "When enabled, the icons below become specializ
 
 L["Racial_EnableAll"] = "Enable All"
 L["Racial_DisableAll"] = "Disable All"
-L["Racial_MidnightDisclaimer"] = "|A:services-icon-warning:20:20|a |cffff8800Racial cooldowns can not be tracked in Midnight. However if they have a racial with shared CD with the Trinket this shared cooldown will display when the unit uses trinket or racial.|r |A:services-icon-warning:20:20|a"
+L["Racial_MidnightTextureNotice"] = "|A:services-icon-warning:20:20|a |cffff8800Racial texture is gone in 12.1 due to new restrictions. You can enable \"Race Text On Manabar\" in Layout -> Arena Frames -> Options instead for now. I don't think the texture is coming back though.|r |A:services-icon-warning:20:20|a"
 L["Racial_ShowInTrinketSlot"] = "Show Racial in Trinket Slot When No Trinket"
 L["Racial_ShowInTrinketSlot_Desc"] = "If the enemy doesn't have a Trinket equipped, remove the gap and show their Racial ability in the spot of the Trinket instead."
 L["Human_AlwaysShowTrinket"] = "Always Show Alliance Trinket for Humans"

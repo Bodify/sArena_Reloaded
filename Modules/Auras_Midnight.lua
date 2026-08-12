@@ -55,6 +55,15 @@ local function StyleCooldown(frame, cooldown)
     cooldown:SetDrawBling(false)
 end
 
+local function ApplyCooldownDecimals(frame, cooldown)
+    local parent = frame.parent
+    if not parent or not parent.CreateCustomCooldown then return end
+    if not cooldown.SetCountdownMillisecondsThreshold then return end
+
+    local profile = GetProfile(frame)
+    parent:CreateCustomCooldown(cooldown, profile and profile.showDecimalsClassIcon)
+end
+
 local function InitIcon(frame, button, category)
     button:SetAllPoints(frame.ClassIcon)
 
@@ -70,6 +79,7 @@ local function InitIcon(frame, button, category)
     cooldown:SetAllPoints(button)
     cooldown:SetUsingParentLevel(true)
     StyleCooldown(frame, cooldown)
+    ApplyCooldownDecimals(frame, cooldown)
     button:SetDurationCooldown(cooldown)
     button:EnableMouse(false)
     frame:CreateAuraSlotGlow(button, category)

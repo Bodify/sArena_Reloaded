@@ -511,7 +511,7 @@ L["DR_SpecSpecificIcons_Desc"] = "啓用後，下方的圖標將按你當前專�
 
 L["Racial_EnableAll"] = "全部啓用"
 L["Racial_DisableAll"] = "全部禁用"
-L["Racial_MidnightDisclaimer"] = "|A:services-icon-warning:20:20|a |cffff8800在午夜版（Midnight）中無法追蹤種族技能冷卻。但若它們的種族技能與飾品共享冷卻，當該單位使用飾品時會顯示共享冷卻。|r |A:services-icon-warning:20:20|a"
+L["Racial_MidnightTextureNotice"] = "|A:services-icon-warning:20:20|a |cffff8800由於12.1的新限制，種族技能紋理已被移除。目前你可以改爲在 佈局 -> 競技場框體 -> 選項 中啓用“Race Text On Manabar”（在法力條上顯示種族）。不過我認爲該紋理不會再回來了。|r |A:services-icon-warning:20:20|a"
 L["Racial_ShowInTrinketSlot"] = "無飾品時在飾品位置顯示種族技能"
 L["Racial_ShowInTrinketSlot_Desc"] = "如果敵人沒有裝備飾品，去掉空位並在飾品位置顯示他們的種族技能。"
 L["Human_AlwaysShowTrinket"] = "始終爲人類顯示聯盟飾品"

@@ -511,7 +511,7 @@ L["DR_SpecSpecificIcons_Desc"] = "启用后，下方的图标将按你当前专�
 
 L["Racial_EnableAll"] = "全部启用"
 L["Racial_DisableAll"] = "全部禁用"
-L["Racial_MidnightDisclaimer"] = "|A:services-icon-warning:20:20|a |cffff8800在午夜版（Midnight）中无法追踪种族技能冷却。但若它们的种族技能与饰品共享冷却，当该单位使用饰品时会显示共享冷却。|r |A:services-icon-warning:20:20|a"
+L["Racial_MidnightTextureNotice"] = "|A:services-icon-warning:20:20|a |cffff8800由于12.1的新限制，种族技能纹理已被移除。目前你可以改为在 布局 -> 竞技场框体 -> 选项 中启用“Race Text On Manabar”（在法力条上显示种族）。不过我认为该纹理不会再回来了。|r |A:services-icon-warning:20:20|a"
 L["Racial_ShowInTrinketSlot"] = "无饰品时在饰品位置显示种族技能"
 L["Racial_ShowInTrinketSlot_Desc"] = "如果敌人没有装备饰品，去掉空位并在饰品位置显示他们的种族技能。"
 L["Human_AlwaysShowTrinket"] = "始终为人类显示联盟饰品"

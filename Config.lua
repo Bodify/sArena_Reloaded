@@ -7786,10 +7786,15 @@ else
                                         desc = L["Option_ShowDecimalsOnClassIcon_Desc"],
                                         type = "toggle",
                                         width = 1.4,
+                                        confirm = function() return isMidnight and L["Option_HideDRs_Reload_Desc"] or false end,
                                         get = function(info) return info.handler.db.profile.showDecimalsClassIcon end,
                                         set = function(info, val)
                                             info.handler.db.profile.showDecimalsClassIcon = val
                                             info.handler:SetupCustomCD()
+                                            if isMidnight then
+                                                sArena_ReloadedDB.reOpenOptions = true
+                                                ReloadUI()
+                                            end
                                         end
                                     },
                                     decimalThreshold = {
@@ -8839,10 +8844,10 @@ else
                         type = "group",
                         args = (function()
                             local args = {
-                                midnightDisclaimer = {
+                                midnightTextureNotice = {
                                     order = 0,
                                     type = "description",
-                                    name = isMidnight and L["Racial_MidnightDisclaimer"] or "",
+                                    name = isMidnight and L["Racial_MidnightTextureNotice"] or "",
                                     fontSize = "medium",
                                     hidden = function() return not isMidnight end,
                                 },
@@ -8857,6 +8862,7 @@ else
                                     name = L["Option_Categories"],
                                     type = "group",
                                     inline = true,
+                                    disabled = function() return isMidnight end,
                                     args = (function()
                                         local toggles = {}
                                         local sortedKeys = {}
@@ -8911,6 +8917,7 @@ else
                                     name = L["Racial_EnableAll"],
                                     type = "execute",
                                     width = 1.2,
+                                    disabled = function() return isMidnight end,
                                     func = function(info)
                                         for key in pairs(racialCategories) do
                                             info.handler.db.profile.racialCategories[key] = true
@@ -8922,6 +8929,7 @@ else
                                     name = L["Racial_DisableAll"],
                                     type = "execute",
                                     width = 1.2,
+                                    disabled = function() return isMidnight end,
                                     func = function(info)
                                         for key in pairs(racialCategories) do
                                             info.handler.db.profile.racialCategories[key] = false
@@ -8934,6 +8942,7 @@ else
                                 type = "group",
                                 name = L["Options"],
                                 inline = true,
+                                disabled = function() return isMidnight end,
                                 args = {
                                     swapRacialTrinket = {
                                         order = 1,

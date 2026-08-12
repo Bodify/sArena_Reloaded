@@ -13,6 +13,7 @@ function sArenaMixin:CheckClassStacking()
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         if frame.class then
+            if frame.secretClass then return false end
             classCount[frame.class] = (classCount[frame.class] or 0) + 1
             if frame.isHealer then
                 classHasHealer[frame.class] = true

@@ -1913,24 +1913,36 @@ function sArenaFrameMixin:SetMysteryPlayer(unitEvent)
             end
 
             local powerType
-            if class == "DRUID" then
-                local specName = self.specName
-                if specName == "Feral" then
+            if self.secretClass then
+                if UnitHasPowerType(self.unit, Enum.PowerType.Energy) then
                     powerType = "ENERGY"
-                elseif specName == "Guardian" then
+                elseif UnitHasPowerType(self.unit, Enum.PowerType.Rage) then
                     powerType = "RAGE"
+                elseif UnitHasPowerType(self.unit, Enum.PowerType.Focus) then
+                    powerType = "FOCUS"
                 else
                     powerType = "MANA"
-                end
-            elseif class == "MONK" then
-                local specName = self.specName
-                if specName == "Mistweaver" then
-                    powerType = "MANA"
-                else
-                    powerType = "ENERGY"
                 end
             else
-                powerType = class and self.parent.classPowerType[class] or "MANA"
+                if class == "DRUID" then
+                    local specName = self.specName
+                    if specName == "Feral" then
+                        powerType = "ENERGY"
+                    elseif specName == "Guardian" then
+                        powerType = "RAGE"
+                    else
+                        powerType = "MANA"
+                    end
+                elseif class == "MONK" then
+                    local specName = self.specName
+                    if specName == "Mistweaver" then
+                        powerType = "MANA"
+                    else
+                        powerType = "ENERGY"
+                    end
+                else
+                    powerType = class and self.parent.classPowerType[class] or "MANA"
+                end
             end
 
             local powerColor = PowerBarColor[powerType]
@@ -1968,6 +1980,7 @@ function sArenaFrameMixin:ResetUnitInfo()
     self.specName = nil
     self.isHealer = nil
     self.class = nil
+    self.secretClass = nil
     self.currentClassIconTexture = nil
     self.currentClassIconStartTime = 0
     self.updateRacialOnTrinketSlot = nil
@@ -2016,6 +2029,13 @@ function sArenaFrameMixin:GetClass()
                     end
                 end
             end
+        elseif UnitIsNPCAsPlayer(self.unit) then
+            self.classLocal, self.class = UnitClass(self.unit)
+            if self.class then
+                self.ClassIcon.Texture:SetDesaturated(false)
+                self.ClassIcon.Texture:SetVertexColor(1, 1, 1)
+                self.secretClass = true
+            end
         end
     else
         self.classLocal, self.class = UnitClass(self.unit)
@@ -2050,9 +2070,9 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
 
 	local texture
 	if isMidnight then
-		texture = self.class and "class" or 134400
+		texture = self.class and "class" or nil
 	else
-		texture = self.currentAuraSpellID and self.currentAuraTexture or self.class and "class" or 134400
+		texture = self.currentAuraSpellID and self.currentAuraTexture or self.class and "class" or nil
 	end
 
 	if not isMidnight then -- secret
@@ -2080,7 +2100,7 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
                 self.ClassIconMsq:Show()
             end
         else
-            texture = self.parent.classIcons[self.class]
+            texture = self.secretClass and GetClassAtlas(self.class) or self.parent.classIcons[self.class]
             if self.ClassIconMsq then
                 self.ClassIconMsq:Show()
             end
@@ -2089,7 +2109,11 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
         if useHealerTexture then
             self.ClassIcon.Texture:SetAtlas("UI-LFG-RoleIcon-Healer")
         else
-            self.ClassIcon.Texture:SetTexture(texture)
+            if self.secretClass then
+                self.ClassIcon.Texture:SetAtlas(GetClassAtlas(self.class))
+            else
+                self.ClassIcon.Texture:SetTexture(texture)
+            end
         end
 
         local cropType = useHealerTexture and "healer" or "class"
@@ -2321,7 +2345,7 @@ end
 function sArenaFrameMixin:SetLifeState()
     local unit = self.unit
     local isFeigningDeath
-    if isMidnight then
+    if isMidnight and not self.secretClass then
         isFeigningDeath = self.class == "HUNTER" and UnitIsFeignDeath(unit)
     else
         isFeigningDeath = self.class == "HUNTER" and AuraUtil.FindAuraByName(FEIGN_DEATH, unit, "HELPFUL")

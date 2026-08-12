@@ -193,7 +193,7 @@ end
 
 local function UnitIsProbablyUnit(unit1, unit2)
     if not UnitExists(unit1) or not UnitExists(unit2) then return end
-    if not UnitIsPlayer(unit1) or not UnitIsPlayer(unit2) then return end
+    if issecretvalue(unit1) or issecretvalue(unit2) then return end
 
     return UnitName(unit1) == UnitName(unit2)
 end

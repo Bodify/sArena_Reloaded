@@ -1,3 +1,14 @@
+# sArena Reloaded 2.6.0b
+## Tweak
+- Add mention of racial texture being gone on Midnight 12.1 in that section.
+- Support for new Training Grounds NPC arenas.
+- Update Dissonance profile (www.twitch.tv/dissonancewow)
+## Bugfix
+- Fix Class Icon Auras not showing decimals on new Midnight 12.1 auras.
+- Fix secret error.
+- Fix Class Icon aura highlight glow not scaling with the class icon in layouts that can scale it (BlizzCompact, BlizzRaid, Pixelated).
+- Fix Class/Aura Icon showing a red question mark in the new npc arena if class icon was disabled
+
 # sArena Reloaded 2.6.0
 ## New
 - Midnight: Updated for 12.1. Notable change: Racial Texture is gone because races are now secret. However race text is now available instead as mentioned below.

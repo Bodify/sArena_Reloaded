@@ -301,7 +301,7 @@ function sArenaFrameMixin:UpdateRacial()
 	self.localizedRace = localizedRace
 	self.Racial.Texture:SetTexture(nil)
 
-	if issecretvalue and issecretvalue(self.race) then
+	if issecretvalue(self.race) then
 		-- UnitRace secret in 12.1.
 		-- Not aware of any other ways to show race texture but can still show race text at least.
 		return
