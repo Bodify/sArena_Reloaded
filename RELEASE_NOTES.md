@@ -1,3 +1,7 @@
+# sArena Reloaded 2.6.0d
+## Bugfix
+- Fix a nil class check causing error on the new class color api
+
 # sArena Reloaded 2.6.0c
 ## Bugfix
 - Fix a secret error
