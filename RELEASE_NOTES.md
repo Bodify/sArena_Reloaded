@@ -1,3 +1,8 @@
+# sArena Reloaded 2.6.0c
+## Bugfix
+- Fix a secret error
+- Fix a nil error for class color frame texture after changes to class colors.
+
 # sArena Reloaded 2.6.0b
 ## Tweak
 - Add mention of racial texture being gone on Midnight 12.1 in that section.

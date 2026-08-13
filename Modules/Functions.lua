@@ -376,9 +376,9 @@ function sArenaFrameMixin:ClassColorFrameTexture()
     if not self.parent.db.profile.classColorFrameTexture then return end
 
     local class = self.class or self.tempClass
-    local color = C_ClassColor.GetClassColor(class)
+    if not class then return end
 
-    if not color then return end
+    local color = C_ClassColor.GetClassColor(class)
 
     local onlyClassIcon = self.parent.db.profile.classColorFrameTextureOnlyClassIcon and self.parent.db.profile.currentLayout == "BlizzCompact"
     local healerGreen = self.parent.db.profile.classColorFrameTextureHealerGreen
