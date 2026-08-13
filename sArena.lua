@@ -1681,10 +1681,9 @@ end
 
 function sArenaFrameMixin:UpdateNameColor()
     local class = self.class or self.tempClass
-    if not class then return end
 
     local db = self.parent.db.profile
-    local color = C_ClassColor.GetClassColor(class)
+    local color = class and C_ClassColor.GetClassColor(class)
 
     if db.colorNameEnabled and db.colorNameColor then
         if not self.oldNameColor then
@@ -1737,10 +1736,9 @@ function sArenaFrameMixin:UpdateSpecNameColor()
     if not self.SpecNameText then return end
 
     local class = self.class or self.tempClass
-    if not class then return end
 
     local db = self.parent.db.profile
-    local color = C_ClassColor.GetClassColor(class)
+    local color = class and C_ClassColor.GetClassColor(class)
 
     if db.colorSpecNameEnabled and db.colorSpecNameColor then
         if not self.oldSpecNameColor then
@@ -1831,7 +1829,8 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
     self:OnEvent("UNIT_ABSORB_AMOUNT_CHANGED", unit)
 
     if db.profile.classColors then
-        local color = C_ClassColor.GetClassColor(UnitClassBase(unit))
+        local class = UnitClassBase(unit)
+        local color = class and C_ClassColor.GetClassColor(class)
         if color then
             self.HealthBar:SetStatusBarColor(color.r, color.g, color.b, 1)
         end

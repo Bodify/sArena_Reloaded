@@ -548,7 +548,7 @@ function sArenaFrameMixin:UpdateArenaTargetText(unit)
     local targetName = UnitName(targetUnit)
     if targetName then
         local class = UnitClassBase(targetUnit)
-        local color = C_ClassColor.GetClassColor(class)
+        local color = class and C_ClassColor.GetClassColor(class)
         if color then
             fs:SetTextColor(color.r, color.g, color.b)
         else
@@ -573,7 +573,7 @@ function sArenaFrameMixin:UpdateArenaTargetTextTestMode()
     end
     local name = UnitName("player")
     local class = UnitClassBase("player")
-    local color = C_ClassColor.GetClassColor(class)
+    local color = class and C_ClassColor.GetClassColor(class)
     if color then
         fs:SetTextColor(color.r, color.g, color.b)
     else
@@ -676,7 +676,7 @@ function sArenaMixin:UpdateArenaTargetTextOnPartyFrames()
                     local targetName = UnitName(targetUnit)
                     if targetName then
                         local class = UnitClassBase(targetUnit)
-                        local color = C_ClassColor.GetClassColor(class)
+                        local color = class and C_ClassColor.GetClassColor(class)
                         if class and color then
                             fs:SetTextColor(color.r, color.g, color.b)
                         else
@@ -705,7 +705,7 @@ function sArenaMixin:UpdateArenaTargetTextOnPartyFramesTestMode()
                 local pick = self["arena" .. math.random(numArena)]
                 local name = pick and pick.tempName or "Target"
                 local class = pick and pick.tempClass
-                local color = C_ClassColor.GetClassColor(class)
+                local color = class and C_ClassColor.GetClassColor(class)
                 if class and color then
                     fs:SetTextColor(color.r, color.g, color.b)
                 else

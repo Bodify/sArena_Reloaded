@@ -1192,7 +1192,7 @@ function sArenaMixin:Test()
                 if anchorInside then
                     local coloredName = playerName
                     if playerClass then
-                        local color = C_ClassColor and C_ClassColor.GetClassColor(playerClass)
+                        local color = C_ClassColor.GetClassColor(playerClass)
                         if color then
                             coloredName = color:WrapTextInColorCode(playerName)
                         end
