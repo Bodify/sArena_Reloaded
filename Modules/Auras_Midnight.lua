@@ -35,6 +35,7 @@ local LAYOUT_COOLDOWN = {
 }
 
 local function StyleCooldown(frame, cooldown)
+    local parent = frame.parent
     local profile = GetProfile(frame)
     local look = profile and LAYOUT_COOLDOWN[profile.currentLayout]
 
@@ -53,15 +54,16 @@ local function StyleCooldown(frame, cooldown)
     cooldown:SetDrawSwipe(classIconCooldown:GetDrawSwipe())
     cooldown:SetDrawEdge(classIconCooldown:GetDrawEdge())
     cooldown:SetDrawBling(false)
-end
 
-local function ApplyCooldownDecimals(frame, cooldown)
-    local parent = frame.parent
-    if not parent or not parent.CreateCustomCooldown then return end
-    if not cooldown.SetCountdownMillisecondsThreshold then return end
-
-    local profile = GetProfile(frame)
     parent:CreateCustomCooldown(cooldown, profile and profile.showDecimalsClassIcon)
+
+    local font = parent:GetAuraCooldownFont()
+    cooldown:SetCountdownFont(font:GetName())
+
+    local text = cooldown:GetCountdownFontString()
+    if text:GetFontObject() ~= font then
+        text:SetFont(font:GetFont())
+    end
 end
 
 local function InitIcon(frame, button, category)
@@ -79,7 +81,6 @@ local function InitIcon(frame, button, category)
     cooldown:SetAllPoints(button)
     cooldown:SetUsingParentLevel(true)
     StyleCooldown(frame, cooldown)
-    ApplyCooldownDecimals(frame, cooldown)
     button:SetDurationCooldown(cooldown)
     button:EnableMouse(false)
     frame:CreateAuraSlotGlow(button, category)

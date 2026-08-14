@@ -1,7 +1,37 @@
+local LSM = LibStub("LibSharedMedia-3.0")
 local isMidnight = sArenaMixin.isMidnight
 local decimalThreshold = 6 -- Default value, will be updated from db
 local decimalCurve
 local decimalCurveInverse
+
+local AURA_COOLDOWN_FONT = "sArenaReloadedAuraCooldownFont"
+
+function sArenaMixin:GetAuraCooldownFont()
+    return _G[AURA_COOLDOWN_FONT] or self:UpdateAuraCooldownFont()
+end
+
+function sArenaMixin:UpdateAuraCooldownFont(size)
+    local font = _G[AURA_COOLDOWN_FONT]
+    if not font then
+        font = CreateFont(AURA_COOLDOWN_FONT)
+        font:CopyFontObject(NumberFontNormal)
+    end
+
+    local layoutdb = self.layoutdb
+    size = size or (layoutdb and layoutdb.classIconFontSize) or 12
+
+    local classIconCD = self.arena1 and self.arena1.ClassIcon and self.arena1.ClassIcon.Cooldown
+    local path = classIconCD and classIconCD.Text and classIconCD.Text.fontFile
+    if layoutdb and layoutdb.changeFont and layoutdb.cdFont then
+        path = LSM:Fetch(LSM.MediaType.FONT, layoutdb.cdFont) or path
+    end
+    path = path or NumberFontNormal:GetFont() or STANDARD_TEXT_FONT
+
+    font:SetFont(path, size, self:GetFontFlags("OUTLINE"))
+    font:SetShadowOffset(0, 0)
+
+    return font
+end
 
 function sArenaMixin:UpdateDecimalThreshold()
     decimalThreshold = self.db.profile.decimalThreshold or 6

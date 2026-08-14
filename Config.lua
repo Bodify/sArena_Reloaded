@@ -5036,16 +5036,21 @@ function sArenaMixin:UpdateFrameSettings(db, info, val)
     local layoutCF = (self.layoutdb and self.layoutdb.changeFont)
 
     for i = 1, self.maxArenaOpponents do
-        local text = self["arena" .. i].ClassIcon.Cooldown.Text
+        local frame = self["arena" .. i]
+        local text = frame.ClassIcon.Cooldown.Text
         local fontToUse = text.fontFile
         if layoutCF then
             fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
         end
         text:SetFont(fontToUse, db.classIconFontSize, self:GetFontFlags("OUTLINE"))
-        local sArenaText = self["arena" .. i].ClassIcon.Cooldown.sArenaText
+        local sArenaText = frame.ClassIcon.Cooldown.sArenaText
         if sArenaText then
             sArenaText:SetFont(fontToUse, db.classIconFontSize, self:GetFontFlags("OUTLINE"))
         end
+    end
+
+    if isMidnight then
+        self:UpdateAuraCooldownFont(db.classIconFontSize)
     end
 
     for i = 2, self.maxArenaOpponents do
