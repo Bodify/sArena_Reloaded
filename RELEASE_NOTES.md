@@ -1,3 +1,11 @@
+# sArena Reloaded 2.6.0f
+## Tweak
+- Add disarms as CC auras for Midnight. Again ty to Verz for providing the list without me even asking <3
+
+# sArena Reloaded 2.6.0e
+## Bugfix
+- Fix Class Icon CD Font Size setting not applying to the cooldown text on the new Midnight 12.1 auras.
+
 # sArena Reloaded 2.6.0d
 ## Bugfix
 - Fix a nil class check causing error on the new class color api

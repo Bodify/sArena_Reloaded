@@ -16,6 +16,14 @@ local SORT_METHODS = {
 
 local DEFAULT_SORT = { AuraContainerSortMethod.AuraInstanceIDOnly, AuraContainerSortDirection.Normal }
 
+local Disarms = {
+    [207777] = true,    -- Dismantle (Rogue)
+    [236077] = true,    -- Disarm (Warrior)
+    [233759] = true,    -- Grapple Weapon (Monk)
+    [407028] = true,    -- Sticky Tar Bomb (Hunter)
+    [209749] = true,    -- Faerie Swarm (Druid)
+}
+
 local function GetProfile(frame)
     return frame.parent and frame.parent.db and frame.parent.db.profile
 end
@@ -87,7 +95,7 @@ local function InitIcon(frame, button, category)
     frame:CreateAuraSlotFramePulse(button, category)
 end
 
-local function NewContainer(frame, filter, sortKey, category)
+local function NewContainer(frame, filter, sortKey, category, candidateFilters)
     local container = CreateFrame("AuraContainer", nil, frame.ClassIcon, "CustomAuraContainerTemplate")
     container:SetAllPoints(frame.ClassIcon)
     container:SetUnit(frame.unit)
@@ -99,6 +107,7 @@ local function NewContainer(frame, filter, sortKey, category)
     container.slot = container:AddAuraSlot("Aura", filter, {
         sortMethod = sortMethod,
         sortDirection = sortDirection,
+        candidateFilters = candidateFilters,
         initializeFrame = function(button) InitIcon(frame, button, category) end,
     })
 
@@ -109,17 +118,21 @@ end
 
 function sArenaFrameMixin:SetupAuraDisplay()
     self.AuraCC = NewContainer(self, "HARMFUL|CROWD_CONTROL", "ccSort", "cc")
+    self.AuraDisarm = NewContainer(self, "HARMFUL", "ccSort", "cc", { includeSpellIDs = Disarms })
     self.AuraImportant = NewContainer(self, "HELPFUL|IMPORTANT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE", "importantSort", "important")
     self.AuraBigDef = NewContainer(self, "HELPFUL|BIG_DEFENSIVE", "defensiveSort", "defensive")
     self.AuraExtDef = NewContainer(self, "HELPFUL|EXTERNAL_DEFENSIVE", "defensiveSort", "defensive")
 
-    self.auraContainers = { self.AuraCC, self.AuraImportant, self.AuraBigDef, self.AuraExtDef }
+    self.AuraCC.isCC = true
+    self.AuraDisarm.isCC = true
+
+    self.auraContainers = { self.AuraCC, self.AuraDisarm, self.AuraImportant, self.AuraBigDef, self.AuraExtDef }
 
     local classIcon = self.ClassIcon
     local strata = classIcon:GetFrameStrata()
     local level = classIcon:GetFrameLevel()
 
-    local order = { self.AuraExtDef, self.AuraBigDef, self.AuraImportant, self.AuraCC }
+    local order = { self.AuraExtDef, self.AuraBigDef, self.AuraImportant, self.AuraDisarm, self.AuraCC }
     for index, container in ipairs(order) do
         container:SetFrameStrata(strata)
         container:SetFrameLevel(level + index)
@@ -141,7 +154,7 @@ function sArenaFrameMixin:UpdateAuraSlotState()
     local onlyCC = profile and profile.onlyShowCCAuras
 
     for _, container in ipairs(self.auraContainers) do
-        local wanted = active and (not onlyCC or container == self.AuraCC)
+        local wanted = active and (not onlyCC or container.isCC)
         container:SetEnabled(wanted and true or false)
         container:SetShown(wanted and true or false)
     end
