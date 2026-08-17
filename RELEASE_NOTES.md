@@ -1,6 +1,11 @@
-# sArena Reloaded 2.6.0f
-## Tweak
-- Add disarms as CC auras for Midnight. Again ty to Verz for providing the list without me even asking <3
+# sArena Reloaded 2.6.1
+## New
+- New profile: Kaaaz (www.twitch.tv/KaaazTTV). Raidframe style. Thank you for sharing!
+- Midnight: Add disarms as CC auras for Midnight. Again ty to Verz for providing the list without me even asking <3
+- Midnight: Add a few debuff auras to track (Like Hypo and Forb).
+## Bugfix
+- Midnight: Fix crop on icons for the new 12.1 auras.
+- Fix Class Icon aura highlight glow being too small on BlizzRaid layout.
 
 # sArena Reloaded 2.6.0e
 ## Bugfix

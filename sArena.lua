@@ -801,15 +801,16 @@ function sArenaMixin:PreviewLayout(layout)
         frame:UpdateAuraHighlightLayout()
         frame:RefreshAuraHighlight()
 
-        if frame.SetupAuraDisplay then
-            frame:SetupAuraDisplay()
-        end
-
         frame:UpdatePlayer(UnitExists(frame.unit) and "seen" or "unseen")
         frame:UpdateClassIconCooldownReverse()
         frame:UpdateTrinketRacialCooldownReverse()
         frame:UpdateClassIconSwipeSettings()
         frame:UpdateTrinketRacialSwipeSettings()
+
+        if frame.SetupAuraDisplay and self.applyingLayout then
+            frame:SetupAuraDisplay()
+        end
+
         frame:UpdateFrameColors()
         frame:UpdateNameColor()
         frame:UpdateSpecNameColor()
@@ -870,7 +871,9 @@ function sArenaMixin:SetLayout(_, layout)
         end
     end
 
+    self.applyingLayout = true
     self:PreviewLayout(layout)
+    self.applyingLayout = nil
 
     self.optionsTable.args.layoutSettingsGroup.args = self.layouts[layout].optionsTable and self.layouts[layout].optionsTable or emptyLayoutOptionsTable
     LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
@@ -1957,7 +1960,7 @@ function sArenaFrameMixin:SetMysteryPlayer(unitEvent)
         self:SetPreGatesUnknownPlayer()
     end
 
-    self:SetAlpha(self.parent.waitingForMatch and 1 or self.parent.stealthAlpha)
+    self:SetAlpha(self.parent.waitingForMatch and 1 or self.parent.stealthAlpha or 1)
     self.hideStatusText = true
     self:SetStatusText()
     self.WidgetOverlay:Hide()
@@ -2010,7 +2013,7 @@ function sArenaFrameMixin:GetClass()
                 self:UpdateHealerStatus()
                 --self.SpecNameText:SetText(specName)
                 self:UpdateSpecNameText(specName)
-                self.SpecNameText:SetShown(db.profile.layoutSettings[db.profile.currentLayout].showSpecManaText)
+                self.SpecNameText:SetShown(db and db.profile.layoutSettings[db.profile.currentLayout].showSpecManaText)
                 self:UpdateSpecNameColor()
                 self.specTexture = specTexture
                 self.class = class

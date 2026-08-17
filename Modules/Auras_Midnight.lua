@@ -15,14 +15,9 @@ local SORT_METHODS = {
 }
 
 local DEFAULT_SORT = { AuraContainerSortMethod.AuraInstanceIDOnly, AuraContainerSortDirection.Normal }
-
-local Disarms = {
-    [207777] = true,    -- Dismantle (Rogue)
-    [236077] = true,    -- Disarm (Warrior)
-    [233759] = true,    -- Grapple Weapon (Monk)
-    [407028] = true,    -- Sticky Tar Bomb (Hunter)
-    [209749] = true,    -- Faerie Swarm (Druid)
-}
+local AURA_CATEGORIES = { "cc", "important", "defensive" }
+local otherCC = sArenaMixin.otherCC
+local otherDebuffs = sArenaMixin.otherDebuffs
 
 local function GetProfile(frame)
     return frame.parent and frame.parent.db and frame.parent.db.profile
@@ -42,9 +37,11 @@ local LAYOUT_COOLDOWN = {
     BlizzTourney = { swipe = [[Interface\CharacterFrame\TempPortraitAlphaMask]], circular = true },
 }
 
-local function StyleCooldown(frame, cooldown)
+local function StyleCooldown(frame, cooldown, icon)
     local parent = frame.parent
     local profile = GetProfile(frame)
+    local layoutSettings = profile and profile.layoutSettings and profile.layoutSettings[profile.currentLayout]
+    local cropIcons = layoutSettings and layoutSettings.cropIcons or false
     local look = profile and LAYOUT_COOLDOWN[profile.currentLayout]
 
     cooldown:SetSwipeTexture(look and look.swipe or 1)
@@ -62,6 +59,7 @@ local function StyleCooldown(frame, cooldown)
     cooldown:SetDrawSwipe(classIconCooldown:GetDrawSwipe())
     cooldown:SetDrawEdge(classIconCooldown:GetDrawEdge())
     cooldown:SetDrawBling(false)
+    frame:SetTextureCrop(icon, cropIcons, "class")
 
     parent:CreateCustomCooldown(cooldown, profile and profile.showDecimalsClassIcon)
 
@@ -72,6 +70,43 @@ local function StyleCooldown(frame, cooldown)
     if text:GetFontObject() ~= font then
         text:SetFont(font:GetFont())
     end
+end
+
+local function AppendSignature(parts, ...)
+    for i = 1, select("#", ...) do
+        parts[#parts + 1] = tostring((select(i, ...)))
+    end
+end
+
+local function AuraSlotSignature(frame)
+    local profile = GetProfile(frame)
+    if not profile then return end
+
+    local layoutSettings = profile.layoutSettings and profile.layoutSettings[profile.currentLayout]
+    local swipe = profile.cooldownSwipeColor or { 0, 0, 0, 0.55 }
+    local cooldown = frame.ClassIcon.Cooldown
+    local ah = profile.auraHighlight or {}
+    local glow = ah.glowClassIcon or {}
+    local pixel = ah.pixelClassIcon or {}
+    local pulse = ah.framePulse or {}
+
+    local parts = {}
+
+    AppendSignature(parts, profile.currentLayout, layoutSettings and layoutSettings.cropIcons)
+    AppendSignature(parts, swipe[1], swipe[2], swipe[3], swipe[4])
+    AppendSignature(parts, cooldown:GetReverse(), cooldown:GetDrawSwipe(), cooldown:GetDrawEdge())
+    AppendSignature(parts, profile.showDecimalsClassIcon)
+    AppendSignature(parts, ah.enabled, glow.enabled, pixel.enabled)
+    AppendSignature(parts, pulse.enabled, pulse.wrapTrinket, pulse.wrapRacial)
+    AppendSignature(parts, pulse.size, pulse.minAlpha, pulse.maxAlpha, pulse.speed)
+
+    for _, category in ipairs(AURA_CATEGORIES) do
+        local settings = ah[category] or {}
+        local color = settings.color or {}
+        AppendSignature(parts, settings.enabled, color[1], color[2], color[3], color[4])
+    end
+
+    return table.concat(parts, ":")
 end
 
 local function InitIcon(frame, button, category)
@@ -88,11 +123,14 @@ local function InitIcon(frame, button, category)
     local cooldown = CreateFrame("Cooldown", nil, button, "CooldownFrameTemplate")
     cooldown:SetAllPoints(button)
     cooldown:SetUsingParentLevel(true)
-    StyleCooldown(frame, cooldown)
+    StyleCooldown(frame, cooldown, icon)
     button:SetDurationCooldown(cooldown)
     button:EnableMouse(false)
-    frame:CreateAuraSlotGlow(button, category)
-    frame:CreateAuraSlotFramePulse(button, category)
+
+    if category then
+        frame:CreateAuraSlotGlow(button, category)
+        frame:CreateAuraSlotFramePulse(button, category)
+    end
 end
 
 local function NewContainer(frame, filter, sortKey, category, candidateFilters)
@@ -116,28 +154,49 @@ local function NewContainer(frame, filter, sortKey, category, candidateFilters)
     return container
 end
 
-function sArenaFrameMixin:SetupAuraDisplay()
-    self.AuraCC = NewContainer(self, "HARMFUL|CROWD_CONTROL", "ccSort", "cc")
-    self.AuraDisarm = NewContainer(self, "HARMFUL", "ccSort", "cc", { includeSpellIDs = Disarms })
-    self.AuraImportant = NewContainer(self, "HELPFUL|IMPORTANT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE", "importantSort", "important")
-    self.AuraBigDef = NewContainer(self, "HELPFUL|BIG_DEFENSIVE", "defensiveSort", "defensive")
-    self.AuraExtDef = NewContainer(self, "HELPFUL|EXTERNAL_DEFENSIVE", "defensiveSort", "defensive")
-
-    self.AuraCC.isCC = true
-    self.AuraDisarm.isCC = true
-
-    self.auraContainers = { self.AuraCC, self.AuraDisarm, self.AuraImportant, self.AuraBigDef, self.AuraExtDef }
-
-    local classIcon = self.ClassIcon
+local function ApplyContainerLayering(frame)
+    local classIcon = frame.ClassIcon
     local strata = classIcon:GetFrameStrata()
     local level = classIcon:GetFrameLevel()
 
-    local order = { self.AuraExtDef, self.AuraBigDef, self.AuraImportant, self.AuraDisarm, self.AuraCC }
+    local order = { frame.AuraOtherDebuffs, frame.AuraExtDef, frame.AuraBigDef, frame.AuraImportant, frame.AuraOtherCC, frame.AuraCC }
     for index, container in ipairs(order) do
         container:SetFrameStrata(strata)
         container:SetFrameLevel(level + index)
     end
+end
 
+function sArenaFrameMixin:SetupAuraDisplay()
+    local signature = AuraSlotSignature(self)
+
+    if self.auraContainers and signature == self.auraSlotSignature then
+        ApplyContainerLayering(self)
+        self:UpdateAuraSlotState()
+        return
+    end
+
+    if self.auraContainers then
+        for _, container in ipairs(self.auraContainers) do
+            container:SetEnabled(false)
+            container:Hide()
+        end
+    end
+
+    self.auraSlotSignature = signature
+
+    self.AuraCC = NewContainer(self, "HARMFUL|CROWD_CONTROL", "ccSort", "cc")
+    self.AuraOtherCC = NewContainer(self, "HARMFUL", "ccSort", "cc", { includeSpellIDs = otherCC })
+    self.AuraImportant = NewContainer(self, "HELPFUL|IMPORTANT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE", "importantSort", "important")
+    self.AuraBigDef = NewContainer(self, "HELPFUL|BIG_DEFENSIVE", "defensiveSort", "defensive")
+    self.AuraExtDef = NewContainer(self, "HELPFUL|EXTERNAL_DEFENSIVE", "defensiveSort", "defensive")
+    self.AuraOtherDebuffs = NewContainer(self, "HARMFUL", "ccSort", nil, { includeSpellIDs = otherDebuffs })
+
+    self.AuraCC.isCC = true
+    self.AuraOtherCC.isCC = true
+
+    self.auraContainers = { self.AuraCC, self.AuraOtherCC, self.AuraImportant, self.AuraBigDef, self.AuraExtDef, self.AuraOtherDebuffs }
+
+    ApplyContainerLayering(self)
     self:UpdateAuraSlotState()
 end
 
@@ -150,6 +209,7 @@ function sArenaFrameMixin:UpdateAuraSlotState()
     local active = self.parent and self.parent.engagedInMatch
         and not self.disabledAuras
         and not hideIcon
+        and UnitExists(self.unit)
 
     local onlyCC = profile and profile.onlyShowCCAuras
 
@@ -157,6 +217,16 @@ function sArenaFrameMixin:UpdateAuraSlotState()
         local wanted = active and (not onlyCC or container.isCC)
         container:SetEnabled(wanted and true or false)
         container:SetShown(wanted and true or false)
+    end
+end
+
+function sArenaMixin:RefreshAuraDisplays()
+    for i = 1, self.maxArenaOpponents do
+        local frame = self["arena" .. i]
+
+        if frame and frame.SetupAuraDisplay then
+            frame:SetupAuraDisplay()
+        end
     end
 end
 

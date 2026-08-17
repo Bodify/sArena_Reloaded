@@ -6602,6 +6602,9 @@ else
                                             if layoutdb and layoutdb.dr then
                                                 info.handler:UpdateDRSettings(layoutdb.dr)
                                             end
+                                            if isMidnight then
+                                                info.handler:RefreshAuraDisplays()
+                                            end
                                         end,
                                     },
                                     disableSwipeEdge = {
@@ -6624,6 +6627,9 @@ else
                                                     info.handler:UpdateDRSettings(drSettings, info)
                                                 end
                                             end
+                                            if isMidnight then
+                                                info.handler:RefreshAuraDisplays()
+                                            end
                                         end,
                                     },
                                     disableClassIconSwipe = {
@@ -6637,6 +6643,9 @@ else
                                             info.handler.db.profile.disableClassIconSwipe = val
                                             for i = 1, info.handler.maxArenaOpponents do
                                                 info.handler["arena" .. i]:UpdateClassIconSwipeSettings()
+                                            end
+                                            if isMidnight then
+                                                info.handler:RefreshAuraDisplays()
                                             end
                                         end,
                                     },
@@ -6687,6 +6696,9 @@ else
                                             info.handler.db.profile.invertClassIconCooldown = val
                                             for i = 1, info.handler.maxArenaOpponents do
                                                 info.handler["arena" .. i]:UpdateClassIconCooldownReverse()
+                                            end
+                                            if isMidnight then
+                                                info.handler:RefreshAuraDisplays()
                                             end
                                         end,
                                     },

@@ -11,7 +11,7 @@ local defaultTextureMultiplier  = 1.19
 
 local layoutSpecificGlowSettings = {
     BlizzRaid = {
-        mult    = 0.75,
+        mult    = 1.29,
         texture = defaultHighlightTexture,
     },
     Pixelated = {
@@ -21,18 +21,22 @@ local layoutSpecificGlowSettings = {
     BlizzArena = {
         mult    = 0.35,
         texture = "charactercreate-ring-select",
+        useAtlas = true,
     },
     BlizzTarget = {
         mult    = 0.25,
         texture = "charactercreate-ring-select",
+        useAtlas = true,
     },
     BlizzTourney = {
         mult    = 0.25,
         texture = "charactercreate-ring-select",
+        useAtlas = true,
     },
     BlizzRetail = {
         mult    = 0.3,
         texture = "charactercreate-ring-select",
+        useAtlas = true,
     },
 }
 
@@ -41,7 +45,7 @@ local function GetGlowSettings(layoutName)
     if o then
         return o.mult or defaultTextureMultiplier,
                o.texture or defaultHighlightTexture,
-               true
+               o.useAtlas or false
     end
     return defaultTextureMultiplier, defaultHighlightTexture
 end
@@ -237,6 +241,7 @@ function sArenaFrameMixin:UpdateAuraHighlightLayout()
     if useAtlas then
         glow.Texture:SetAtlas(texture)
     else
+        glow.Texture:SetTexCoord(0, 1, 0, 1)
         glow.Texture:SetTexture(texture)
     end
 
