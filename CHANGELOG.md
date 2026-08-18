@@ -1,3 +1,7 @@
+# sArena Reloaded 2.6.1c
+## New
+- Add new Ceit profile (www.twitch.tv/ceitxd). Thank you for sharing!
+
 # sArena Reloaded 2.6.1b
 ## New
 - Add EllesmereUI party frames anchor support for Widgets.
