@@ -1,3 +1,7 @@
+# sArena Reloaded 2.6.1b
+## New
+- Add EllesmereUI party frames anchor support for Widgets.
+
 # sArena Reloaded 2.6.1
 ## New
 - New profile: Kaaaz (www.twitch.tv/KaaazTTV). Raidframe style. Thank you for sharing!
