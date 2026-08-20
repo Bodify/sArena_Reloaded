@@ -336,14 +336,16 @@ function layout:Initialize(frame)
     classIcon.Texture.useModernBorder = true
 
     if not classIcon.Texture.ClassIconBorderHook then
-        hooksecurefunc(classIcon.Texture, "SetTexture", function(self, t)
+        local function UpdateClassIconBorder(self, t)
             if not t or not self.useModernBorder then
                 classIconBorder:Hide()
             else
                 classIconBorder:Hide()
                 classIconBorder:Show()
             end
-        end)
+        end
+        hooksecurefunc(classIcon.Texture, "SetTexture", UpdateClassIconBorder)
+        hooksecurefunc(classIcon.Texture, "SetAtlas", UpdateClassIconBorder)
         classIcon.Texture.ClassIconBorderHook = true
     end
 

@@ -1,6 +1,9 @@
 # sArena Reloaded 2.6.1c
 ## New
 - Add new Ceit profile (www.twitch.tv/ceitxd). Thank you for sharing!
+- Add new Rahbekius profile (www.twitch.tv/rahbekius). Thank you for sharing!
+## Bugfix
+- Fix an issue with the border on Class Icon for some layouts disappearing sometimes.
 
 # sArena Reloaded 2.6.1b
 ## New

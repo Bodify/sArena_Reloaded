@@ -476,13 +476,15 @@ function layout:Initialize(frame)
     end
 
     if not frame.ClassIcon.ClassIconPixelBorderHook then
-        hooksecurefunc(frame.ClassIcon.Texture, "SetTexture", function(self, t)
+        local function UpdateClassIconPixelBorder(self, t)
             if not t or not frame.parent.showPixelBorder then
                 frame.PixelBorders.classIcon:Hide()
             else
                 frame.PixelBorders.classIcon:Show()
             end
-        end)
+        end
+        hooksecurefunc(frame.ClassIcon.Texture, "SetTexture", UpdateClassIconPixelBorder)
+        hooksecurefunc(frame.ClassIcon.Texture, "SetAtlas", UpdateClassIconPixelBorder)
         frame.ClassIcon.ClassIconPixelBorderHook = true
     end
 
