@@ -2037,6 +2037,9 @@ function sArenaFrameMixin:GetClass()
                 self.ClassIcon.Texture:SetDesaturated(false)
                 self.ClassIcon.Texture:SetVertexColor(1, 1, 1)
                 self.secretClass = true
+                self:UpdateClassIcon(true)
+                self:UpdateFrameColors()
+                self.parent:UpdateTextures()
             end
         end
     else
@@ -2044,6 +2047,9 @@ function sArenaFrameMixin:GetClass()
         if self.class then
             self.ClassIcon.Texture:SetDesaturated(false)
             self.ClassIcon.Texture:SetVertexColor(1, 1, 1)
+            self:UpdateClassIcon(true)
+            self:UpdateFrameColors()
+            self.parent:UpdateTextures()
         end
     end
 end
@@ -2333,6 +2339,8 @@ function sArenaFrameMixin:ResetLayout()
     f.Icon:SetTexCoord(0, 1, 0, 1)
     local fontName,s,o = f.Text:GetFont()
     f.Text:SetFont(fontName, s, self.parent:GetFontFlags("OUTLINE"))
+
+    self:SetupDisconnectedIcon(self.DeathIcon, 35)
 
     self.TexturePool:ReleaseAll()
 end

@@ -597,6 +597,7 @@ function sArenaMixin:Test()
         frame:SetAlpha(1)
         frame.HealthBar:SetAlpha(1)
         frame.WidgetOverlay:Show()
+        frame.DisconnectedIcon:Hide()
 
         frame.HealthBar:SetMinMaxValues(0, 100)
         frame.HealthBar:SetValue(100)

@@ -279,6 +279,8 @@ function layout:Initialize(frame)
     f:SetPoint("CENTER", frame.HealthBar, "TOP")
     f:SetSize(48, 48)
 
+    frame:SetupDisconnectedIcon(frame.HealthBar, 55)
+
     frame.PowerText:SetAlpha(frame.parent.db.profile.hidePowerText and 0 or 1)
 
     local frameTexture = frame.frameTexture

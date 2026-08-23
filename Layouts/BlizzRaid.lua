@@ -519,6 +519,8 @@ function layout:Initialize(frame)
     f:SetPoint("CENTER", frame.HealthBar, "CENTER", 0, -1)
     f:SetSize(self.db.height * 0.8, self.db.height * 0.8)
 
+    frame:SetupDisconnectedIcon(frame.HealthBar, 50)
+
     frame.PowerText:SetAlpha(frame.parent.db.profile.hidePowerText and 0 or 1)
 
     frame.SpecNameText:SetPoint("LEFT", frame.PowerBar, "LEFT", 3, 0)

@@ -258,6 +258,8 @@ function layout:Initialize(frame)
     f:SetPoint("CENTER", frame.HealthBar, "CENTER")
     f:SetSize(self.db.height * 0.8, self.db.height * 0.8)
 
+    frame:SetupDisconnectedIcon(frame.HealthBar, 45)
+
     frame.PowerText:SetPoint("CENTER", frame.PowerBar)
     local fn, fs, fstyle = frame.HealthText:GetFont()
     frame.HealthText:SetFont(fn, 10, frame.parent:GetFontFlags("OUTLINE"))

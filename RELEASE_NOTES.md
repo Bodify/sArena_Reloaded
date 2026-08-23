@@ -1,3 +1,9 @@
+# sArena Reloaded 2.6.1d
+## Tweak
+- Update Jazggz profile (www.twitch.tv/jazggz). Thank you for sharing!
+## Bugfix
+- Fix an issue with class color frames in the new NPC Training Grounds Arena.
+
 # sArena Reloaded 2.6.1c
 ## New
 - Add new Ceit profile (www.twitch.tv/ceitxd). Thank you for sharing!

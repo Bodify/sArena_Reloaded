@@ -503,6 +503,8 @@ function layout:Initialize(frame)
     f:SetSize(42, 42)
     f:SetDrawLayer("OVERLAY", 7)
 
+    frame:SetupDisconnectedIcon(frame.HealthBar, 55, true)
+
     local frameTexture = frame.frameTexture
     frameTexture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\UI-HUD-UnitFrame-Player-PortraitOff-Large.tga")
     frameTexture:SetDrawLayer("OVERLAY", 5)

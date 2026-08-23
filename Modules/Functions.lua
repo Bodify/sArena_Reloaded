@@ -545,7 +545,7 @@ function sArenaFrameMixin:ResetPixelBorders()
 end
 
 function sArenaFrameMixin:UpdateFrameColors()
-    if self.parent.db.profile.classColorFrameTexture then
+    if self.parent.db.profile.classColorFrameTexture and ((not issecretvalue(self.class) and self.class) or self.tempClass) then
         self:ClassColorFrameTexture()
     elseif self.parent:DarkMode() then
         self:DarkModeFrame()
@@ -1317,6 +1317,15 @@ function sArenaMixin:UpdateCooldownSwipeColor()
             end
         end
     end
+end
+
+function sArenaFrameMixin:SetupDisconnectedIcon(anchorTo, size, elevate, offsetX, offsetY)
+    local icon = self.DisconnectedIcon
+    icon:SetParent(elevate and self.WidgetOverlay or self)
+    icon:SetDrawLayer("OVERLAY", 7)
+    icon:ClearAllPoints()
+    icon:SetPoint("CENTER", anchorTo, "CENTER", offsetX or 0, offsetY or 0)
+    icon:SetSize(size, size)
 end
 
 -- Midnight only

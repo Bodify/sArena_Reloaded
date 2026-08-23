@@ -409,6 +409,8 @@ function layout:Initialize(frame)
     f:SetSize(42, 42)
     f:SetDrawLayer("OVERLAY", 7)
 
+    frame:SetupDisconnectedIcon(frame.HealthBar, 55, true)
+
     local frameTexture = frame.frameTexture
     frameTexture:ClearAllPoints()
     frameTexture:SetAllPoints(frame)
