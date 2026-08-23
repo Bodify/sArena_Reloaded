@@ -89,6 +89,7 @@
                         self.parent:GetParent():UpdateDRPositions();
                     </OnShow>
                     <OnHide>
+                        if self:IsShown() then return end
                         self.parent:Hide();
                         self.parent.severity = 1;
                         self.parent:GetParent():UpdateDRPositions();
