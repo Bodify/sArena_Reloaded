@@ -1,3 +1,7 @@
+# sArena Reloaded 2.6.1e
+## Tweak
+- Update Dissonance profile (www.twitch.tv/dissonancewow). Thank you for sharing!
+
 # sArena Reloaded 2.6.1d
 ## Tweak
 - Update Jazggz profile (www.twitch.tv/jazggz). Thank you for sharing!
