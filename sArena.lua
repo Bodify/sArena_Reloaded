@@ -625,6 +625,14 @@ function sArenaMixin:OnEvent(event, ...)
         self:UpdatePreGatesFrames()
     elseif event == "PVP_MATCH_STATE_CHANGED" or event == "PVP_MATCH_ACTIVE" then
         self:CheckMatchStatus(event)
+        if isMidnight and self.waitingForMatch then
+            for i = 1, self.maxArenaOpponents do
+                local frame = self["arena" .. i]
+                if frame then
+                    frame:ResetDR()
+                end
+            end
+        end
         if self:IsInArena() then
             if db and db.profile.shadowSightTimer and self.engagedInMatch and not IsSoloShuffle() then
                 self:StartShadowsightTimer(self.shadowsightStartTime)

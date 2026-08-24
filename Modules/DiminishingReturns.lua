@@ -66,7 +66,14 @@ function sArenaFrameMixin:ResetDR()
 		local drFrame = useDrFrames and frames[i] or self[frames[i]]
 		if drFrame then
 			drFrame.Cooldown:Clear()
+			if isMidnight then
+				drFrame:Hide()
+				drFrame.DRSeverity = 0
+			end
 		end
+	end
+	if isMidnight then
+		self:UpdateDRPositions()
 	end
 end
 

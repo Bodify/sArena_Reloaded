@@ -1,3 +1,7 @@
+# sArena Reloaded 2.6.1g
+## Tweak
+- Midnight: Fix an issue with DR frames sticking around between shuffle rounds and not resetting until round started.
+
 # sArena Reloaded 2.6.1f
 ## Bugfix
 - Midnight: Fix DR frames getting hidden on UI hide and not coming back afterwards.

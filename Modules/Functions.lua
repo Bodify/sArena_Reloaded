@@ -714,7 +714,7 @@ function sArenaMixin:CheckMatchStatus(event)
 
             -- Delay reset of this flag so Blizzards SetCooldown doesnt put a CD on Trinket on round start when there isn't a cooldown
             -- from equip swapping in spawn, or potentially accidentally trinketing I suppose.
-            C_Timer.After(0.5, function() self.waitingForMatchDelayedReset = nil end)
+            C_Timer.After(1, function() self.waitingForMatchDelayedReset = nil end)
         else
             self.engagedInMatch = nil
             self.waitingForMatch = true
