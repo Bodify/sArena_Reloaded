@@ -1,3 +1,7 @@
+# sArena Reloaded 2.6.1f
+## Bugfix
+- Midnight: Fix DR frames getting hidden on UI hide and not coming back afterwards.
+
 # sArena Reloaded 2.6.1e
 ## Tweak
 - Update Dissonance profile (www.twitch.tv/dissonancewow). Thank you for sharing!
