@@ -1,7 +1,7 @@
 local isMoP = sArenaMixin.isMoP
 local isTBC = sArenaMixin.isTBC
 local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
-local GetSpellTexture = GetSpellTexture or C_Spell.GetSpellTexture
+local GetSpellTexture = C_Spell.GetSpellTexture
 local auraList = sArenaMixin.auraList
 local interruptList = sArenaMixin.interruptList
 local tooltipInfoAuras = sArenaMixin.tooltipInfoAuras

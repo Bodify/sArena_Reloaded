@@ -213,6 +213,8 @@ L["Option_GladTracker"] = "Gladiator Tracker"
 L["Option_GladTracker_Desc"] = "Show gladiator/legend/strategist win progress on the Honor/Conquest panel where you queue. Requires one win above elite rating to show."
 L["Option_UseDefaultPartyFrames"] = "Use Default Party Frames (for Widgets)"
 L["Option_UseDefaultPartyFrames_Desc"] = "Force default party frames as anchors for Widgets like Arena Target Indicators etc instead of detected party frames addon."
+L["Option_ShowDampening"] = "Show Dampening"
+L["Option_ShowDampening_Desc"] = "Show dampening percent in arena at the top of your screen."
 
 ---------------------------------------
 -- Cast Bars
@@ -449,6 +451,8 @@ L["Status_HealthAndPowerPercent"] = "Health and Power Percent"
 L["Layout_Settings"] = "Layout Settings"
 L["Layout_Settings_Desc"] = "These settings apply only to the selected layout"
 L["Global_Settings"] = "Global Settings"
+L["Category_ArenaWidgets"] = "Arena Widgets"
+L["Category_ArenaWidgets_Desc"] = "Extra arena information shown outside of the enemy frames"
 L["Global_Settings_Desc"] = "These settings apply to all layouts"
 
 L["Text_ShowOnMouseover_Desc"] = "If disabled, text only shows on mouseover"

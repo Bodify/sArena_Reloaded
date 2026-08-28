@@ -95,8 +95,7 @@ local severityColor = {
 	[3] = { 1, 0, 0, 1 }
 }
 
-local GetTime = GetTime
-local GetSpellTexture = GetSpellTexture or C_Spell.GetSpellTexture
+local GetSpellTexture =  C_Spell.GetSpellTexture
 
 function sArenaFrameMixin:FindDR(combatEvent, spellID)
 	local category = drList[spellID]

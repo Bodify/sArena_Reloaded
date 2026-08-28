@@ -7,7 +7,7 @@ local isRetail = sArenaMixin.isRetail
 local isMidnight = sArenaMixin.isMidnight
 local isTBC = sArenaMixin.isTBC
 local L = sArenaMixin.L
-local GetSpellTexture = GetSpellTexture or C_Spell.GetSpellTexture
+local GetSpellTexture = C_Spell.GetSpellTexture
 local LSM = LibStub("LibSharedMedia-3.0")
 local LCG = LibStub("LibCustomGlow-1.0", true)
 

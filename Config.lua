@@ -26,41 +26,6 @@ local function GetClassOptionName(classToken)
     return label
 end
 
-local function GetSpellInfoCompat(spellID)
-    if not spellID then
-        return nil
-    end
-
-    if GetSpellInfo then
-        return GetSpellInfo(spellID)
-    end
-
-    if C_Spell and C_Spell.GetSpellInfo then
-        local spellInfo = C_Spell.GetSpellInfo(spellID)
-        if spellInfo then
-            return spellInfo.name, nil, spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange, spellInfo.spellID, spellInfo.originalIconID
-        end
-    end
-
-    return nil
-end
-
-local function GetSpellDescriptionCompat(spellID)
-    if not spellID then
-        return ""
-    end
-
-    if GetSpellDescription then
-        return GetSpellDescription(spellID) or ""
-    end
-
-    if C_Spell and C_Spell.GetSpellDescription then
-        return C_Spell.GetSpellDescription(spellID) or ""
-    end
-
-    return ""
-end
-
 local function getLayoutTable()
     local t = {}
 
@@ -6060,6 +6025,53 @@ else
                 type = "group",
                 childGroups = "tree",
                 args = {
+                    arenaWidgetsGroup = {
+                        order = 1.5,
+                        name = L["Category_ArenaWidgets"],
+                        desc = L["Category_ArenaWidgets_Desc"],
+                        type = "group",
+                        args = {
+                            shadowSightTimer = {
+                                order = 1,
+                                name = L["Option_ShadowsightTimer"],
+                                desc = L["Option_ShadowsightTimer_Desc"],
+                                type = "toggle",
+                                width = "full",
+                                get = function(info) return info.handler.db.profile.shadowSightTimer end,
+                                set = function(info, val)
+                                    info.handler.db.profile.shadowSightTimer = val
+                                end,
+                            },
+                            showDampening = {
+                                order = 2,
+                                name = L["Option_ShowDampening"],
+                                desc = L["Option_ShowDampening_Desc"],
+                                type = "toggle",
+                                width = "full",
+                                get = function(info) return info.handler.db.profile.showDampening end,
+                                set = function(info, val)
+                                    info.handler.db.profile.showDampening = val
+                                    if val and info.handler:IsInArena() then
+                                        info.handler:StartDampening()
+                                    else
+                                        info.handler:ResetDampening()
+                                    end
+                                end,
+                            },
+                            gladTracker = {
+                                order = 3,
+                                name = L["Option_GladTracker"],
+                                desc = L["Option_GladTracker_Desc"],
+                                type = "toggle",
+                                width = "full",
+                                get = function(info) return info.handler.db.profile.gladTracker end,
+                                set = function(info, val)
+                                    info.handler.db.profile.gladTracker = val
+                                    info.handler:GladTracker()
+                                end,
+                            },
+                        },
+                    },
                     framesGroup = {
                         order = 1,
                         name = L["Option_ArenaFrames"],
@@ -6506,17 +6518,6 @@ else
                                             end
                                         end,
                                     },
-                                    shadowSightTimer = {
-                                        order = 7.5,
-                                        name = L["Option_ShadowsightTimer"],
-                                        desc = L["Option_ShadowsightTimer_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.shadowSightTimer end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.shadowSightTimer = val
-                                        end,
-                                    },
                                     colorMysteryGray = {
                                         order = 9,
                                         name = L["Option_ColorNonVisibleFramesGray"],
@@ -6861,18 +6862,6 @@ else
                                         get = function(info) return info.handler.db.profile.disableOvershields end,
                                         set = function(info, val)
                                             info.handler.db.profile.disableOvershields = val
-                                        end
-                                    },
-                                    gladTracker = {
-                                        order = 2.4,
-                                        name = L["Option_GladTracker"],
-                                        desc = L["Option_GladTracker_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.gladTracker end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.gladTracker = val
-                                            info.handler:GladTracker()
                                         end
                                     },
                                     useDefaultPartyFrames = {
@@ -8734,7 +8723,7 @@ else
                                     args["healer_dispels"].args["spell_" .. spellID] = {
                                         order = healerOrder,
                                         name = function()
-                                            local spellName = GetSpellInfoCompat(spellID)
+                                            local spellName = C_Spell.GetSpellName(spellID)
                                             return "|T" .. (data.texture or "") .. ":16|t " .. (spellName or data.name)
                                         end,
                                         type = "toggle",
@@ -8750,8 +8739,8 @@ else
                                             end
                                         end,
                                         desc = function()
-                                            local spellName = GetSpellInfoCompat(spellID)
-                                            local spellDesc = GetSpellDescriptionCompat(spellID)
+                                            local spellName = C_Spell.GetSpellName(spellID)
+                                            local spellDesc = C_Spell.GetSpellDescription(spellID)
 
                                             spellName = spellName or data.name or L["Unknown_Spell"]
                                             local cooldownText = data.cooldown and string.format(L["Cooldown_Seconds"], data.cooldown) or ""
@@ -8803,7 +8792,7 @@ else
                                     args["dps_dispels"].args["spell_" .. spellID] = {
                                         order = dpsOrder,
                                         name = function()
-                                            local spellName = GetSpellInfoCompat(spellID)
+                                            local spellName = C_Spell.GetSpellName(spellID)
                                             return "|T" .. (data.texture or "134400") .. ":16|t " .. (spellName or data.name)
                                         end,
                                         type = "toggle",
@@ -8819,8 +8808,8 @@ else
                                             end
                                         end,
                                         desc = function()
-                                            local spellName = GetSpellInfoCompat(spellID)
-                                            local spellDesc = GetSpellDescriptionCompat(spellID)
+                                            local spellName = C_Spell.GetSpellName(spellID)
+                                            local spellDesc = C_Spell.GetSpellDescription(spellID)
 
                                             spellName = spellName or data.name or L["Unknown_Spell"]
                                             local cooldownText = data.cooldown and string.format(L["Cooldown_Seconds"], data.cooldown) or ""
@@ -8907,8 +8896,8 @@ else
                                                 type = "toggle",
                                                 desc = function()
                                                     if not capturedSpellID then return "" end
-                                                    local spellName = GetSpellInfoCompat(capturedSpellID)
-                                                    local spellDesc = GetSpellDescriptionCompat(capturedSpellID)
+                                                    local spellName = C_Spell.GetSpellName(capturedSpellID)
+                                                    local spellDesc = C_Spell.GetSpellDescription(capturedSpellID)
                                                     spellName = spellName or raceKey
                                                     local lines = {}
                                                     table.insert(lines, "|cFFFFD700" .. spellName .. "|r")
@@ -9450,8 +9439,10 @@ else
 
                                     local function spellTooltip(activeID, defaultID)
                                         if not activeID then return L["Widget_RangeCheck_SpellID_Desc"] end
-                                        local spellName, _, _, _, minRange, maxRange = GetSpellInfoCompat(activeID)
-                                        local tip = (spellName or "Unknown") .. " (" .. activeID .. ")"
+                                        local spellInfo = C_Spell.GetSpellInfo(activeID)
+                                        local tip = (spellInfo and spellInfo.name or "Unknown") .. " (" .. activeID .. ")"
+                                        local minRange = spellInfo and spellInfo.minRange
+                                        local maxRange = spellInfo and spellInfo.maxRange
                                         if minRange and maxRange then
                                             if minRange > 0 then
                                                 tip = tip .. "\nRange: " .. minRange .. "-" .. maxRange .. " yd"
@@ -9462,7 +9453,7 @@ else
                                             end
                                         end
                                         if defaultID then
-                                            local defName = GetSpellInfoCompat(defaultID)
+                                            local defName = C_Spell.GetSpellName(defaultID)
                                             tip = tip .. "\n\n|cff888888(default: " .. (defName or "Unknown") .. " (" .. defaultID .. "))|r"
                                         end
                                         return tip
@@ -9470,7 +9461,7 @@ else
 
                                     local function spellNameByID(spellID)
                                         if not spellID then return nil end
-                                        local name = GetSpellInfoCompat(spellID)
+                                        local name = C_Spell.GetSpellName(spellID)
                                         return name
                                     end
 

@@ -23,8 +23,6 @@ sArenaMixin.pFont = LSM:Fetch(LSM.MediaType.FONT, "Prototype") or LSM:Fetch(LSM.
 sArenaMixin.hiddenFrame = CreateFrame("Frame")
 sArenaMixin.hiddenFrame:Hide()
 
-local GetSpellTexture = GetSpellTexture or C_Spell.GetSpellTexture
-
 -- Track which arena units we've seen (to work around UnitExists returning false for stealthed units)
 if noEarlyFrames then
     sArenaMixin.seenArenaUnits = {}
@@ -145,7 +143,8 @@ local UnitPowerMax = UnitPowerMax
 local UnitPower = UnitPower
 local UnitPowerType = UnitPowerType
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
-local GetSpellName = GetSpellName or C_Spell.GetSpellName
+local GetSpellName = C_Spell.GetSpellName
+local GetSpellTexture = C_Spell.GetSpellTexture
 local feignDeathID = 5384
 local FEIGN_DEATH = GetSpellName(feignDeathID) -- Localized name for Feign Death
 
@@ -563,6 +562,8 @@ function sArenaMixin:OnEvent(event, ...)
             self:RegisterInterruptEvents()
             self:RegisterRangeCheckEvents()
             self:UpdatePlayerSpec()
+            self:StartDampening()
+            self:RestoreShadowsightTimer()
             if self.TestTitle then
                 self.TestTitle:Hide()
                 for i = 1, self.maxArenaOpponents do
@@ -595,6 +596,7 @@ function sArenaMixin:OnEvent(event, ...)
             self:UnregisterInterruptEvents()
             self:UnregisterRangeCheckEvents()
             self:ResetShadowsightTimer()
+            self:ResetDampening()
         end
 
     elseif event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" then
@@ -637,10 +639,12 @@ function sArenaMixin:OnEvent(event, ...)
         end
         if self:IsInArena() then
             if db and db.profile.shadowSightTimer and self.engagedInMatch and not IsSoloShuffle() then
-                self:StartShadowsightTimer(self.shadowsightStartTime)
+                self:StartShadowsightTimer(self:GetShadowsightSpawnOffset())
             end
+            self:StartDampening()
         else
             self:ResetShadowsightTimer()
+            self:ResetDampening()
         end
 
     elseif event == "PLAYER_REGEN_ENABLED" then

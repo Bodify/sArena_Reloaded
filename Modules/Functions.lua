@@ -140,6 +140,72 @@ function sArenaFrameMixin:SetUnitAuraRegistration()
     end
 end
 
+function sArenaMixin:UpdateTopTextAnchors()
+    local container = UIWidgetTopCenterContainerFrame
+    local shadowsight = self.ShadowsightTimer
+    local dampening = self.DampeningText
+
+    if shadowsight then
+        shadowsight:ClearAllPoints()
+        if container then
+            shadowsight:SetParent(container)
+            shadowsight:SetPoint("TOP", container, "BOTTOM", 0, 5)
+        else
+            shadowsight:SetParent(UIParent)
+            shadowsight:SetPoint("TOP", UIParent, "TOP", 0, -100)
+        end
+    end
+
+    if dampening then
+        dampening:ClearAllPoints()
+        if shadowsight and shadowsight:IsShown() then
+            dampening:SetParent(shadowsight:GetParent())
+            dampening:SetPoint("TOP", shadowsight, "BOTTOM", 0, 0)
+        elseif container then
+            dampening:SetParent(container)
+            dampening:SetPoint("TOP", container, "BOTTOM", 0, 5)
+        else
+            dampening:SetParent(UIParent)
+            dampening:SetPoint("TOP", UIParent, "TOP", 0, -100)
+        end
+    end
+end
+
+local function GetActiveMatchDuration()
+    local duration = C_PvP.GetActiveMatchDuration and C_PvP.GetActiveMatchDuration()
+    if duration and duration > 0 then
+        return duration
+    end
+
+    if GetBattlefieldInstanceRunTime then
+        local runTime = GetBattlefieldInstanceRunTime()
+        if runTime and runTime > 0 then
+            return runTime / 1000
+        end
+    end
+end
+
+function sArenaMixin:GetShadowsightSpawnOffset()
+    return self.shadowsightStartTime - (GetActiveMatchDuration() or 0)
+end
+
+function sArenaMixin:RestoreShadowsightTimer(attempt)
+    if not self:IsInArena() then return end
+    if not (self.db and self.db.profile.shadowSightTimer) then return end
+    if C_PvP.IsSoloShuffle and C_PvP.IsSoloShuffle() then return end
+
+    local duration = GetActiveMatchDuration()
+    if not duration then
+        attempt = (attempt or 0) + 1
+        if attempt <= 3 then
+            C_Timer.After(1, function() self:RestoreShadowsightTimer(attempt) end)
+        end
+        return
+    end
+
+    self:StartShadowsightTimer(self.shadowsightStartTime - duration)
+end
+
 function sArenaMixin:ResetShadowsightTimer()
     if self.shadowsightTicker then
         self.shadowsightTicker:Cancel()
@@ -150,6 +216,7 @@ function sArenaMixin:ResetShadowsightTimer()
             self.ShadowsightTimer.Text:SetText("")
         end
         self.ShadowsightTimer:Hide()
+        self:UpdateTopTextAnchors()
     end
     self.shadowsightTimers = {0, 0}
     self.shadowsightAvailable = 2
@@ -161,15 +228,8 @@ function sArenaMixin:StartShadowsightTimer(time)
         self.shadowsightTicker = nil
     end
 
-    self.ShadowsightTimer:ClearAllPoints()
-    if UIWidgetTopCenterContainerFrame then
-        self.ShadowsightTimer:SetParent(UIWidgetTopCenterContainerFrame)
-        self.ShadowsightTimer:SetPoint("TOP", UIWidgetTopCenterContainerFrame, "BOTTOM", 0, 5)
-    else
-        self.ShadowsightTimer:SetPoint("TOP", UIParent, "TOP", 0, -100)
-    end
-
     self.ShadowsightTimer:Show()
+    self:UpdateTopTextAnchors()
 
     local currentTime = GetTime()
     if isMidnight then
@@ -197,14 +257,8 @@ function sArenaMixin:OnShadowsightTaken()
         self.shadowsightTimers[2] = 0
 
         if not self.shadowsightTicker then
-            self.ShadowsightTimer:ClearAllPoints()
-            if UIWidgetTopCenterContainerFrame then
-                self.ShadowsightTimer:SetParent(UIWidgetTopCenterContainerFrame)
-                self.ShadowsightTimer:SetPoint("TOP", UIWidgetTopCenterContainerFrame, "BOTTOM", 0, -10)
-            else
-                self.ShadowsightTimer:SetPoint("TOP", UIParent, "TOP", 0, -100)
-            end
             self.ShadowsightTimer:Show()
+            self:UpdateTopTextAnchors()
 
             self.shadowsightTicker = C_Timer.NewTicker(0.1, function()
                 self:UpdateShadowsightDisplay()

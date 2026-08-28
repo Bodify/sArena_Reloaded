@@ -1,4 +1,5 @@
 local GetTime = GetTime
+local GetSpellTexture = C_Spell.GetSpellTexture
 local isRetail = sArenaMixin.isRetail
 local isMidnight = sArenaMixin.isMidnight
 local isTBC = sArenaMixin.isTBC
@@ -86,34 +87,34 @@ if isRetail then
 	}
 
 	racialData = {
-		["Human"] = { texture = C_Spell.GetSpellTexture(59752), sharedCD = 90, spellID = 59752 },
-		["Scourge"] = { texture = C_Spell.GetSpellTexture(7744), sharedCD = 30, spellID = 7744 },
-		["Dwarf"] = { texture = C_Spell.GetSpellTexture(20594), sharedCD = 30, spellID = 20594 },
-		["NightElf"] = { texture = C_Spell.GetSpellTexture(58984), sharedCD = 0, spellID = 58984 },
-		["Gnome"] = { texture = C_Spell.GetSpellTexture(20589), sharedCD = 0, spellID = 20589 },
-		["Draenei"] = { texture = C_Spell.GetSpellTexture(59542), sharedCD = 0, spellID = 59542 },
-		["Worgen"] = { texture = C_Spell.GetSpellTexture(68992), sharedCD = 0, spellID = 68992 },
-		["Pandaren"] = { texture = C_Spell.GetSpellTexture(107079), sharedCD = 0, spellID = 107079 },
-		["Orc"] = { texture = C_Spell.GetSpellTexture(33697), sharedCD = 0, spellID = 33697 },
-		["Tauren"] = { texture = C_Spell.GetSpellTexture(20549), sharedCD = 0, spellID = 20549 },
-		["Troll"] = { texture = C_Spell.GetSpellTexture(26297), sharedCD = 0, spellID = 26297 },
-		["BloodElf"] = { texture = C_Spell.GetSpellTexture(202719), sharedCD = 0, spellID = 202719 },
-		["Goblin"] = { texture = C_Spell.GetSpellTexture(69070), sharedCD = 0, spellID = 69070 },
-		["LightforgedDraenei"] = { texture = C_Spell.GetSpellTexture(255647), sharedCD = 0, spellID = 255647 },
-		["HighmountainTauren"] = { texture = C_Spell.GetSpellTexture(255654), sharedCD = 0, spellID = 255654 },
-		["Nightborne"] = { texture = C_Spell.GetSpellTexture(260364), sharedCD = 0, spellID = 260364 },
-		["MagharOrc"] = { texture = C_Spell.GetSpellTexture(274738), sharedCD = 0, spellID = 274738 },
-		["DarkIronDwarf"] = { texture = C_Spell.GetSpellTexture(265221), sharedCD = 30, spellID = 265221 },
-		["ZandalariTroll"] = { texture = C_Spell.GetSpellTexture(291944), sharedCD = 0, spellID = 291944 },
-		["VoidElf"] = { texture = C_Spell.GetSpellTexture(256948), sharedCD = 0, spellID = 256948 },
-		["KulTiran"] = { texture = C_Spell.GetSpellTexture(287712), sharedCD = 0, spellID = 287712 },
-		["Mechagnome"] = { texture = C_Spell.GetSpellTexture(312924), sharedCD = 0, spellID = 312924 },
-		["Vulpera"] = { texture = C_Spell.GetSpellTexture(312411), sharedCD = 0, spellID = 312411 },
-		["Dracthyr"] = { texture = C_Spell.GetSpellTexture(368970), sharedCD = 0, spellID = 368970 },
-		["EarthenDwarf"] = { texture = C_Spell.GetSpellTexture(436344), sharedCD = 0, spellID = 436344 },
+		["Human"] = { texture = GetSpellTexture(59752), sharedCD = 90, spellID = 59752 },
+		["Scourge"] = { texture = GetSpellTexture(7744), sharedCD = 30, spellID = 7744 },
+		["Dwarf"] = { texture = GetSpellTexture(20594), sharedCD = 30, spellID = 20594 },
+		["NightElf"] = { texture = GetSpellTexture(58984), sharedCD = 0, spellID = 58984 },
+		["Gnome"] = { texture = GetSpellTexture(20589), sharedCD = 0, spellID = 20589 },
+		["Draenei"] = { texture = GetSpellTexture(59542), sharedCD = 0, spellID = 59542 },
+		["Worgen"] = { texture = GetSpellTexture(68992), sharedCD = 0, spellID = 68992 },
+		["Pandaren"] = { texture = GetSpellTexture(107079), sharedCD = 0, spellID = 107079 },
+		["Orc"] = { texture = GetSpellTexture(33697), sharedCD = 0, spellID = 33697 },
+		["Tauren"] = { texture = GetSpellTexture(20549), sharedCD = 0, spellID = 20549 },
+		["Troll"] = { texture = GetSpellTexture(26297), sharedCD = 0, spellID = 26297 },
+		["BloodElf"] = { texture = GetSpellTexture(202719), sharedCD = 0, spellID = 202719 },
+		["Goblin"] = { texture = GetSpellTexture(69070), sharedCD = 0, spellID = 69070 },
+		["LightforgedDraenei"] = { texture = GetSpellTexture(255647), sharedCD = 0, spellID = 255647 },
+		["HighmountainTauren"] = { texture = GetSpellTexture(255654), sharedCD = 0, spellID = 255654 },
+		["Nightborne"] = { texture = GetSpellTexture(260364), sharedCD = 0, spellID = 260364 },
+		["MagharOrc"] = { texture = GetSpellTexture(274738), sharedCD = 0, spellID = 274738 },
+		["DarkIronDwarf"] = { texture = GetSpellTexture(265221), sharedCD = 30, spellID = 265221 },
+		["ZandalariTroll"] = { texture = GetSpellTexture(291944), sharedCD = 0, spellID = 291944 },
+		["VoidElf"] = { texture = GetSpellTexture(256948), sharedCD = 0, spellID = 256948 },
+		["KulTiran"] = { texture = GetSpellTexture(287712), sharedCD = 0, spellID = 287712 },
+		["Mechagnome"] = { texture = GetSpellTexture(312924), sharedCD = 0, spellID = 312924 },
+		["Vulpera"] = { texture = GetSpellTexture(312411), sharedCD = 0, spellID = 312411 },
+		["Dracthyr"] = { texture = GetSpellTexture(368970), sharedCD = 0, spellID = 368970 },
+		["EarthenDwarf"] = { texture = GetSpellTexture(436344), sharedCD = 0, spellID = 436344 },
 	}
 	if isMidnight then
-		racialData["Harronir"] = { texture = C_Spell.GetSpellTexture(1237885), sharedCD = 0, spellID = 1237885 } -- temp icon
+		racialData["Harronir"] = { texture = GetSpellTexture(1237885), sharedCD = 0, spellID = 1237885 } -- temp icon
 	end
 else
 	sArenaMixin.defaultSettings.profile.racialCategories = {
