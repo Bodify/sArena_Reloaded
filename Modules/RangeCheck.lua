@@ -9,8 +9,43 @@ local rangeElapsed = 0
 local noEarlyFrames = sArenaMixin.isTBC or sArenaMixin.isWrath
 local stealthCheck = noEarlyFrames and UnitExists or UnitIsVisible
 
+local cachedSpellID
+local cachedIsKnown
+local rangeSpellWatcher
+
+local function IsRangeSpellKnown(spellID)
+    return (IsSpellKnownOrOverridesKnown(spellID)
+        or (UnitExists("pet") and IsSpellKnownOrOverridesKnown(spellID, true))
+        or IsPlayerSpell(spellID)) and true or false
+end
+
+local function ResetRangeSpellKnown()
+    cachedIsKnown = nil
+end
+
+local function RangeSpellWatcher()
+    if rangeSpellWatcher then return end
+
+    rangeSpellWatcher = CreateFrame("Frame")
+    rangeSpellWatcher:SetScript("OnEvent", ResetRangeSpellKnown)
+    rangeSpellWatcher:RegisterEvent("SPELLS_CHANGED")
+    rangeSpellWatcher:RegisterEvent("PLAYER_TALENT_UPDATE")
+    rangeSpellWatcher:RegisterEvent("TRAIT_CONFIG_UPDATED")
+    rangeSpellWatcher:RegisterEvent("PLAYER_ENTERING_WORLD")
+    rangeSpellWatcher:RegisterUnitEvent("UNIT_PET", "player")
+end
+
+local function GetRangeSpellKnown(spellID)
+    if cachedIsKnown == nil or cachedSpellID ~= spellID then
+        RangeSpellWatcher()
+        cachedSpellID = spellID
+        cachedIsKnown = IsRangeSpellKnown(spellID)
+    end
+    return cachedIsKnown
+end
+
 local function IsSpellInRange(spellID, unit)
-    if IsSpellKnownOrOverridesKnown(spellID) or (UnitExists("pet") and IsSpellKnownOrOverridesKnown(spellID, true)) or IsPlayerSpell(spellID) then
+    if GetRangeSpellKnown(spellID) then
         return C_Spell.IsSpellInRange(spellID, unit)
     end
     -- If the spell isnt known always show as in range
@@ -20,19 +55,22 @@ end
 
 function sArenaMixin:RegisterRangeCheckEvents()
     local rc = self.db and self.db.profile.rangeCheck
-    if rc and rc.enabled then
-        self:UpdateRangeSettings()
-        if not self.rangeCheckUpdate then
-            self.rangeCheckUpdate = CreateFrame("Frame")
-        end
-        self.rangeCheckUpdate:SetScript("OnUpdate", function(_, elapsed)
-            rangeElapsed = rangeElapsed + elapsed
-            if rangeElapsed >= RANGE_INTERVAL then
-                rangeElapsed = 0
-                self:UpdateAllRangeChecks()
-            end
-        end)
+    if not (rc and rc.enabled) then
+        self:UnregisterRangeCheckEvents()
+        return
     end
+
+    self:UpdateRangeSettings()
+    if not self.rangeCheckUpdate then
+        self.rangeCheckUpdate = CreateFrame("Frame")
+    end
+    self.rangeCheckUpdate:SetScript("OnUpdate", function(_, elapsed)
+        rangeElapsed = rangeElapsed + elapsed
+        if rangeElapsed >= RANGE_INTERVAL then
+            rangeElapsed = 0
+            self:UpdateAllRangeChecks()
+        end
+    end)
 end
 
 function sArenaMixin:UnregisterRangeCheckEvents()
@@ -78,6 +116,8 @@ function sArenaMixin:UpdatePlayerRangeSpell()
     local specKey = self.playerSpecID or 0
     local perSpec = db.rangeCheckSpellsPerSpec or {}
     self.rangeSpell = perSpec[specKey] or self.defaultRangeSpellsPerSpec[specKey]
+
+    ResetRangeSpellKnown()
 end
 
 function sArenaMixin:CreateRangeCheckFrames()
@@ -314,12 +354,17 @@ function sArenaMixin:ApplyRangeAlpha(frame)
     local stealthAlpha = self.stealthAlpha
     local unit = frame.unit
 
+    local alpha
     if unit and not stealthCheck(unit) then
-        frame:SetAlpha(math.min(stealthAlpha, notInRangeAlpha))
+        alpha = math.min(stealthAlpha, notInRangeAlpha)
     elseif frame.notInRange then
-        frame:SetAlpha(notInRangeAlpha)
+        alpha = notInRangeAlpha
     else
-        frame:SetAlpha(1)
+        alpha = 1
+    end
+
+    if math.abs(frame:GetAlpha() - alpha) > 0.001 then
+        frame:SetAlpha(alpha)
     end
 end
 

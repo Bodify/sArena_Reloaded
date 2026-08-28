@@ -87,7 +87,7 @@ end
 
 function sArenaMixin:UpdatePartyFrameReferences(delay)
     local function UpdatePartyFrameReferences()
-        for i = 1, 4 do
+        for i = 1, 5 do
             self["partyFrame" .. i] = self:FindPartyFrame(i)
         end
         if self.db then

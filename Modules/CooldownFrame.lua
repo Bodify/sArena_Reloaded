@@ -93,7 +93,7 @@ function sArenaMixin:CreateCustomCooldown(cooldown, showDecimals)
                     cooldown.Text:SetAlpha(cooldown.durationObj:EvaluateRemainingDuration(decimalCurveInverse))
                 end
 
-                text:SetText(string.format("%.1f", cooldown.durationObj:GetRemainingDuration()))
+                text:SetFormattedText("%.1f", cooldown.durationObj:GetRemainingDuration())
             end)
         else
             cooldown:SetScript("OnUpdate", function(self, elapsed)

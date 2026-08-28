@@ -5,6 +5,21 @@
 
 local isMidnight = sArenaMixin.isMidnight
 
+local reusedArenaTargets = {}
+local reusedPetTargets = {}
+local reusedAttackers = {}
+
+local function SetTargetTextForUnit(fs, targetUnit, targetName)
+    local class = UnitIsPlayer(targetUnit) and UnitClassBase(targetUnit)
+    local color = class and C_ClassColor.GetClassColor(class)
+    if color then
+        fs:SetTextColor(color.r, color.g, color.b)
+    else
+        fs:SetTextColor(1, 1, 1)
+    end
+    fs:SetText(targetName)
+end
+
 function sArenaMixin:ChainIndicator(indicator, previous, direction, spacing)
     indicator:ClearAllPoints()
     spacing = spacing or 3
@@ -17,6 +32,137 @@ function sArenaMixin:ChainIndicator(indicator, previous, direction, spacing)
     elseif direction == "DOWN" then
         indicator:SetPoint("TOP", previous, "BOTTOM", 0, -spacing)
     end
+end
+
+local function BuildUnitTargetWatch(self)
+    local watch = self.unitTargetWatch
+    if watch then
+        wipe(watch)
+    else
+        watch = {}
+        self.unitTargetWatch = watch
+    end
+
+    for i = 1, self.maxArenaOpponents do
+        watch["arena" .. i] = "arena"
+    end
+
+    watch["player"] = "party"
+    for i = 1, 4 do
+        watch["party" .. i] = "party"
+    end
+    for i = 1, 5 do
+        watch["raid" .. i] = "party"
+    end
+
+    return watch
+end
+
+local pendingArenaUnits = {}
+local pendingPartySide
+local flushTimer
+
+local function FlushUnitTargetUpdates(self)
+    local partySide = pendingPartySide
+    pendingPartySide = nil
+
+    if next(pendingArenaUnits) then
+        for unit in pairs(pendingArenaUnits) do
+            local frame = self[unit]
+            if frame then
+                frame:UpdateArenaTargetText(frame.unit)
+            end
+        end
+        wipe(pendingArenaUnits)
+
+        self:UpdateArenaTargetsOnPartyFrames()
+    end
+
+    if partySide then
+        for i = 1, self.maxArenaOpponents do
+            local frame = self["arena" .. i]
+            frame:UpdateArenaTargets(frame.unit)
+        end
+        self:UpdateArenaTargetTextOnPartyFrames()
+    end
+end
+
+local function ClearPendingUnitTargetUpdates()
+    if flushTimer then
+        flushTimer:Cancel()
+        flushTimer = nil
+    end
+    pendingPartySide = nil
+    wipe(pendingArenaUnits)
+end
+
+function sArenaMixin:QueueUnitTargetUpdate(kind, unit)
+    if kind == "arena" then
+        pendingArenaUnits[unit] = true
+    else
+        pendingPartySide = true
+    end
+
+    if not flushTimer then
+        flushTimer = C_Timer.NewTimer(0.5, function()
+            flushTimer = nil
+            FlushUnitTargetUpdates(self)
+        end)
+    end
+end
+
+local rosterWatcher
+
+local function SetRosterWatch(self, enabled)
+    if enabled then
+        if not rosterWatcher then
+            rosterWatcher = CreateFrame("Frame")
+            rosterWatcher:SetScript("OnEvent", function()
+                self:RefreshUnitTargetRegistration()
+                self:UpdateArenaTargetTextOnPartyFrames()
+            end)
+        end
+        rosterWatcher:RegisterEvent("GROUP_ROSTER_UPDATE")
+    elseif rosterWatcher then
+        rosterWatcher:UnregisterEvent("GROUP_ROSTER_UPDATE")
+    end
+end
+
+function sArenaMixin:WantsUnitTargetEvent()
+    local db = self.db
+    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
+    if not widgetSettings then return false, false end
+
+    local pti = widgetSettings.partyTargetIndicators
+    local ptt = widgetSettings.partyTargetText
+
+    local indicatorsOn = pti and pti.enabled
+        and ((pti.partyOnArena and pti.partyOnArena.enabled) or (pti.arenaOnParty and pti.arenaOnParty.enabled))
+    local textOn = ptt and ptt.enabled
+        and ((ptt.partyOnArena and ptt.partyOnArena.enabled) or (ptt.arenaOnParty and ptt.arenaOnParty.enabled))
+
+    if not indicatorsOn and not textOn then return false, false end
+    if self:IsInArena() then return true, false end
+
+    local aop = ptt and ptt.arenaOnParty
+    local alwaysOn = (ptt and ptt.enabled and aop and aop.enabled and aop.alwaysOn) and true or false
+    if not alwaysOn then return false, false end
+
+    return not IsInRaid(), true
+end
+
+function sArenaMixin:RefreshUnitTargetRegistration()
+    local wanted, needsRosterWatch = self:WantsUnitTargetEvent()
+
+    if wanted then
+        BuildUnitTargetWatch(self)
+        self:RegisterEvent("UNIT_TARGET")
+    else
+        self:UnregisterEvent("UNIT_TARGET")
+        ClearPendingUnitTargetUpdates()
+    end
+
+    SetRosterWatch(self, needsRosterWatch)
 end
 
 function sArenaMixin:RegisterWidgetEvents()
@@ -36,14 +182,6 @@ function sArenaMixin:RegisterWidgetEvents()
             self:RegisterEvent("PLAYER_FOCUS_CHANGED")
         end
 
-        local pti = widgetSettings.partyTargetIndicators
-        local ptt = widgetSettings.partyTargetText
-        self.unitTargetAlwaysOn = ptt and ptt.enabled and ptt.arenaOnParty and ptt.arenaOnParty.enabled and ptt.arenaOnParty.alwaysOn or nil
-        if (pti and pti.enabled and ((pti.partyOnArena and pti.partyOnArena.enabled) or (pti.arenaOnParty and pti.arenaOnParty.enabled)))
-        or (ptt and ptt.enabled and ((ptt.partyOnArena and ptt.partyOnArena.enabled) or (ptt.arenaOnParty and (ptt.arenaOnParty.enabled or (ptt.arenaOnParty.enabled and ptt.arenaOnParty.alwaysOn))))) then
-            self:RegisterEvent("UNIT_TARGET")
-        end
-
         if widgetSettings.combatIndicator and widgetSettings.combatIndicator.enabled then
             for i = 1, self.maxArenaOpponents do
                 local frame = self["arena" .. i]
@@ -52,23 +190,22 @@ function sArenaMixin:RegisterWidgetEvents()
             end
         end
     end
+
+    self:RefreshUnitTargetRegistration()
 end
 
 function sArenaMixin:UnregisterWidgetEvents()
     self:UnregisterEvent("PLAYER_TARGET_CHANGED")
     self:UnregisterEvent("PLAYER_FOCUS_CHANGED")
-    if not self.unitTargetAlwaysOn then
-        self:UnregisterEvent("UNIT_TARGET")
-    end
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         frame:UnregisterEvent("UNIT_FLAGS")
     end
+
+    self:RefreshUnitTargetRegistration()
 end
 
 function sArenaMixin:UpdateWidgetSettings(db, info, val)
-
-    self:UnregisterWidgetEvents()
     self:RegisterWidgetEvents()
 
     for i = 1, self.maxArenaOpponents do
@@ -141,7 +278,7 @@ function sArenaFrameMixin:UpdateCombatStatus(unit)
 
     if ci and ci.enabled and unit and not self.DeathIcon:IsShown() then
         local inCombat = UnitAffectingCombat(unit)
-        local showOutOfCombat = ci.showOutOfCombat ~= false  -- default true
+        local showOutOfCombat = ci.showOutOfCombat ~= false
         local showInCombat = ci.showInCombat
 
         if inCombat and showInCombat then
@@ -233,25 +370,21 @@ function sArenaMixin:SetTargetFocusBorderEdges(border, borderSize, offset)
     border.bottom:SetIgnoreParentScale(true)
     border.left:SetIgnoreParentScale(true)
 
-    -- Top edge
     border.top:ClearAllPoints()
     border.top:SetPoint("TOPLEFT",  border, "TOPLEFT")
     border.top:SetPoint("TOPRIGHT", border, "TOPRIGHT")
     border.top:SetHeight(borderSize)
 
-    -- Right edge
     border.right:ClearAllPoints()
     border.right:SetPoint("TOPRIGHT",    border, "TOPRIGHT")
     border.right:SetPoint("BOTTOMRIGHT", border, "BOTTOMRIGHT")
     border.right:SetWidth(borderSize)
 
-    -- Bottom edge
     border.bottom:ClearAllPoints()
     border.bottom:SetPoint("BOTTOMLEFT",  border, "BOTTOMLEFT")
     border.bottom:SetPoint("BOTTOMRIGHT", border, "BOTTOMRIGHT")
     border.bottom:SetHeight(borderSize)
 
-    -- Left edge
     border.left:ClearAllPoints()
     border.left:SetPoint("TOPLEFT",    border, "TOPLEFT")
     border.left:SetPoint("BOTTOMLEFT", border, "BOTTOMLEFT")
@@ -547,14 +680,7 @@ function sArenaFrameMixin:UpdateArenaTargetText(unit)
     local targetUnit = unit .. "target"
     local targetName = UnitName(targetUnit)
     if targetName then
-        local class = UnitClassBase(targetUnit)
-        local color = class and C_ClassColor.GetClassColor(class)
-        if color then
-            fs:SetTextColor(color.r, color.g, color.b)
-        else
-            fs:SetTextColor(1, 1, 1)
-        end
-        fs:SetText(targetName)
+        SetTargetTextForUnit(fs, targetUnit, targetName)
     else
         fs:SetText("")
     end
@@ -571,28 +697,23 @@ function sArenaFrameMixin:UpdateArenaTargetTextTestMode()
         fs:SetText("")
         return
     end
-    local name = UnitName("player")
-    local class = UnitClassBase("player")
-    local color = class and C_ClassColor.GetClassColor(class)
-    if color then
-        fs:SetTextColor(color.r, color.g, color.b)
-    else
-        fs:SetTextColor(1, 1, 1)
-    end
-    fs:SetText(name)
+    SetTargetTextForUnit(fs, "player", UnitName("player"))
 end
 
 function sArenaMixin:CreatePartyFrameTargetText(partyFrame)
-    if not partyFrame.WidgetOverlay then
-        local overlay = CreateFrame("Frame", nil, partyFrame)
+    local overlay = partyFrame.WidgetOverlay
+    if not overlay then
+        overlay = CreateFrame("Frame", nil, partyFrame)
         overlay:SetFrameStrata("HIGH")
         overlay:SetFrameLevel(partyFrame:GetFrameLevel() + 10)
         partyFrame.WidgetOverlay = overlay
     end
-    partyFrame.WidgetOverlay:SetParent(partyFrame)
-    partyFrame.WidgetOverlay:ClearAllPoints()
-    partyFrame.WidgetOverlay:SetAllPoints()
-    local overlay = partyFrame.WidgetOverlay
+    if overlay.anchoredTo ~= partyFrame then
+        overlay.anchoredTo = partyFrame
+        overlay:SetParent(partyFrame)
+        overlay:ClearAllPoints()
+        overlay:SetAllPoints()
+    end
     if overlay.partyTargetText then return end
     local textFrame = CreateFrame("Frame", nil, overlay)
     textFrame:SetSize(80, 14)
@@ -655,7 +776,8 @@ function sArenaMixin:UpdateArenaTargetTextOnPartyFrames()
     local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
     local ptt = widgetSettings and widgetSettings.partyTargetText
     local aop = ptt and ptt.arenaOnParty
-    if (not ptt or not ptt.enabled or not aop or not aop.enabled) or (not self:IsInArena() and (not aop or not aop.alwaysOn)) then
+    if (not ptt or not ptt.enabled or not aop or not aop.enabled)
+        or (not self:IsInArena() and not (aop.alwaysOn and not IsInRaid())) then
         for i = 1, 5 do
             local partyFrame = self:GetPartyFrame(i)
             if partyFrame and partyFrame.WidgetOverlay and partyFrame.WidgetOverlay.partyTargetText then
@@ -671,21 +793,10 @@ function sArenaMixin:UpdateArenaTargetTextOnPartyFrames()
             local fs = partyFrame.WidgetOverlay.partyTargetText
             if fs then
                 local partyUnit = partyFrame.unit or partyFrame:GetAttribute("unit")
-                if partyUnit and UnitExists(partyUnit) then
-                    local targetUnit = partyUnit .. "target"
-                    local targetName = UnitName(targetUnit)
-                    if targetName then
-                        local class = UnitClassBase(targetUnit)
-                        local color = class and C_ClassColor.GetClassColor(class)
-                        if class and color then
-                            fs:SetTextColor(color.r, color.g, color.b)
-                        else
-                            fs:SetTextColor(1, 1, 1)
-                        end
-                        fs:SetText(targetName)
-                    else
-                        fs:SetText("")
-                    end
+                local targetUnit = partyUnit and UnitExists(partyUnit) and (partyUnit .. "target")
+                local targetName = targetUnit and UnitName(targetUnit)
+                if targetName then
+                    SetTargetTextForUnit(fs, targetUnit, targetName)
                 else
                     fs:SetText("")
                 end
@@ -706,7 +817,7 @@ function sArenaMixin:UpdateArenaTargetTextOnPartyFramesTestMode()
                 local name = pick and pick.tempName or "Target"
                 local class = pick and pick.tempClass
                 local color = class and C_ClassColor.GetClassColor(class)
-                if class and color then
+                if color then
                     fs:SetTextColor(color.r, color.g, color.b)
                 else
                     fs:SetTextColor(1, 1, 1)
@@ -747,15 +858,17 @@ function sArenaFrameMixin:UpdateArenaTargets(unit)
     local UnitIsUnitSafe = isMidnight and UnitIsProbablyUnit or UnitIsUnit
 
     -- Arena (player) frame indicators
-    local arenaTargets = {}
+    local arenaTargets, arenaCount = reusedArenaTargets, 0
     if widgetSettings and widgetSettings.partyTargetIndicators
        and widgetSettings.partyTargetIndicators.enabled
        and widgetSettings.partyTargetIndicators.partyOnArena
        and widgetSettings.partyTargetIndicators.partyOnArena.enabled
        and unit and UnitExists(unit) then
+        wipe(arenaTargets)
         for i = 1, 4 do
             if UnitIsUnitSafe("party" .. i .. "target", unit) then
-                table.insert(arenaTargets, "party" .. i)
+                arenaCount = arenaCount + 1
+                arenaTargets[arenaCount] = "party" .. i
             end
         end
         for i = 1, 4 do
@@ -777,11 +890,13 @@ function sArenaFrameMixin:UpdateArenaTargets(unit)
 
     if petEnabled then
         local petUnit = pet.unit
-        local petTargets = {}
+        local petTargets, petCount = reusedPetTargets, 0
+        wipe(petTargets)
         if petUnit and UnitExists(petUnit) then
             for i = 1, 4 do
                 if UnitIsUnitSafe("party" .. i .. "target", petUnit) then
-                    table.insert(petTargets, "party" .. i)
+                    petCount = petCount + 1
+                    petTargets[petCount] = "party" .. i
                 end
             end
         end
@@ -806,19 +921,22 @@ function sArenaFrameMixin:UpdateArenaTargets(unit)
 end
 
 function sArenaMixin:CreatePartyFrameIndicators(partyFrame)
-    if not partyFrame.WidgetOverlay then
-        local overlay = CreateFrame("Frame", nil, partyFrame)
-        overlay:SetAllPoints()
+    local overlay = partyFrame.WidgetOverlay
+    if not overlay then
+        overlay = CreateFrame("Frame", nil, partyFrame)
         overlay:SetFrameStrata("HIGH")
         overlay:SetFrameLevel(partyFrame:GetFrameLevel() + 10)
         partyFrame.WidgetOverlay = overlay
-    else
-        partyFrame.WidgetOverlay:SetParent(partyFrame)
+    end
+    if overlay.anchoredTo ~= partyFrame then
+        overlay.anchoredTo = partyFrame
+        overlay:SetParent(partyFrame)
+        overlay:ClearAllPoints()
+        overlay:SetAllPoints()
+        overlay.aopDirection = nil
     end
 
-    if partyFrame.WidgetOverlay.arenaTarget1 then return end
-
-    local overlay = partyFrame.WidgetOverlay
+    if overlay.arenaTarget1 then return end
     for i = 1, self.maxArenaOpponents do
         local indicator = CreateFrame("Frame", nil, overlay)
         indicator:SetSize(15, 15)
@@ -880,15 +998,22 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
         if partyFrame then
             self:CreatePartyFrameIndicators(partyFrame)
             local ov = partyFrame.WidgetOverlay
-            ov.arenaTarget1.useCursorDelta = true
-            self:SetupDrag(ov.arenaTarget1, ov.arenaTarget1, "partyTargetIndicators", nil, "widget", "arenaOnParty")
-            for j = 2, self.maxArenaOpponents do
-                self:SetupDrag(ov["arenaTarget" .. j], ov.arenaTarget1, "partyTargetIndicators", nil, "widget", "arenaOnParty")
-            end
-            self:RepositionPartyFrameIndicators(partyFrame, arenaDirection, arenaSpacing, aopPosX, aopPosY)
 
-            for j = 1, self.maxArenaOpponents do
-                partyFrame.WidgetOverlay["arenaTarget" .. j]:SetScale(arenaScale)
+            if ov.aopDirection ~= arenaDirection or ov.aopSpacing ~= arenaSpacing
+                or ov.aopScale ~= arenaScale or ov.aopPosX ~= aopPosX or ov.aopPosY ~= aopPosY then
+                ov.aopDirection, ov.aopSpacing = arenaDirection, arenaSpacing
+                ov.aopScale, ov.aopPosX, ov.aopPosY = arenaScale, aopPosX, aopPosY
+
+                ov.arenaTarget1.useCursorDelta = true
+                self:SetupDrag(ov.arenaTarget1, ov.arenaTarget1, "partyTargetIndicators", nil, "widget", "arenaOnParty")
+                for j = 2, self.maxArenaOpponents do
+                    self:SetupDrag(ov["arenaTarget" .. j], ov.arenaTarget1, "partyTargetIndicators", nil, "widget", "arenaOnParty")
+                end
+                self:RepositionPartyFrameIndicators(partyFrame, arenaDirection, arenaSpacing, aopPosX, aopPosY)
+
+                for j = 1, self.maxArenaOpponents do
+                    ov["arenaTarget" .. j]:SetScale(arenaScale)
+                end
             end
 
             if self.testMode then
@@ -900,12 +1025,14 @@ function sArenaMixin:UpdateArenaTargetsOnPartyFrames()
             else
                 local partyUnit = partyFrame.unit or partyFrame:GetAttribute("unit")
                 if partyUnit and UnitExists(partyUnit) then
-                    local attackers = {}
+                    local attackers, attackerCount = reusedAttackers, 0
+                    wipe(attackers)
                     local UnitIsUnitSafe = isMidnight and UnitIsProbablyUnit or UnitIsUnit
                     for j = 1, self.maxArenaOpponents do
                         local arenaUnit = "arena" .. j
                         if UnitExists(arenaUnit) and UnitIsUnitSafe(arenaUnit .. "target", partyUnit) then
-                            table.insert(attackers, arenaUnit)
+                            attackerCount = attackerCount + 1
+                            attackers[attackerCount] = arenaUnit
                         end
                     end
 

@@ -7,12 +7,19 @@ local ABSORB_GLOW_ALPHA  = 0.6
 local ABSORB_GLOW_OFFSET = -5
 
 local function AdjustAbsorbGlow(absorbGlow, anchorBar, clamped, useRightEdge)
-    local barTex = anchorBar:GetStatusBarTexture()
-    local topAnchor = useRightEdge and "TOPRIGHT" or "TOPLEFT"
-    local bottomAnchor = useRightEdge and "BOTTOMRIGHT" or "BOTTOMLEFT"
-    absorbGlow:ClearAllPoints()
-    absorbGlow:SetPoint("TOPLEFT", barTex, topAnchor, ABSORB_GLOW_OFFSET, 1)
-    absorbGlow:SetPoint("BOTTOMLEFT", barTex, bottomAnchor, ABSORB_GLOW_OFFSET, -1)
+    useRightEdge = useRightEdge or false
+    if absorbGlow.glowAnchorBar ~= anchorBar or absorbGlow.glowUseRightEdge ~= useRightEdge then
+        absorbGlow.glowAnchorBar = anchorBar
+        absorbGlow.glowUseRightEdge = useRightEdge
+
+        local barTex = anchorBar:GetStatusBarTexture()
+        local topAnchor = useRightEdge and "TOPRIGHT" or "TOPLEFT"
+        local bottomAnchor = useRightEdge and "BOTTOMRIGHT" or "BOTTOMLEFT"
+        absorbGlow:ClearAllPoints()
+        absorbGlow:SetPoint("TOPLEFT", barTex, topAnchor, ABSORB_GLOW_OFFSET, 1)
+        absorbGlow:SetPoint("BOTTOMLEFT", barTex, bottomAnchor, ABSORB_GLOW_OFFSET, -1)
+    end
+
     absorbGlow:SetAlphaFromBoolean(clamped, ABSORB_GLOW_ALPHA, 0)
 end
 
@@ -95,7 +102,6 @@ local function UpdateAbsorbBars(parent, frame, unit)
         AdjustAbsorbGlow(absorbGlow, overshieldBar, clamped, true)
         overshieldBar:SetAlpha(0)
         absorbFillBar.overlay:SetAlpha(1)
-        absorbGlow:SetAlphaFromBoolean(clamped, ABSORB_GLOW_ALPHA, 0)
     else
         local _, maxVal = healthBar:GetMinMaxValues()
         overshieldBar:SetMinMaxValues(0, maxVal)

@@ -1,3 +1,8 @@
+# sArena Reloaded 2.6.1h
+## Tweak
+- Fix performance issues with "Target Text" setting with "Always on" mode during raids. This feature is now both improved generally speaking but also disabled entirely in raids and bgs where they dont need to be shown.
+- Minor cleanup and improvements here and there.
+
 # sArena Reloaded 2.6.1g
 ## Tweak
 - Midnight: Fix an issue with DR frames sticking around between shuffle rounds and not resetting until round started.
