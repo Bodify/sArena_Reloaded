@@ -659,6 +659,8 @@ function sArenaFrameMixin:RegisterFrameEvents()
 
     if not isMidnight then
         self:RegisterEvent("ARENA_CROWD_CONTROL_SPELL_UPDATE")
+    else
+        self:RegisterUnitEvent("UNIT_FACTION", unit, "player")
     end
 end
 

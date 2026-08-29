@@ -94,7 +94,7 @@
                     <OnHide>
                         if self:IsShown() then return end
                         self.parent:Hide();
-                        self.parent.severity = 1;
+                        self.parent.DRSeverity = 0;
                         self.parent:GetParent():UpdateDRPositions();
                     </OnHide>
                 </Scripts>
@@ -117,7 +117,7 @@
 
         <Scripts>
             <OnLoad>
-                self.severity = 1;
+                self.DRSeverity = 0;
             </OnLoad>
         </Scripts>
     </Frame>

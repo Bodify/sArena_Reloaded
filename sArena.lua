@@ -1486,6 +1486,8 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
             if not isMidnight then
                 self:FindAura(arg1)
             end
+        elseif (event == "UNIT_FACTION") then
+            self:FindAura()
         elseif (event == "UNIT_HEALTH") then
             if isMidnight then
                 local isDead = UnitIsDeadOrGhost(unit)
@@ -1802,6 +1804,8 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
     self:UpdateRacial()
     if not isMidnight then
         self:UpdateDispel()
+    elseif not self.Trinket.Texture:GetTexture() and not db.profile.removeUnequippedTrinketTexture then
+        self.Trinket.Texture:SetTexture(sArenaMixin.noTrinketTexture)
     end
     self.WidgetOverlay:Show()
     self:UpdateCombatStatus(unit)

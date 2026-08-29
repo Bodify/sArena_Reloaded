@@ -806,7 +806,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                     width = "full",
                                     name = L["Castbar_IncludeShadowWordDeath"],
                                     desc = L["Castbar_IncludeShadowWordDeath_Desc"],
-                                    hidden = function() return select(2, UnitClass("player")) ~= "PRIEST" end,
+                                    hidden = function() return UnitClassBase("player") ~= "PRIEST" end,
                                     disabled = function(info)
                                         local layout = info.handler.db.profile.layoutSettings[layoutName]
                                         return not (layout.castBar.interruptStatusColorOn)
@@ -5678,22 +5678,22 @@ local function setDRIcons()
             name = function(info)
                 local db = info.handler.db
                 if db.profile.drStaticIconsPerSpec then
-                    local className = select(1, UnitClass("player")) or L["Unknown"]
-                    local classKey = select(2, UnitClass("player"))
+                    local className = UnitClass("player") or L["Unknown"]
+                    local classKey = UnitClassBase("player")
                     local specName = info.handler.playerSpecName or L["Unknown"]
                     local classColor = C_ClassColor.GetClassColor(classKey)
                     local coloredText = specName .. " " .. className
                     if classColor then
-                        coloredText = "|c" .. classColor.colorStr .. coloredText .. "|r"
+                        coloredText = classColor:WrapTextInColorCode(coloredText)
                     end
                     return string.format(L["DR_IconsPerSpec"], coloredText)
                 elseif db.profile.drStaticIconsPerClass then
-                    local className = select(1, UnitClass("player")) or L["Unknown"]
-                    local classKey = select(2, UnitClass("player"))
+                    local className = UnitClass("player") or L["Unknown"]
+                    local classKey = UnitClassBase("player")
                     local classColor = C_ClassColor.GetClassColor(classKey)
                     local coloredText = className
                     if classColor then
-                        coloredText = "|c" .. classColor.colorStr .. coloredText .. "|r"
+                        coloredText = classColor:WrapTextInColorCode(coloredText)
                     end
                     return string.format(L["DR_IconsPerClass"], coloredText)
                 else
@@ -6817,18 +6817,6 @@ else
                                             info.handler.db.profile.enableMasqueExtra = val
                                             sArena_ReloadedDB.reOpenOptions = true
                                             ReloadUI()
-                                        end
-                                    },
-                                    removeUnequippedTrinketTexture = {
-                                        order = 2,
-                                        name = L["Option_RemoveUnEquippedTrinketTexture"],
-                                        desc = L["Trinket_HideWhenNoTrinket_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.removeUnequippedTrinketTexture end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.removeUnequippedTrinketTexture = val
-                                            info.handler:UpdateNoTrinketTexture()
                                         end
                                     },
                                     desaturateTrinketCD = {
@@ -8455,22 +8443,22 @@ else
                                         name = function(info)
                                             local db = info.handler.db
                                             if db.profile.drCategoriesPerSpec then
-                                                local className = select(1, UnitClass("player")) or L["Unknown"]
-                                                local classKey = select(2, UnitClass("player"))
+                                                local className = UnitClass("player") or L["Unknown"]
+                                                local classKey = UnitClassBase("player")
                                                 local specName = info.handler.playerSpecName or L["Unknown"]
                                                 local classColor = C_ClassColor.GetClassColor(classKey)
                                                 local coloredText = specName .. " " .. className
                                                 if classColor then
-                                                    coloredText = "|c" .. classColor.colorStr .. coloredText .. "|r"
+                                                    coloredText = classColor:WrapTextInColorCode(coloredText)
                                                 end
                                                 return string.format(L["DR_CategoriesPerSpec"], coloredText)
                                             elseif db.profile.drCategoriesPerClass then
-                                                local className = select(1, UnitClass("player")) or L["Unknown"]
-                                                local classKey = select(2, UnitClass("player"))
+                                                local className = UnitClass("player") or L["Unknown"]
+                                                local classKey = UnitClassBase("player")
                                                 local classColor = C_ClassColor.GetClassColor(classKey)
                                                 local coloredText = className
                                                 if classColor then
-                                                    coloredText = "|c" .. classColor.colorStr .. coloredText .. "|r"
+                                                    coloredText = classColor:WrapTextInColorCode(coloredText)
                                                 end
                                                 return string.format(L["DR_CategoriesPerClass"], coloredText)
                                             else
@@ -9945,6 +9933,26 @@ else
                                                 end
                                             end
                                         end,
+                                    },
+                                },
+                            },
+                            trinketMisc = {
+                                order = 3,
+                                name = L["Option_Miscellaneous"],
+                                type = "group",
+                                inline = true,
+                                args = {
+                                    removeUnequippedTrinketTexture = {
+                                        order = 1,
+                                        name = L["Option_RemoveUnEquippedTrinketTexture"],
+                                        desc = L["Trinket_HideWhenNoTrinket_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        get = function(info) return info.handler.db.profile.removeUnequippedTrinketTexture end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.removeUnequippedTrinketTexture = val
+                                            info.handler:UpdateNoTrinketTexture()
+                                        end
                                     },
                                 },
                             },

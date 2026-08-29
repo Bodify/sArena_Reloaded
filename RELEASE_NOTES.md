@@ -1,3 +1,11 @@
+# sArena Reloaded 2.6.2b
+## Tweak
+- Midnight: Tweak to auras to try avoid Mind Control issues (need bugfixes from Blizzard here)
+- Minor clean up, esp related to bugfixes below.
+## Bugfix
+- Classics: Fix DR frames sticking around between games after recent changes mostly aimed for Midnight.
+- Classics: Fix lua error in DR gui when spec specific DRs were enabled due to old API call to get class color.
+
 # sArena Reloaded 2.6.2
 ## New
 - Added "Show Dampening" setting, optional in the new section mentioned below.
