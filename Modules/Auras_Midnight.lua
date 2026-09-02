@@ -18,6 +18,7 @@ local DEFAULT_SORT = { AuraContainerSortMethod.AuraInstanceIDOnly, AuraContainer
 local AURA_CATEGORIES = { "cc", "important", "defensive" }
 local otherCC = sArenaMixin.otherCC
 local otherDebuffs = sArenaMixin.otherDebuffs
+local ccBlacklist = sArenaMixin.ccBlacklist
 
 local function GetProfile(frame)
     return frame.parent and frame.parent.db and frame.parent.db.profile
@@ -190,7 +191,7 @@ function sArenaFrameMixin:SetupAuraDisplay()
 
     self.auraSlotSignature = signature
 
-    self.AuraCC = NewContainer(self, "HARMFUL|CROWD_CONTROL", "ccSort", "cc")
+    self.AuraCC = NewContainer(self, "HARMFUL|CROWD_CONTROL", "ccSort", "cc", { excludeSpellIDs = ccBlacklist })
     self.AuraOtherCC = NewContainer(self, "HARMFUL", "ccSort", "cc", { includeSpellIDs = otherCC })
     self.AuraImportant = NewContainer(self, "HELPFUL|IMPORTANT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE", "importantSort", "important")
     self.AuraBigDef = NewContainer(self, "HELPFUL|BIG_DEFENSIVE", "defensiveSort", "defensive")

@@ -18,3 +18,8 @@ sArenaMixin.otherDebuffs = {
     [212182] = true,    -- Smoke Bomb
     [359053] = true,    -- Smoke Bomb
 }
+
+-- Auras Blizzard flags as CC that arent CC...
+sArenaMixin.ccBlacklist = {
+    [1280457] = true,   -- Mind Flay (no idea if this is active in PvP tbh)
+}
