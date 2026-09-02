@@ -1,3 +1,7 @@
+# sArena Reloaded 2.6.2c
+## Tweak
+- TBC: Add fallback for health numbers to avoid a nil error.
+
 # sArena Reloaded 2.6.2b
 ## Tweak
 - Midnight: Tweak to auras to try avoid Mind Control issues (need bugfixes from Blizzard here)
