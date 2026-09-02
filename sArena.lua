@@ -2409,7 +2409,7 @@ local function FormatLargeNumbers(value)
 end
 
 local AbbreviateNumbers = isMidnight and AbbreviateLargeNumbers or FormatLargeNumbers
-local GetHealth = (isTBC and MiniHealthNumbersApi and MiniHealthNumbersApi.v1.GetHealth) or UnitHealth
+local GetHealth = (isTBC and MiniHealthNumbersApi and function(unit) return MiniHealthNumbersApi.v1:GetHealth(unit) or UnitHealth(unit) end) or UnitHealth
 
 function sArenaFrameMixin:SetStatusText(unit)
     local healthText, powerText = self.HealthText, self.PowerText
