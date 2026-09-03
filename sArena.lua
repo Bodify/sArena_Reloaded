@@ -1876,6 +1876,7 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
 end
 
 function sArenaFrameMixin:SetPreGatesUnknownPlayer()
+    if self.class then return end
     -- Active for noEarlyFrames (TBC & Wrath)
     local id = self:GetID()
     local partySize = GetNumGroupMembers()
@@ -2014,6 +2015,12 @@ function sArenaFrameMixin:ResetUnitInfo()
     self.DeathIcon:Hide()
 end
 
+function sArenaFrameMixin:RestoreClassIcon()
+    self.ClassIcon.Texture:SetDesaturated(false)
+    self.ClassIcon.Texture:SetVertexColor(1, 1, 1)
+    self:UpdateClassIcon(true)
+end
+
 function sArenaFrameMixin:GetClass()
     if self.class then return end
 
@@ -2054,10 +2061,8 @@ function sArenaFrameMixin:GetClass()
         elseif UnitIsNPCAsPlayer(self.unit) then
             self.classLocal, self.class = UnitClass(self.unit)
             if self.class then
-                self.ClassIcon.Texture:SetDesaturated(false)
-                self.ClassIcon.Texture:SetVertexColor(1, 1, 1)
                 self.secretClass = true
-                self:UpdateClassIcon(true)
+                self:RestoreClassIcon()
                 self:UpdateFrameColors()
                 self.parent:UpdateTextures()
             end
@@ -2065,9 +2070,7 @@ function sArenaFrameMixin:GetClass()
     else
         self.classLocal, self.class = UnitClass(self.unit)
         if self.class then
-            self.ClassIcon.Texture:SetDesaturated(false)
-            self.ClassIcon.Texture:SetVertexColor(1, 1, 1)
-            self:UpdateClassIcon(true)
+            self:RestoreClassIcon()
             self:UpdateFrameColors()
             self.parent:UpdateTextures()
         end

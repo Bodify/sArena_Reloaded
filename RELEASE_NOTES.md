@@ -1,3 +1,7 @@
+# sArena Reloaded 2.6.2d
+## Bugfix
+- TBC: Add fix for reload in arenas causing the pre-gates mystery player icon to override the class icon.
+
 # sArena Reloaded 2.6.2c
 ## Tweak
 - TBC: Add fallback for health numbers to avoid a nil error.
