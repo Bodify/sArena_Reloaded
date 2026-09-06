@@ -540,7 +540,7 @@ function sArenaMixin:OnEvent(event, ...)
         end
         self:CheckMatchStatus(event)
 
-        self:SetupCustomCD()
+        self:CustomizeDefaultCD()
         self:UpdateArenaTargetsOnPartyFrames()
         self:PositionArenaTargetTextOnPartyFrames()
         self:UpdateArenaTargetTextOnPartyFrames()

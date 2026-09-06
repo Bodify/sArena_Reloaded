@@ -819,32 +819,25 @@ function sArenaMixin:UpdateCDTextVisibility()
         -- Class Icon
         local classIconCD = frame.ClassIcon and frame.ClassIcon.Cooldown
         if classIconCD then
-            local hideDefaultCD = hideClassIcon or classIconCD.hideDefaultCD
-            classIconCD:SetHideCountdownNumbers(hideDefaultCD and true or false)
-            if classIconCD.Text then
-                classIconCD.Text:SetAlpha(hideDefaultCD and 0 or 1)
-            end
-            if classIconCD.sArenaText then
-                classIconCD.sArenaText:SetAlpha(hideClassIcon and 0 or 1)
-            end
+            classIconCD:SetHideCountdownNumbers(hideClassIcon and true or false)
+            local countdownString = classIconCD:GetCountdownFontString()
+            countdownString:SetAlpha(hideClassIcon and 0 or 1)
         end
 
         -- Trinket
         local trinketCD = frame.Trinket and frame.Trinket.Cooldown
         if trinketCD then
             trinketCD:SetHideCountdownNumbers(hideTrinket)
-            if trinketCD.Text then
-                trinketCD.Text:SetAlpha(hideTrinket and 0 or 1)
-            end
+            local countdownString = trinketCD:GetCountdownFontString()
+            countdownString:SetAlpha(hideTrinket and 0 or 1)
         end
 
         -- Racial
         local racialCD = frame.Racial and frame.Racial.Cooldown
         if racialCD then
             racialCD:SetHideCountdownNumbers(hideRacial)
-            if racialCD.Text then
-                racialCD.Text:SetAlpha(hideRacial and 0 or 1)
-            end
+            local countdownString = racialCD:GetCountdownFontString()
+            countdownString:SetAlpha(hideRacial and 0 or 1)
         end
 
         -- DRs
@@ -854,14 +847,9 @@ function sArenaMixin:UpdateCDTextVisibility()
             for j = 1, #drList do
                 local drFrame = useDrFrames and drList[j] or frame[drList[j]]
                 if drFrame then
-                    local hideDefaultCD = hideDR or drFrame.Cooldown.hideDefaultCD
-                    drFrame.Cooldown:SetHideCountdownNumbers(hideDefaultCD and true or false)
-                    if drFrame.Cooldown.Text then
-                        drFrame.Cooldown.Text:SetAlpha(hideDefaultCD and 0 or 1)
-                    end
-                    if drFrame.Cooldown.sArenaText then
-                        drFrame.Cooldown.sArenaText:SetAlpha(hideDR and 0 or 1)
-                    end
+                    drFrame.Cooldown:SetHideCountdownNumbers(hideDR and true or false)
+                    local countdownString = drFrame.Cooldown:GetCountdownFontString()
+                    countdownString:SetAlpha(hideDR and 0 or 1)
                 end
             end
         end
@@ -1458,12 +1446,28 @@ function sArenaMixin:CreateMidnightDRFrame(arenaFrame)
     return sArenaDRFrame
 end
 
+-- Blizzard bug: MirrorTimerContainer's shown state is only ever toggled by Edit Mode.
+-- Entering Edit Mode with no timer running hides the container and nothing ever shows it again
+-- so the breath/fatigue bars stay invisible for the rest of the session.
+local function FixMirrorTimerContainer()
+    local container = MirrorTimerContainer
+    if not container or container.BodyBugfix then return end
+
+    container.BodyBugfix = true
+    hooksecurefunc(container, "SetupTimer", function(self)
+        if not self:IsShown() and self:ShouldShow() then
+            self:Show()
+        end
+    end)
+end
+
 function sArenaMixin:ToggleEditMode(show)
     if (not (EditModeManagerFrame and EditModeManagerFrame.AccountSettings)) or sArena_ReloadedDB.skipEMDR then return end
     if show then
         ShowUIPanel(EditModeManagerFrame)
     else
         HideUIPanel(EditModeManagerFrame)
+        FixMirrorTimerContainer()
     end
 end
 
@@ -1574,7 +1578,8 @@ function sArenaMixin:HookMidnightDRFrame(blizzDRFrame)
         end
 
         if self.db and self.db.profile.colorDRCooldownText then
-            sArenaDRFrame.Cooldown.Text:SetVertexColorFromBoolean(shown, red, green)
+            local countdownString = sArenaDRFrame.Cooldown:GetCountdownFontString()
+            countdownString:SetVertexColorFromBoolean(shown, red, green)
         end
 
         local drText = sArenaDRFrame.DRTextFrame.DRText

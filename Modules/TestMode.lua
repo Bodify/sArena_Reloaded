@@ -1045,8 +1045,9 @@ function sArenaMixin:Test()
                             drFrame.DRTextFrame.DRText:SetText("%")
                             drFrame.DRTextFrame.DRText:SetTextColor(1, 0, 0)
 
-                            if self.db.profile.colorDRCooldownText and drFrame.Cooldown.Text then
-                                drFrame.Cooldown.Text:SetTextColor(1, 0, 0, 1)
+                            if self.db.profile.colorDRCooldownText then
+                                local countdownString = drFrame.Cooldown:GetCountdownFontString()
+                                countdownString:SetTextColor(1, 0, 0, 1)
                             end
                         else
                             local borderColor = blackDRBorder and { 0, 0, 0, 1 } or { 0, 1, 0, 1 }
@@ -1057,8 +1058,9 @@ function sArenaMixin:Test()
                             drFrame.DRTextFrame.DRText:SetText("½")
                             drFrame.DRTextFrame.DRText:SetTextColor(0, 1, 0)
 
-                            if self.db.profile.colorDRCooldownText and drFrame.Cooldown.Text then
-                                drFrame.Cooldown.Text:SetTextColor(0, 1, 0, 1)
+                            if self.db.profile.colorDRCooldownText then
+                                local countdownString = drFrame.Cooldown:GetCountdownFontString()
+                                countdownString:SetTextColor(0, 1, 0, 1)
                             end
                         end
                     end
@@ -1126,12 +1128,8 @@ function sArenaMixin:Test()
                         end
 
                         if self.db.profile.colorDRCooldownText then
-                            if drFrame.Cooldown.Text then
-                                drFrame.Cooldown.Text:SetTextColor(1, 0, 0, 1)
-                            end
-                            if drFrame.Cooldown.sArenaText then
-                                drFrame.Cooldown.sArenaText:SetTextColor(1, 0, 0, 1)
-                            end
+                            local countdownString = drFrame.Cooldown:GetCountdownFontString()
+                            countdownString:SetTextColor(1, 0, 0, 1)
                         end
                     else
                         local borderColor = blackDRBorder and { 0, 0, 0, 1 } or { 0, 1, 0, 1 }
@@ -1148,12 +1146,8 @@ function sArenaMixin:Test()
                         end
 
                         if self.db.profile.colorDRCooldownText then
-                            if drFrame.Cooldown.Text then
-                                drFrame.Cooldown.Text:SetTextColor(0, 1, 0, 1)
-                            end
-                            if drFrame.Cooldown.sArenaText then
-                                drFrame.Cooldown.sArenaText:SetTextColor(0, 1, 0, 1)
-                            end
+                            local countdownString = drFrame.Cooldown:GetCountdownFontString()
+                            countdownString:SetTextColor(0, 1, 0, 1)
                         end
                     end
                 end

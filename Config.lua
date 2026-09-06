@@ -5002,16 +5002,12 @@ function sArenaMixin:UpdateFrameSettings(db, info, val)
 
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        local text = frame.ClassIcon.Cooldown.Text
-        local fontToUse = text.fontFile
+        local countdownString = frame.ClassIcon.Cooldown:GetCountdownFontString()
+        local fontToUse = countdownString.fontFile
         if layoutCF then
             fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
         end
-        text:SetFont(fontToUse, db.classIconFontSize, self:GetFontFlags("OUTLINE"))
-        local sArenaText = frame.ClassIcon.Cooldown.sArenaText
-        if sArenaText then
-            sArenaText:SetFont(fontToUse, db.classIconFontSize, self:GetFontFlags("OUTLINE"))
-        end
+        countdownString:SetFont(fontToUse, db.classIconFontSize, self:GetFontFlags("OUTLINE"))
     end
 
     if isMidnight then
@@ -5351,16 +5347,12 @@ function sArenaMixin:UpdateDRSettings(db, info, val)
                 dr.Border:SetPoint("BOTTOMRIGHT", dr, "BOTTOMRIGHT", borderSize, -borderSize)
                 dr.Cooldown:SetSwipeColor(swipeR, swipeG, swipeB, swipeA)
 
-                local text = dr.Cooldown.Text
-                local fontToUse = text.fontFile
+                local countdownString = dr.Cooldown:GetCountdownFontString()
+                local fontToUse = countdownString.fontFile
                 if layoutCF then
                     fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
                 end
-                text:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
-                local sArenaText = dr.Cooldown.sArenaText
-                if sArenaText then
-                    sArenaText:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
-                end
+                countdownString:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
 
                 if dr.Cooldown then
                     dr.Cooldown:SetReverse(reverseDR)
@@ -5515,12 +5507,12 @@ function sArenaMixin:UpdateTrinketSettings(db, info, val)
         frame.Trinket:SetPoint("CENTER", frame, "CENTER", db.posX, db.posY)
         frame.Trinket:SetScale(db.scale)
 
-        local text = self["arena" .. i].Trinket.Cooldown.Text
-        local fontToUse = text.fontFile
+        local countdownString = self["arena" .. i].Trinket.Cooldown:GetCountdownFontString()
+        local fontToUse = countdownString.fontFile
         if layoutCF then
             fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
         end
-        text:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
+        countdownString:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
     end
 end
 
@@ -5536,13 +5528,13 @@ function sArenaMixin:UpdateRacialSettings(db, info, val)
         frame.Racial:SetPoint("CENTER", frame, "CENTER", db.posX, db.posY)
         frame.Racial:SetScale(db.scale)
 
-        local text = self["arena" .. i].Racial.Cooldown.Text
+        local countdownString = self["arena" .. i].Racial.Cooldown:GetCountdownFontString()
         local layoutCF = (self.layoutdb and self.layoutdb.changeFont)
-        local fontToUse = text.fontFile
+        local fontToUse = countdownString.fontFile
         if layoutCF then
             fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
         end
-        text:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
+        countdownString:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
     end
 end
 
@@ -5560,12 +5552,12 @@ function sArenaMixin:UpdateDispelSettings(db, info, val)
         frame.Dispel:SetPoint("CENTER", frame, "CENTER", db.posX, db.posY)
         frame.Dispel:SetScale(db.scale)
 
-        local text = self["arena" .. i].Dispel.Cooldown.Text
-        local fontToUse = text.fontFile
+        local countdownString = self["arena" .. i].Dispel.Cooldown:GetCountdownFontString()
+        local fontToUse = countdownString.fontFile
         if layoutCF then
             fontToUse = LSM:Fetch(LSM.MediaType.FONT, self.layoutdb.cdFont)
         end
-        text:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
+        countdownString:SetFont(fontToUse, db.fontSize, self:GetFontFlags("OUTLINE"))
 
         frame.Dispel:SetShown(self.db.profile.showDispels)
     end
@@ -7784,7 +7776,7 @@ else
                                         get = function(info) return info.handler.db.profile.showDecimalsClassIcon end,
                                         set = function(info, val)
                                             info.handler.db.profile.showDecimalsClassIcon = val
-                                            info.handler:SetupCustomCD()
+                                            info.handler:CustomizeDefaultCD()
                                             if isMidnight then
                                                 sArena_ReloadedDB.reOpenOptions = true
                                                 ReloadUI()
@@ -7805,7 +7797,7 @@ else
                                         set = function(info, val)
                                             info.handler.db.profile.decimalThreshold = val
                                             info.handler:UpdateDecimalThreshold()
-                                            info.handler:SetupCustomCD()
+                                            info.handler:CustomizeDefaultCD()
                                         end
                                     },
                                 },
@@ -8283,7 +8275,7 @@ else
                                         get = function(info) return info.handler.db.profile.showDecimalsDR end,
                                         set = function(info, val)
                                             info.handler.db.profile.showDecimalsDR = val
-                                            info.handler:SetupCustomCD()
+                                            info.handler:CustomizeDefaultCD()
                                         end
                                     },
                                     decimalThresholdDR = {
@@ -8300,7 +8292,7 @@ else
                                         set = function(info, val)
                                             info.handler.db.profile.decimalThreshold = val
                                             info.handler:UpdateDecimalThreshold()
-                                            info.handler:SetupCustomCD()
+                                            info.handler:CustomizeDefaultCD()
                                         end
                                     },
                                     colorDRCooldownText = {
@@ -8318,7 +8310,7 @@ else
                                                     frame:ResetDRCooldownTextColors()
                                                 end
                                             end
-                                            info.handler:SetupCustomCD()
+                                            info.handler:CustomizeDefaultCD()
                                             info.handler:Test()
                                         end
                                     },

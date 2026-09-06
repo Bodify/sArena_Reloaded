@@ -8,12 +8,8 @@ function sArenaFrameMixin:ResetDRCooldownTextColors()
 	for i = 1, #frames do
 		local drFrame = useDrFrames and frames[i] or self[frames[i]]
 		if drFrame and drFrame.Cooldown then
-			if drFrame.Cooldown.sArenaText then
-				drFrame.Cooldown.sArenaText:SetTextColor(1, 1, 1, 1)
-			end
-			if drFrame.Cooldown.Text then
-				drFrame.Cooldown.Text:SetTextColor(1, 1, 1, 1)
-			end
+			local countdownString = drFrame.Cooldown:GetCountdownFontString()
+			countdownString:SetTextColor(1, 1, 1, 1)
 		end
 	end
 end
@@ -233,12 +229,8 @@ function sArenaFrameMixin:FindDR(combatEvent, spellID)
 	end
 
 	if self.parent.db.profile.colorDRCooldownText then
-		if frame.Cooldown.Text then
-			frame.Cooldown.Text:SetTextColor(unpack(severityColor[frame.DRSeverity]))
-		end
-		if frame.Cooldown.sArenaText then
-			frame.Cooldown.sArenaText:SetTextColor(unpack(severityColor[frame.DRSeverity]))
-		end
+		local countdownString = frame.Cooldown:GetCountdownFontString()
+		countdownString:SetTextColor(unpack(severityColor[frame.DRSeverity]))
 	end
 
 end

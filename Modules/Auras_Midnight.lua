@@ -62,7 +62,7 @@ local function StyleCooldown(frame, cooldown, icon)
     cooldown:SetDrawBling(false)
     frame:SetTextureCrop(icon, cropIcons, "class")
 
-    parent:CreateCustomCooldown(cooldown, profile and profile.showDecimalsClassIcon)
+    parent:UpdateCooldownThresholds(cooldown, profile and profile.showDecimalsClassIcon)
 
     local font = parent:GetAuraCooldownFont()
     cooldown:SetCountdownFont(font:GetName())

@@ -78,12 +78,9 @@
                     <OnLoad>
                         self:SetDrawBling(false)
 			            self:SetReverse(true)
-                        for _, region in next, { self:GetRegions() } do
-                            if region:GetObjectType() == "FontString" then
-                                self.Text = region;
-                                self.Text.fontFile = region:GetFont();
-                            end
-                        end
+                        local countdownString = self:GetCountdownFontString();
+                        self.Text = countdownString;
+                        countdownString.fontFile = countdownString:GetFont();
                         self.parent = self:GetParent();
                     </OnLoad>
                     <OnShow>
@@ -183,12 +180,9 @@
                 <Scripts>
                     <OnLoad>
                         self:SetDrawBling(false)
-                        for _, region in next, { self:GetRegions() } do
-                            if region:GetObjectType() == "FontString" then
-                                self.Text = region;
-                                self.Text.fontFile = region:GetFont();
-                            end
-                        end
+                        local countdownString = self:GetCountdownFontString();
+                        self.Text = countdownString;
+                        countdownString.fontFile = countdownString:GetFont();
                     </OnLoad>
                 </Scripts>
             </Cooldown>
@@ -279,12 +273,9 @@
                     <Cooldown parentKey="Cooldown" drawLayer="BORDER" useParentLevel="true" reverse="true" hideCountdownNumbers="false" inherits="CooldownFrameTemplate">
                         <Scripts>
                             <OnLoad>
-                                for _, region in next, { self:GetRegions() } do
-                                    if region:GetObjectType() == "FontString" then
-                                        self.Text = region;
-                                        self.Text.fontFile = region:GetFont();
-                                    end
-                                end
+                                local countdownString = self:GetCountdownFontString();
+                                self.Text = countdownString;
+                                countdownString.fontFile = countdownString:GetFont();
                                 self:SetAllPoints(self:GetParent().Texture)
                                 self:SetSwipeTexture(1)
                                 self:SetSwipeColor(0, 0, 0, 0.55)
