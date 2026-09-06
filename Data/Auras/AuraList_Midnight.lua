@@ -17,6 +17,9 @@ sArenaMixin.otherDebuffs = {
     [372048] = true,    -- Oppressing Roar
     [212182] = true,    -- Smoke Bomb
     [359053] = true,    -- Smoke Bomb
+    [77606] = true,     -- Dark Simulacrum
+    [356723] = true,    -- Scorpid Venom (90% slow with silence after)
+    [80240] = true,     -- Havoc
 }
 
 -- Auras Blizzard flags as CC that arent CC...
