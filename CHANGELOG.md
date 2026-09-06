@@ -1,3 +1,8 @@
+# sArena Reloaded 2.6.2f
+## Tweak
+- Update JFarm profile (www.twitch.tv/jfarm_)
+- Midnight: Add a few extra debuffs to track on auras (Havoc, Scorpid Sting (Hunter Chimereal Sting 90% slow leading up to silence after) and Dark Simulacrum)
+
 # sArena Reloaded 2.6.2e
 ## Tweak
 - Fix a Blizzard bug causing breath bar (and other similar bars) to stay hidden with sArena Reloaded enabled due to sArena opening Edit Mode on login. Blizzard hides this bar when opening Edit Mode and they never re-show it... GG.
