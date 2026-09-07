@@ -5,6 +5,8 @@
 
 local isMidnight = sArenaMixin.isMidnight
 
+local partyTargetTexture = "Interface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga"
+local partyTargetTextureOutlined = "Interface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount-outline.tga"
 local reusedArenaTargets = {}
 local reusedPetTargets = {}
 local reusedAttackers = {}
@@ -18,6 +20,48 @@ local function SetTargetTextForUnit(fs, targetUnit, targetName)
         fs:SetTextColor(1, 1, 1)
     end
     fs:SetText(targetName)
+end
+
+function sArenaMixin:GetPartyTargetIndicatorTexture()
+    local db = self.db
+    local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
+    local pti = widgetSettings and widgetSettings.partyTargetIndicators
+    if pti and pti.thickOutline then
+        return partyTargetTextureOutlined
+    end
+    return partyTargetTexture
+end
+
+local function SetIndicatorTextures(overlay, prefix, count, texturePath)
+    if not overlay then return end
+    for i = 1, count do
+        local indicator = overlay[prefix .. i]
+        if indicator and indicator.Texture then
+            indicator.Texture:SetTexture(texturePath)
+            indicator.Texture:SetDesaturated(true)
+        end
+    end
+end
+
+function sArenaMixin:UpdatePartyTargetIndicatorTextures()
+    local texturePath = self:GetPartyTargetIndicatorTexture()
+
+    for i = 1, self.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        if frame then
+            SetIndicatorTextures(frame.WidgetOverlay, "partyTarget", 4, texturePath)
+            if frame.PetFrame then
+                SetIndicatorTextures(frame.PetFrame.WidgetOverlay, "partyTarget", 4, texturePath)
+            end
+        end
+    end
+
+    for i = 1, 5 do
+        local partyFrame = self:GetPartyFrame(i)
+        if partyFrame then
+            SetIndicatorTextures(partyFrame.WidgetOverlay, "arenaTarget", self.maxArenaOpponents, texturePath)
+        end
+    end
 end
 
 function sArenaMixin:ChainIndicator(indicator, previous, direction, spacing)
@@ -246,6 +290,7 @@ function sArenaMixin:UpdateWidgetSettings(db, info, val)
         end
     end
 
+    self:UpdatePartyTargetIndicatorTextures()
     self:UpdateArenaTargetsOnPartyFrames()
     self:PositionArenaTargetTextOnPartyFrames()
     if self.testMode then
@@ -947,7 +992,7 @@ function sArenaMixin:CreatePartyFrameIndicators(partyFrame)
 
         local texture = indicator:CreateTexture(nil, "OVERLAY")
         texture:SetAllPoints()
-        texture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga")
+        texture:SetTexture(self:GetPartyTargetIndicatorTexture())
         texture:SetDesaturated(true)
         indicator.Texture = texture
 

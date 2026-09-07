@@ -1358,7 +1358,7 @@ function sArenaFrameMixin:OnLoad()
     self.WidgetOverlay.healerIndicator.Texture:SetAtlas("bags-icon-addslots")
     for i = 1, 4 do
         local pt = self.WidgetOverlay["partyTarget" .. i]
-        pt.Texture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga")
+        pt.Texture:SetTexture(self.parent:GetPartyTargetIndicatorTexture())
         pt.Texture:SetDesaturated(true)
     end
     self.Trinket:SetFrameLevel(7)

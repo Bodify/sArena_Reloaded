@@ -241,7 +241,7 @@ function sArenaPetFrameMixin:Setup()
     for i = 1, 4 do
         local pt = pwo["partyTarget" .. i]
         if pt and pt.Texture then
-            pt.Texture:SetTexture("Interface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga")
+            pt.Texture:SetTexture(owner.parent:GetPartyTargetIndicatorTexture())
             pt.Texture:SetDesaturated(true)
         end
     end

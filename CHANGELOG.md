@@ -1,4 +1,6 @@
-# sArena Reloaded 2.6.2f
+# sArena Reloaded 2.6.3
+## New
+- New "Thick Outline" setting for the Arena/Party Target Icons in Layouts: Widgets. Thanks to Mo for tweaking the texture and suggesting it!
 ## Tweak
 - Update JFarm profile (www.twitch.tv/jfarm_)
 - Midnight: Add a few extra debuffs to track on auras (Havoc, Scorpid Sting (Hunter Chimereal Sting 90% slow leading up to silence after) and Dark Simulacrum)

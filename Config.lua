@@ -3821,7 +3821,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             name = L["Widget_ArenaTargetIndicators_Enable"],
                             desc = L["Widget_ArenaTargetIndicators_Desc"],
                             type = "toggle",
-                            width = "full",
+                            width = 1.2,
                             get = function(info)
                                 local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
                                 local pti = widgets and widgets.partyTargetIndicators
@@ -3835,6 +3835,32 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                 info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
                                 self:UpdateWidgetSettings(widgets, info, val)
                                 info.handler:Test()
+                            end,
+                        },
+                        thickOutline = {
+                            order = 0.1,
+                            name = L["Widget_ArenaTargetIndicators_ThickOutline"],
+                            desc = L["Widget_ArenaTargetIndicators_ThickOutline_Desc"],
+                            type = "toggle",
+                            width = 0.8,
+                            get = function(info)
+                                local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                local pti = widgets and widgets.partyTargetIndicators
+                                return pti and pti.thickOutline
+                            end,
+                            set = function(info, val)
+                                local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                widgets = widgets or {}
+                                widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                widgets.partyTargetIndicators.thickOutline = val
+                                info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                self:UpdateWidgetSettings(widgets, info, val)
+                                info.handler:Test()
+                            end,
+                            disabled = function(info)
+                                local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                local pti = widgets and widgets.partyTargetIndicators
+                                return not (pti and pti.enabled)
                             end,
                         },
                         partyOnArena = {
