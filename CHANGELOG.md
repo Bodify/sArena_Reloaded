@@ -1,3 +1,9 @@
+# sArena Reloaded 2.6.4
+## New
+- New Corkiri profile (www.twitch.tv/corkiri). Thank you for sharing!
+## Tweak
+- Update Ceit profile (www.twitch.tv/ceitxd). Thank you for sharing!
+
 # sArena Reloaded 2.6.3
 ## New
 - New "Thick Outline" setting for the Arena/Party Target Icons in Layouts: Widgets. Thanks to Mo for tweaking the texture and suggesting it!
