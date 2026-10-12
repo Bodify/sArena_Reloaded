@@ -1542,21 +1542,22 @@ function sArenaMixin:HookMidnightDRFrame(blizzDRFrame)
         sArenaDRFrame:Show()
 
         if not self.db.profile.disableInstantDRCooldown then
+            local resetTime = self.db.profile.drResetTime or 20.1
             local drBugFixMidnight = self.db.profile.drBugFixMidnight
             local drBugFixLonger = drBugFixMidnight and self.db.profile.drBugFixLonger
             if sArenaDRFrame.DRSeverity == 1 then
                 -- drResetTime + longest CC (6) + 20% roar duration extender + 0.5 leeway
-                local duration = (drBugFixLonger and (self.db.profile.drResetTime + (6 * 1.2) + 0.5))
-                    or (drBugFixMidnight and (self.db.profile.drResetTime + 6 + 0.5))
-                    or (self.db.profile.drResetTime + 4)
+                local duration = (drBugFixLonger and (resetTime + (6 * 1.2) + 0.5))
+                    or (drBugFixMidnight and (resetTime + 6 + 0.5))
+                    or (resetTime + 4)
                 sArenaDRFrame.Cooldown:SetCooldown(GetTime(), duration)
                 sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
                 sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), duration)
                 sArenaDRFrame.DRSeverity = 2
             else
-                local duration = (drBugFixLonger and (self.db.profile.drResetTime + (3 * 1.2) + 0.5))
-                    or (drBugFixMidnight and (self.db.profile.drResetTime + 3 + 0.5))
-                    or (self.db.profile.drResetTime + 2)
+                local duration = (drBugFixLonger and (resetTime + (3 * 1.2) + 0.5))
+                    or (drBugFixMidnight and (resetTime + 3 + 0.5))
+                    or (resetTime + 2)
                 sArenaDRFrame.Cooldown:SetCooldown(GetTime(), duration)
                 sArenaDRFrame.Cooldown.durationObj = C_DurationUtil.CreateDuration()
                 sArenaDRFrame.Cooldown.durationObj:SetTimeFromStart(GetTime(), duration)

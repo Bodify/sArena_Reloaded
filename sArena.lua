@@ -772,6 +772,7 @@ function sArenaMixin:Initialize()
 end
 
 function sArenaMixin:RefreshConfig()
+    self:UpdateDRTimeSetting()
     self:RebuildClickActionsOptions()
     self:SetLayout(_, db.profile.currentLayout)
 end
