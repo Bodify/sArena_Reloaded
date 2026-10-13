@@ -39,7 +39,7 @@ function sArenaFrameMixin:FindTrinket()
             end
         end
 
-        if db and db.profile.trinketUseGlow and (not db.profile.trinketUseGlowHealerOnly or self.isHealer) then
+        if db and db.profile.trinketUseGlow and (not self.parent:TrinketGlowHealerOnly() or self.isHealer) then
             local LCG = LibStub("LibCustomGlow-1.0", true)
             if LCG then
                 local glowColor = db.profile.trinketUseGlowColorEnabled and db.profile.trinketUseGlowColor or nil
@@ -162,7 +162,7 @@ function sArenaFrameMixin:UpdateTrinket()
                             end
                         end
 
-                        if db and db.profile.trinketUseGlow and (not db.profile.trinketUseGlowHealerOnly or self.isHealer) then
+                        if db and db.profile.trinketUseGlow and (not self.parent:TrinketGlowHealerOnly() or self.isHealer) then
                             local LCG = LibStub("LibCustomGlow-1.0", true)
                             if LCG then
                                 local glowColor = db.profile.trinketUseGlowColorEnabled and db.profile.trinketUseGlowColor or nil

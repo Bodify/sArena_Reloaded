@@ -5,6 +5,11 @@
 
 local isMidnight = sArenaMixin.isMidnight
 
+local healerIndicatorTextureMap = {
+    HEALER = "bags-icon-addslots",
+    TANK = "",
+    DAMAGER = "",
+}
 local partyTargetTexture = "Interface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount.tga"
 local partyTargetTextureOutlined = "Interface\\AddOns\\sArena_Reloaded\\Textures\\GM-icon-headCount-outline.tga"
 local reusedArenaTargets = {}
@@ -370,7 +375,24 @@ function sArenaFrameMixin:UpdateHealerStatus()
         self.WidgetOverlay.healerIndicator:Hide()
         return
     end
-    self.WidgetOverlay.healerIndicator:SetShown(self.isHealer == true and not self.DeathIcon:IsShown())
+    local indicator = self.WidgetOverlay.healerIndicator
+    if self.secretSpec then
+        self.healerIndicatorElements = self.healerIndicatorElements or { roleIcon = indicator.Texture }
+        indicator.secretTexture = true
+        UnitFrameUtil.UpdateArenaOpponentSpecDisplay(self.healerIndicatorElements, self:GetID(), healerIndicatorTextureMap)
+        indicator:SetShown(not self.DeathIcon:IsShown())
+        return
+    end
+    self:RestoreHealerIndicatorTexture()
+    indicator:SetShown(self.isHealer == true and not self.DeathIcon:IsShown())
+end
+
+function sArenaFrameMixin:RestoreHealerIndicatorTexture()
+    local indicator = self.WidgetOverlay.healerIndicator
+    if not indicator.secretTexture then return end
+    indicator.secretTexture = nil
+    indicator.Texture:SetAtlas("bags-icon-addslots")
+    indicator.Texture:Show()
 end
 
 local function UnitIsProbablyUnit(unit1, unit2)

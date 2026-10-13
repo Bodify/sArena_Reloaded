@@ -1,12 +1,12 @@
-# sArena Reloaded 2.6.5
-## New
-- New Hansol profile (www.twitch.tv/hansol). Thank you for sharing!
-## Tweak
-- Midnight: Fix a few interrupt durations that were off by 1sec.
-- Midnight: Fix Sticky Tar Bomb using wrong spell ID.
-
-# sArena Reloaded 2.6.4
-## New
-- New Corkiri profile (www.twitch.tv/corkiri). Thank you for sharing!
-## Tweak
-- Update Ceit profile (www.twitch.tv/ceitxd). Thank you for sharing!
+# sArena Reloaded 2.6.6
+## CHANGES:
+- With 12.1.5 Blizzard has now also restricted some arena specific API making it so some features can no longer work. Things related to class, and healer specific things.
+- Midnight 12.1.5: These settings no longer work (but still work on Classics):
+  - Keep Healer Manabar Shown (when hiding manabars for others). Layouts that had both this and Hide Manabars on now show all manabars.
+  - Color Healer Green (Class Colored Frames)
+  - Aura Highlight "Only on Healer"
+  - Healer Texture "Class Stacking Only" (the Healer Texture now always shows on healers)
+  - Healer Trinket Sound and Healer Sound File ID (every trinket plays the normal sound)
+  - Trinket glow "Only on Healer" (the glow now shows on every trinket)
+## Bugfix
+- Fix an issue that could cause nil errors on DR updates.

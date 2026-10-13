@@ -5,6 +5,59 @@
 
 local LSM = LibStub("LibSharedMedia-3.0")
 
+local healerBarTextureMap = {
+    HEALER = "",
+    TANK = "",
+    DAMAGER = "",
+}
+
+function sArenaFrameMixin:CreateHealerBar()
+    local healthBar = self.HealthBar
+    local bar = CreateFrame("StatusBar", nil, healthBar)
+    bar:SetAllPoints(healthBar)
+    bar:SetFrameLevel(healthBar:GetFrameLevel() + 1)
+    bar.fill = bar:CreateTexture(nil, "BORDER")
+    bar:SetStatusBarTexture(bar.fill)
+    bar:Hide()
+
+    hooksecurefunc(healthBar, "SetMinMaxValues", function(_, ...) bar:SetMinMaxValues(...) end)
+    hooksecurefunc(healthBar, "SetValue", function(_, ...) bar:SetValue(...) end)
+    hooksecurefunc(healthBar, "SetStatusBarColor", function(_, ...) bar:SetStatusBarColor(...) end)
+    hooksecurefunc(healthBar, "SetReverseFill", function(_, ...) bar:SetReverseFill(...) end)
+    hooksecurefunc(healthBar, "SetOrientation", function(_, ...) bar:SetOrientation(...) end)
+
+    self.healerBar = bar
+    return bar
+end
+
+function sArenaFrameMixin:SetHealerBarTexture(texture)
+    local bar = self.healerBar
+    if not texture then
+        if bar then
+            bar:Hide()
+        end
+        return
+    end
+    bar = bar or self:CreateHealerBar()
+
+    if self.secretSpec then
+        self.healerBarElements = self.healerBarElements or { roleIcon = bar.fill }
+        healerBarTextureMap.HEALER = texture
+        UnitFrameUtil.UpdateArenaOpponentSpecDisplay(self.healerBarElements, self:GetID(), healerBarTextureMap)
+    else
+        bar.fill:SetTexture(texture)
+        bar.fill:Show()
+    end
+
+    local healthBar = self.HealthBar
+    bar:SetReverseFill(healthBar:GetReverseFill())
+    bar:SetOrientation(healthBar:GetOrientation())
+    bar:SetMinMaxValues(healthBar:GetMinMaxValues())
+    bar:SetValue(healthBar:GetValue())
+    bar:SetStatusBarColor(healthBar:GetStatusBarColor())
+    bar:Show()
+end
+
 function sArenaMixin:CheckClassStacking()
     local classCount = {}
     local classHasHealer = {}
@@ -58,6 +111,7 @@ function sArenaMixin:UpdateTextures()
     local keepDefaultModernTextures = layout.castBar.keepDefaultModernTextures
     local interruptStatusColorOn     = layout.castBar.interruptStatusColorOn
     local classStacking = self:CheckClassStacking()
+    local secretSpecs = self:IsArenaSpecSecret()
     local reverseBarsFill = db.profile.reverseBarsFill or false
 
     self.castTexture = castTexture
@@ -81,7 +135,6 @@ function sArenaMixin:UpdateTextures()
 
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
-        local textureToUse = dpsTexture
 
         if self.isMidnight then
             if not frame.CastBar.unintTextureOverlay then
@@ -91,17 +144,12 @@ function sArenaMixin:UpdateTextures()
         end
         frame.CastBar.changeUnint = not (modernCastbars and keepDefaultModernTextures) and (castTexture ~= castUninterruptibleTexture)
 
-        if frame.isHealer then
-            if layout.retextureHealerClassStackOnly then
-                if classStacking then
-                    textureToUse = healerTexture
-                end
-            else
-                textureToUse = healerTexture
-            end
-        end
+        local isHealer = frame.secretSpec or frame.isHealer or (secretSpecs and self.testMode and frame.testIsHealer)
+        local useHealerTexture = healerTexture ~= dpsTexture and isHealer
+            and (secretSpecs or not layout.retextureHealerClassStackOnly or classStacking)
 
-        frame.HealthBar:SetStatusBarTexture(textureToUse)
+        frame.HealthBar:SetStatusBarTexture(dpsTexture)
+        frame:SetHealerBarTexture(useHealerTexture and healerTexture or nil)
         frame.PowerBar:SetStatusBarTexture(dpsTexture)
 
         frame.PetFrame.HealthBar:SetStatusBarTexture(dpsTexture)

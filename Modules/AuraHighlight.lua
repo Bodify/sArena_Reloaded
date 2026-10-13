@@ -442,7 +442,7 @@ end
 function sArenaFrameMixin:UpdateAuraHighlightEnabled()
     local db = self.parent and self.parent.db
     local ah = db and db.profile and db.profile.auraHighlight
-    local enabled = ah and ah.enabled and (not ah.onlyOnHealer or self.isHealer) and true or false
+    local enabled = ah and ah.enabled and (not self.parent:AuraHighlightHealerOnly() or self.isHealer) and true or false
     self.auraHighlightsOn = enabled
 
     local highlight = self.AuraHighlights
@@ -461,7 +461,7 @@ function sArenaFrameMixin:RefreshAuraHighlight()
     if not highlight then return end
 
     local ah = self.parent.db.profile.auraHighlight
-    local active = ah.enabled and (not ah.onlyOnHealer or self.isHealer)
+    local active = ah.enabled and (not self.parent:AuraHighlightHealerOnly() or self.isHealer)
 
     local cache = highlight.cfg or {}
     highlight.cfg = cache

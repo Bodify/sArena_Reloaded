@@ -586,7 +586,8 @@ function sArenaMixin:Test()
         frame.class = data.class
         frame.tempSpecIcon = data.specIcon
         frame.replaceClassIcon = replaceClassIcon
-        frame.isHealer = self.healerSpecNames[data.specName] or false
+        frame.testIsHealer = self.healerSpecNames[data.specName] or false
+        frame.isHealer = frame.testIsHealer and not self:IsArenaSpecSecret()
 
         local currentLayout = self.layouts[self.db.profile.currentLayout]
         if currentLayout and currentLayout.UpdateHealthbarOrientation then
@@ -746,7 +747,8 @@ function sArenaMixin:Test()
                 end
             end
         end
-        frame.WidgetOverlay.healerIndicator:SetShown(healerIndicatorOn and (frame.isHealer == true))
+        frame:RestoreHealerIndicatorTexture()
+        frame.WidgetOverlay.healerIndicator:SetShown(healerIndicatorOn and (frame.testIsHealer == true))
 
         if rangeCheckOn then
             local showIcon = (rangeMode == "icon" or rangeMode == "both")
@@ -847,8 +849,10 @@ function sArenaMixin:Test()
             end
         end
 
+        frame:SetSecretHealerIcon(false)
+
         local cropType
-        if db.profile.replaceHealerIcon and frame.isHealer then
+        if db.profile.replaceHealerIcon and frame.testIsHealer then
             frame.ClassIcon.Texture:SetAtlas("UI-LFG-RoleIcon-Healer")
             cropType = "healer"
         else
@@ -937,7 +941,7 @@ function sArenaMixin:Test()
         end
         LCG.ButtonGlow_Stop(frame.Trinket)
 
-        if db.profile.trinketUseGlow and (not db.profile.trinketUseGlowHealerOnly or frame.isHealer) then
+        if db.profile.trinketUseGlow and (not self:TrinketGlowHealerOnly() or frame.isHealer) then
             local glowColor = db.profile.trinketUseGlowColorEnabled and db.profile.trinketUseGlowColor or nil
             LCG.ButtonGlow_Start(frame.Trinket, glowColor)
             frame.trinketGlowTimer = C_Timer.NewTimer(1, function()

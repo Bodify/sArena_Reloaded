@@ -437,13 +437,16 @@ function sArenaFrameMixin:DarkModeFrame()
 
 end
 
+function sArenaFrameMixin:GetPrepClassColor()
+    return self.secretSpec and self.secretSpecColor or nil
+end
+
 function sArenaFrameMixin:ClassColorFrameTexture()
     if not self.parent.db.profile.classColorFrameTexture then return end
 
     local class = self.class or self.tempClass
-    if not class then return end
-
-    local color = C_ClassColor.GetClassColor(class)
+    local color = class and C_ClassColor.GetClassColor(class) or self:GetPrepClassColor()
+    if not color then return end
 
     local onlyClassIcon = self.parent.db.profile.classColorFrameTextureOnlyClassIcon and self.parent.db.profile.currentLayout == "BlizzCompact"
     local healerGreen = self.parent.db.profile.classColorFrameTextureHealerGreen
@@ -452,6 +455,15 @@ function sArenaFrameMixin:ClassColorFrameTexture()
     local finalColor = color
     if isHealerGreen then
         finalColor = { r = 0, g = 1, b = 0 }
+    end
+
+    local secretColor = issecretvalue(finalColor.r)
+    local function SetLighterColor(texture)
+        if secretColor then
+            texture:SetVertexColor(finalColor.r, finalColor.g, finalColor.b)
+        else
+            texture:SetVertexColor(math.min(1, finalColor.r + 0.2), math.min(1, finalColor.g + 0.2), math.min(1, finalColor.b + 0.2))
+        end
     end
 
     local frameTexture = self.frameTexture
@@ -517,24 +529,15 @@ function sArenaFrameMixin:ClassColorFrameTexture()
         end
         if trinketBorder then
             trinketBorder:SetDesaturated(true)
-            local lighter_r = math.min(1, finalColor.r + 0.2)
-            local lighter_g = math.min(1, finalColor.g + 0.2)
-            local lighter_b = math.min(1, finalColor.b + 0.2)
-            trinketBorder:SetVertexColor(lighter_r, lighter_g, lighter_b)
+            SetLighterColor(trinketBorder)
         end
         if racialBorder then
             racialBorder:SetDesaturated(true)
-            local lighter_r = math.min(1, finalColor.r + 0.2)
-            local lighter_g = math.min(1, finalColor.g + 0.2)
-            local lighter_b = math.min(1, finalColor.b + 0.2)
-            racialBorder:SetVertexColor(lighter_r, lighter_g, lighter_b)
+            SetLighterColor(racialBorder)
         end
         if dispelBorder then
             dispelBorder:SetDesaturated(true)
-            local lighter_r = math.min(1, finalColor.r + 0.2)
-            local lighter_g = math.min(1, finalColor.g + 0.2)
-            local lighter_b = math.min(1, finalColor.b + 0.2)
-            dispelBorder:SetVertexColor(lighter_r, lighter_g, lighter_b)
+            SetLighterColor(dispelBorder)
         end
     end
 
@@ -599,7 +602,7 @@ function sArenaFrameMixin:ResetPixelBorders()
 end
 
 function sArenaFrameMixin:UpdateFrameColors()
-    if self.parent.db.profile.classColorFrameTexture and ((not issecretvalue(self.class) and self.class) or self.tempClass) then
+    if self.parent.db.profile.classColorFrameTexture and (self.class or self.tempClass or self.secretSpec) then
         self:ClassColorFrameTexture()
     elseif self.parent:DarkMode() then
         self:DarkModeFrame()
@@ -1044,6 +1047,51 @@ function sArenaMixin:DatabaseCleanup(db)
 
         db.profile.formatNumbersFix = true
     end
+
+    -- 12.1.5+: healers can't be told apart anymore, so "Keep Healer Manabar Shown" can't work.
+    -- Layouts that hid manabars but kept the healer's get every manabar back instead.
+    if self:IsArenaSpecSecret() and not db.profile.healerManabarMigrated then
+        for layoutName in pairs(self.defaultSettings.profile.layoutSettings) do
+            local layout = db.profile.layoutSettings[layoutName]
+            if layout and layout.keepHealerManabar then
+                if layout.hideManabars then
+                    layout.hideManabars = false
+                end
+                layout.keepHealerManabar = false
+            end
+        end
+
+        db.profile.healerManabarMigrated = true
+    end
+end
+
+function sArenaMixin:IsArenaSpecSecret()
+    if sArenaMixin.arenaSpecSecret == nil then
+        sArenaMixin.arenaSpecSecret = (isMidnight and UnitFrameUtil and UnitFrameUtil.GetArenaOpponentSpecDisplayInfo) and true or false
+    end
+    return sArenaMixin.arenaSpecSecret
+end
+
+-- Blizzard's arena helpers only hand out the class color when this CVar is on (red otherwise).
+function sArenaMixin:EnsurePvPClassColorCVar()
+    if not self:IsArenaSpecSecret() then return end
+
+    local profile = self.db and self.db.profile
+    if not profile then return end
+    if not (profile.classColors or profile.classColorFrameTexture or profile.classColorNames or profile.classColorSpecNames) then return end
+
+    if not C_CVar.GetCVarBool("pvpFramesDisplayClassColor") then
+        C_CVar.SetCVar("pvpFramesDisplayClassColor", "1")
+    end
+end
+
+function sArenaMixin:TrinketGlowHealerOnly()
+    return self.db.profile.trinketUseGlowHealerOnly and not self:IsArenaSpecSecret()
+end
+
+function sArenaMixin:AuraHighlightHealerOnly()
+    local ah = self.db.profile.auraHighlight
+    return ah and ah.onlyOnHealer and not self:IsArenaSpecSecret()
 end
 
 -- function sArenaMixin:ToggleObjectivesFrame(instanceType)
@@ -1214,7 +1262,7 @@ function sArenaFrameMixin:AddPixelBorderToFrame()
     self.parent:CreatePixelTextureBorder(borders, self.ClassIcon, "classIcon", size, offset)
 
     if borders.classIcon then
-        borders.classIcon:SetFrameLevel(self.ClassIcon:GetFrameLevel() + 5)
+        borders.classIcon:SetFrameLevel(self.ClassIcon:GetFrameLevel() + 8)
         if not self.ClassIcon.Texture:GetTexture() then
             borders.classIcon:Hide()
         end
@@ -1675,7 +1723,7 @@ function sArenaFrameMixin:HookMidnightTrinket()
                     end
                 end
 
-                if db and db.profile.trinketUseGlow and (not db.profile.trinketUseGlowHealerOnly or self.isHealer) then
+                if db and db.profile.trinketUseGlow and (not self.parent:TrinketGlowHealerOnly() or self.isHealer) then
                     local glowColor = db.profile.trinketUseGlowColorEnabled and db.profile.trinketUseGlowColor or nil
                     LCG.ButtonGlow_Start(self.Trinket, glowColor)
                     if self.trinketGlowTimer then self.trinketGlowTimer:Cancel() end

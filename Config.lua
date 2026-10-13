@@ -150,7 +150,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             order         = 2,
                             type          = "select",
                             name          = "|A:UI-LFG-RoleIcon-Healer-Micro:20:20|a " .. L["Texture_Healer"],
-                            desc          = L["Texture_Healer_Desc"],
+                            desc          = function(info) return info.handler:IsArenaSpecSecret() and L["Texture_Healer_Desc_Midnight"] or L["Texture_Healer_Desc"] end,
                             style         = "dropdown",
                             dialogControl = "LSM30_Statusbar",
                             values        = StatusbarValues,
@@ -172,6 +172,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             end,
                         },
                         healerClassStackOnly = {
+                            hidden = function(info) return info.handler:IsArenaSpecSecret() end,
                             order = 3,
                             type  = "toggle",
                             name  = L["Texture_ClassStackingOnly"],
@@ -296,6 +297,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                     set   = setSetting,
                                 },
                                 keepHealerManabar = {
+                                    hidden = function(info) return info.handler:IsArenaSpecSecret() end,
                                     order = 2,
                                     type  = "toggle",
                                     name  = L["Option_KeepHealerManabar"],
@@ -6305,6 +6307,7 @@ else
                                         end,
                                     },
                                     classColorFrameTextureHealerGreen = {
+                                        hidden = function(info) return info.handler:IsArenaSpecSecret() end,
                                         order = 1.07,
                                         name = L["ClassColor_HealerGreen"],
                                         desc = L["ClassColor_HealerGreen_Desc"],
@@ -7217,6 +7220,7 @@ else
                                 end,
                             },
                             onlyOnHealer = {
+                                hidden = function(info) return info.handler:IsArenaSpecSecret() end,
                                 order = 1.1,
                                 name = L["AuraHighlight_OnlyOnHealer"],
                                 desc = L["AuraHighlight_OnlyOnHealer_Desc"],
@@ -9671,6 +9675,7 @@ else
                                         width = "full",
                                     },
                                     healerTrinketSoundName = {
+                                        hidden = function(info) return info.handler:IsArenaSpecSecret() end,
                                         order = 4,
                                         width = 1.3,
                                         name = L["Option_HealerTrinketSoundName"],
@@ -9688,6 +9693,7 @@ else
                                         end,
                                     },
                                     healerTrinketSoundFileID = {
+                                        hidden = function(info) return info.handler:IsArenaSpecSecret() end,
                                         order = 5,
                                         name = L["Option_HealerTrinketSoundFileID"],
                                         desc = L["Option_HealerTrinketSoundFileID_Desc"],
@@ -9725,7 +9731,7 @@ else
                                                 local LCG = LibStub("LibCustomGlow-1.0", true)
                                                 if LCG then
                                                     local color = info.handler.db.profile.trinketUseGlowColorEnabled and info.handler.db.profile.trinketUseGlowColor or nil
-                                                    local healerOnly = info.handler.db.profile.trinketUseGlowHealerOnly
+                                                    local healerOnly = info.handler:TrinketGlowHealerOnly()
                                                     for i = 1, info.handler.maxArenaOpponents do
                                                         local frame = info.handler["arena" .. i]
                                                         if frame and frame.Trinket and frame.Trinket:IsVisible() and (not healerOnly or frame.isHealer) then
@@ -9742,6 +9748,7 @@ else
                                         end,
                                     },
                                     trinketUseGlowHealerOnly = {
+                                        hidden = function(info) return info.handler:IsArenaSpecSecret() end,
                                         order = 2,
                                         name = L["Option_TrinketUseGlowHealerOnly"],
                                         desc = L["Option_TrinketUseGlowHealerOnly_Desc"],
@@ -9771,7 +9778,7 @@ else
                                             if info.handler.db.profile.trinketUseGlow then
                                                 local LCG = LibStub("LibCustomGlow-1.0", true)
                                                 if LCG then
-                                                    local healerOnly = info.handler.db.profile.trinketUseGlowHealerOnly
+                                                    local healerOnly = info.handler:TrinketGlowHealerOnly()
                                                     local glowColor = val and info.handler.db.profile.trinketUseGlowColor or nil
                                                     for i = 1, info.handler.maxArenaOpponents do
                                                         local frame = info.handler["arena" .. i]
@@ -9804,7 +9811,7 @@ else
                                             if info.handler.db.profile.trinketUseGlow then
                                                 local LCG = LibStub("LibCustomGlow-1.0", true)
                                                 if LCG then
-                                                    local healerOnly = info.handler.db.profile.trinketUseGlowHealerOnly
+                                                    local healerOnly = info.handler:TrinketGlowHealerOnly()
                                                     for i = 1, info.handler.maxArenaOpponents do
                                                         local frame = info.handler["arena" .. i]
                                                         if frame and frame.Trinket and frame.Trinket:IsVisible() and (not healerOnly or frame.isHealer) then

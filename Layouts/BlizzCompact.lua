@@ -325,7 +325,7 @@ function layout:Initialize(frame)
     end
     -- Must clear the aura slots stacked on the class icon (CC/Important/
     -- BigDef/ExtDef), which occupy ClassIcon+1 .. ClassIcon+4.
-    classIcon.Texture.BorderParent:SetFrameLevel(classIcon:GetFrameLevel() + 5)
+    classIcon.Texture.BorderParent:SetFrameLevel(classIcon:GetFrameLevel() + 8)
     classIconBorder:SetParent(classIcon.Texture.BorderParent)
     classIconBorder:SetAtlas("plunderstorm-actionbar-slot-border")
     classIconBorder:SetPoint("TOPLEFT", classIcon.Texture, "TOPLEFT", -8, 8)

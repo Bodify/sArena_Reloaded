@@ -573,6 +573,7 @@ function sArenaMixin:OnEvent(event, ...)
                     frame.tempClass = nil
                     frame.tempSpecIcon = nil
                     frame.isHealer = nil
+                    frame.testIsHealer = nil
 
                     if frame.drFrames then
                         for n = 1, #frame.drFrames do
@@ -751,6 +752,8 @@ function sArenaMixin:Initialize()
         self:DatabaseCleanup(db)
         if isMidnight then
             self:UpdateAuraSortSettings()
+            self:SetupInterruptAuras()
+            self:EnsurePvPClassColorCVar()
         end
         self:UpdateDRTimeSetting()
         self:UpdateDecimalThreshold()
@@ -772,6 +775,7 @@ function sArenaMixin:Initialize()
 end
 
 function sArenaMixin:RefreshConfig()
+    self:DatabaseCleanup(db)
     self:UpdateDRTimeSetting()
     self:RebuildClickActionsOptions()
     self:SetLayout(_, db.profile.currentLayout)
@@ -1705,7 +1709,7 @@ function sArenaFrameMixin:UpdateNameColor()
     local class = self.class or self.tempClass
 
     local db = self.parent.db.profile
-    local color = class and C_ClassColor.GetClassColor(class)
+    local color = class and C_ClassColor.GetClassColor(class) or self:GetPrepClassColor()
 
     if db.colorNameEnabled and db.colorNameColor then
         if not self.oldNameColor then
@@ -1740,6 +1744,16 @@ function sArenaFrameMixin:UpdateSpecNameText(specName)
     local db = self.parent and self.parent.db
     local settings = db and db.profile.layoutSettings[db.profile.currentLayout]
 
+    if self.secretSpec then
+        local race = settings and settings.showRaceManaText and self.localizedRace
+        if issecretvalue(race) or race then
+            self.SpecNameText:SetText(self.secretSpecName .. " " .. race)
+        else
+            self.SpecNameText:SetText(self.secretSpecName)
+        end
+        return
+    end
+
     if not (settings and settings.showRaceManaText) then
         self.SpecNameText:SetText(specName)
         return
@@ -1760,7 +1774,7 @@ function sArenaFrameMixin:UpdateSpecNameColor()
     local class = self.class or self.tempClass
 
     local db = self.parent.db.profile
-    local color = class and C_ClassColor.GetClassColor(class)
+    local color = class and C_ClassColor.GetClassColor(class) or self:GetPrepClassColor()
 
     if db.colorSpecNameEnabled and db.colorSpecNameColor then
         if not self.oldSpecNameColor then
@@ -1926,7 +1940,7 @@ function sArenaFrameMixin:SetMysteryPlayer(unitEvent)
             pp:SetStatusBarColor(0.5, 0.5, 0.5)
         else
             local class = self.class or self.tempClass
-            local color = class and C_ClassColor.GetClassColor(class)
+            local color = class and C_ClassColor.GetClassColor(class) or self:GetPrepClassColor()
 
             if self.parent.db.profile.classColors then
                 if color then
@@ -2010,6 +2024,11 @@ function sArenaFrameMixin:ResetUnitInfo()
     self.updateRacialOnTrinketSlot = nil
     self.classLocal = nil
     self.specID = nil
+    self.secretSpec = nil
+    self.secretSpecName = nil
+    self.secretSpecColor = nil
+    self:SetHealerBarTexture(nil)
+    self:SetSecretHealerIcon(false)
     self:UpdateAuraHighlightEnabled()
     self.SpecIcon:Hide()
     self.SpecNameText:SetText("")
@@ -2022,6 +2041,30 @@ function sArenaFrameMixin:RestoreClassIcon()
     self:UpdateClassIcon(true)
 end
 
+function sArenaFrameMixin:ApplySpec()
+    self:UpdateAuraHighlightEnabled()
+    self:UpdateHealerStatus()
+    self:UpdateSpecNameText(self.specName)
+    self.SpecNameText:SetShown(db and db.profile.layoutSettings[db.profile.currentLayout].showSpecManaText)
+    self:UpdateSpecNameColor()
+    self:UpdateSpecIcon()
+    if self.secretSpec then
+        self:UpdateClassIcon(true)
+    end
+    self:UpdateFrameColors()
+    self.parent:UpdateTextures()
+
+    local currentLayout = db and self.parent.layouts[db.profile.currentLayout]
+    if currentLayout and currentLayout.UpdateHealthbarOrientation then
+        if InCombatLockdown() then
+            self.needsHealthbarOrientationUpdate = true
+            self:RegisterEvent("PLAYER_REGEN_ENABLED")
+        else
+            currentLayout:UpdateHealthbarOrientation(self)
+        end
+    end
+end
+
 function sArenaFrameMixin:GetClass()
     if self.class then return end
 
@@ -2029,35 +2072,50 @@ function sArenaFrameMixin:GetClass()
 
     if not noEarlyFrames then
         if (GetNumArenaOpponentSpecs() >= id) then
-            local specID = GetArenaOpponentSpec(id) or 0
+            local specID = GetArenaOpponentSpec(id)
+            if issecretvalue(specID) then
+                if not self.secretSpec then
+                    self.secretSpec = true
+                    self.specID = nil
+                    self.specName = nil
+                    self.isHealer = nil
+
+                    self.parent:EnsurePvPClassColorCVar()
+
+                    local info = UnitFrameUtil.GetArenaOpponentSpecDisplayInfo(id)
+                    self.specTexture = info.specIcon
+                    self.secretSpecName = info.specName
+
+                    local color = self.secretSpecColor or {}
+                    color.r, color.g, color.b = info.barColorR, info.barColorG, info.barColorB
+                    self.secretSpecColor = color
+
+                    self:ApplySpec()
+                end
+
+                if not UnitExists(self.unit) then return end
+
+                local classLocal, class = UnitClass(self.unit)
+                if issecretvalue(class) or class then
+                    self.classLocal = classLocal
+                    self.class = class
+                    self.secretClass = true
+                    self:RestoreClassIcon()
+                    self:UpdateFrameColors()
+                    self.parent:UpdateTextures()
+                end
+                return
+            end
+            specID = specID or 0
             if (specID > 0) then
                 local _, specName, _, specTexture, _, class, classLocal = GetSpecializationInfoByID(specID)
                 self.class = class
                 self.classLocal = classLocal
                 self.specID = specID
                 self.specName = specName
-                self.isHealer = self.parent.healerSpecIDs[specID] or false
-                self:UpdateAuraHighlightEnabled()
-                self:UpdateHealerStatus()
-                --self.SpecNameText:SetText(specName)
-                self:UpdateSpecNameText(specName)
-                self.SpecNameText:SetShown(db and db.profile.layoutSettings[db.profile.currentLayout].showSpecManaText)
-                self:UpdateSpecNameColor()
                 self.specTexture = specTexture
-                self.class = class
-                self:UpdateSpecIcon()
-                self:UpdateFrameColors()
-                self.parent:UpdateTextures()
-
-                local currentLayout = self.parent.layouts[db.profile.currentLayout]
-                if currentLayout and currentLayout.UpdateHealthbarOrientation then
-                    if InCombatLockdown() then
-                        self.needsHealthbarOrientationUpdate = true
-                        self:RegisterEvent("PLAYER_REGEN_ENABLED")
-                    else
-                        currentLayout:UpdateHealthbarOrientation(self)
-                    end
-                end
+                self.isHealer = self.parent.healerSpecIDs[specID] or false
+                self:ApplySpec()
             end
         elseif UnitIsNPCAsPlayer(self.unit) then
             self.classLocal, self.class = UnitClass(self.unit)
@@ -2078,6 +2136,66 @@ function sArenaFrameMixin:GetClass()
     end
 end
 
+local healerIconMap = {
+    HEALER = "UI-LFG-RoleIcon-Healer",
+    TANK = "",
+    DAMAGER = "",
+}
+
+local healerIconBackdropMap = {
+    HEALER = "Interface\\Buttons\\WHITE8X8",
+    TANK = "",
+    DAMAGER = "",
+}
+
+function sArenaFrameMixin:CreateSecretHealerIcon()
+    local classIcon = self.ClassIcon
+    local overlay = {
+        backdrop = classIcon:CreateTexture(),
+        icon = classIcon:CreateTexture(),
+    }
+    overlay.backdrop:SetAllPoints(classIcon.Texture)
+    overlay.icon:SetAllPoints(classIcon.Texture)
+    overlay.backdropElements = { roleIcon = overlay.backdrop }
+    overlay.iconElements = { roleIcon = overlay.icon }
+
+    self.secretHealerIcon = overlay
+    return overlay
+end
+
+function sArenaFrameMixin:SetSecretHealerIcon(show)
+    local overlay = self.secretHealerIcon
+    if not show then
+        if overlay then
+            overlay.backdrop:Hide()
+            overlay.icon:Hide()
+        end
+        return
+    end
+    overlay = overlay or self:CreateSecretHealerIcon()
+    overlay.backdrop:SetDrawLayer("BORDER", 2)
+    overlay.icon:SetDrawLayer("BORDER", 3)
+
+    local mask = self.auraSlotMask
+    if overlay.mask ~= mask then
+        if overlay.mask then
+            overlay.backdrop:RemoveMaskTexture(overlay.mask)
+            overlay.icon:RemoveMaskTexture(overlay.mask)
+        end
+        if mask then
+            overlay.backdrop:AddMaskTexture(mask)
+            overlay.icon:AddMaskTexture(mask)
+        end
+        overlay.mask = mask
+    end
+
+    overlay.backdrop:SetVertexColor(0.1, 0.1, 0.1)
+
+    local id = self:GetID()
+    UnitFrameUtil.UpdateArenaOpponentSpecDisplay(overlay.backdropElements, id, healerIconBackdropMap)
+    UnitFrameUtil.UpdateArenaOpponentSpecDisplay(overlay.iconElements, id, healerIconMap)
+    self:SetTextureCrop(overlay.icon, nil, "healer")
+end
 
 function sArenaFrameMixin:UpdateClassIcon(continue)
 	if db and db.profile.hideClassIcon then
@@ -2086,6 +2204,7 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
 		if self.ClassIconMsq then
 			self.ClassIconMsq:Hide()
 		end
+		self:SetSecretHealerIcon(false)
 		return
 	end
 
@@ -2102,7 +2221,7 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
 
 	local texture
 	if isMidnight then
-		texture = self.class and "class" or nil
+		texture = (self.class or self.secretSpec) and "class" or nil
 	else
 		texture = self.currentAuraSpellID and self.currentAuraTexture or self.class and "class" or nil
 	end
@@ -2131,6 +2250,11 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
             if self.ClassIconMsq then
                 self.ClassIconMsq:Show()
             end
+        elseif not self.class then
+            texture = self.specTexture
+            if self.ClassIconMsq then
+                self.ClassIconMsq:Show()
+            end
         else
             texture = self.secretClass and GetClassAtlas(self.class) or self.parent.classIcons[self.class]
             if self.ClassIconMsq then
@@ -2150,8 +2274,10 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
 
         local cropType = useHealerTexture and "healer" or "class"
         self:SetTextureCrop(self.ClassIcon.Texture, db.profile.layoutSettings[db.profile.currentLayout].cropIcons, cropType)
+        self:SetSecretHealerIcon(db.profile.replaceHealerIcon and self.secretSpec and not db.profile.onlyShowAuras)
 		return
 	end
+	self:SetSecretHealerIcon(false)
 	self:SetTextureCrop(self.ClassIcon.Texture, db and db.profile.layoutSettings[db.profile.currentLayout].cropIcons, "class")
 	self.ClassIcon.Texture:SetTexture(texture)
     if self.ClassIconMsq then
@@ -2379,8 +2505,8 @@ end
 function sArenaFrameMixin:SetLifeState()
     local unit = self.unit
     local isFeigningDeath
-    if isMidnight and not self.secretClass then
-        isFeigningDeath = self.class == "HUNTER" and UnitIsFeignDeath(unit)
+    if isMidnight then
+        isFeigningDeath = UnitIsFeignDeath(unit)
     else
         isFeigningDeath = self.class == "HUNTER" and AuraUtil.FindAuraByName(FEIGN_DEATH, unit, "HELPFUL")
     end
