@@ -10,3 +10,4 @@
   - Trinket glow "Only on Healer" (the glow now shows on every trinket)
 ## Bugfix
 - Fix an issue that could cause nil errors on DR updates.
+- 2.6.6b: add back 12.1 to toc so addon loads on 12.1
