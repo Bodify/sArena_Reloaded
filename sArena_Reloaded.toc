@@ -1,4 +1,4 @@
-## Interface: 120105
+## Interface: 120105, 120100
 ## Title: sArena |cffff8000Reloaded|r
 ## Notes: Enhanced Arena Frames
 ## Version: @project-version@
