@@ -7,7 +7,7 @@ local L = sArenaMixin.L
 local function GetClassOptionName(classToken)
     local icon = sArenaMixin.classIcons[classToken]
     local color = C_ClassColor.GetClassColor(classToken)
-    local name = LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[classToken] or classToken
+    local name = sArenaMixin:GetClassDisplayName(classToken)
     local label = name
     if color then
         local hex
@@ -44,26 +44,32 @@ local function validateCombat()
     return true
 end
 
-local growthValues = { L["Direction_Down"], L["Direction_Up"], L["Direction_Right"], L["Direction_Left"] }
-local drIcons = sArenaMixin.defaultSettings.profile.drIcons or {}
+local growthValues, drCategoryDisplay, racialCategories, drIcons
 
-local drCategoryDisplay = {}
-for category, tex in pairs(drIcons) do
-    drCategoryDisplay[category] = "|cFFFFFFFF|T" .. tostring(tex) .. ":16|t " .. (L["DR_" .. category] or category) .. "|r"
-end
+local function BuildLocalizedValues()
+    if growthValues then return end
 
-local racialCategories = {}
-for raceKey, data in pairs(sArenaMixin.racialData or {}) do
-    local name = L["Race_" .. raceKey] or raceKey
-    local texture = data and data.texture
-    if texture then
-        if type(texture) == "string" then
-            racialCategories[raceKey] = "|T" .. texture .. ":16|t " .. name
+    growthValues = { L["Growth_Down"], L["Growth_Up"], L["Growth_Right"], L["Growth_Left"] }
+    drIcons = sArenaMixin.defaultSettings.profile.drIcons or {}
+
+    drCategoryDisplay = {}
+    for category, tex in pairs(drIcons) do
+        drCategoryDisplay[category] = "|cFFFFFFFF|T" .. tostring(tex) .. ":16|t " .. (L["DR_" .. category] or category) .. "|r"
+    end
+
+    racialCategories = {}
+    for raceKey, data in pairs(sArenaMixin.racialData or {}) do
+        local name = L["Race_" .. raceKey] or raceKey
+        local texture = data and data.texture
+        if texture then
+            if type(texture) == "string" then
+                racialCategories[raceKey] = "|T" .. texture .. ":16|t " .. name
+            else
+                racialCategories[raceKey] = "|T" .. tostring(texture) .. ":16|t " .. name
+            end
         else
-            racialCategories[raceKey] = "|T" .. tostring(texture) .. ":16|t " .. name
+            racialCategories[raceKey] = name
         end
-    else
-        racialCategories[raceKey] = name
     end
 end
 
@@ -84,6 +90,7 @@ local function SoundValues()
 end
 
 function sArenaMixin:GetLayoutOptionsTable(layoutName)
+    BuildLocalizedValues()
     local function LDB(info)
         return info.handler.db.profile.layoutSettings[layoutName]
     end
@@ -3902,7 +3909,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                     order = 2,
                                     name = L["Option_GrowthDirection"],
                                     type = "select",
-                                    values = { LEFT = L["Direction_Left"], RIGHT = L["Direction_Right"], UP = L["Direction_Up"], DOWN = L["Direction_Down"] },
+                                    values = { LEFT = L["Growth_Left"], RIGHT = L["Growth_Right"], UP = L["Growth_Up"], DOWN = L["Growth_Down"] },
                                     width = 0.95,
                                     get = function(info)
                                         local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
@@ -4096,7 +4103,7 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                     order = 2,
                                     name = L["Option_GrowthDirection"],
                                     type = "select",
-                                    values = { LEFT = L["Direction_Left"], RIGHT = L["Direction_Right"], UP = L["Direction_Up"], DOWN = L["Direction_Down"] },
+                                    values = { LEFT = L["Growth_Left"], RIGHT = L["Growth_Right"], UP = L["Growth_Up"], DOWN = L["Growth_Down"] },
                                     width = 0.95,
                                     get = function(info)
                                         local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
@@ -4877,10 +4884,10 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                                     style = "dropdown",
                                     width = 0.95,
                                     values = {
-                                        LEFT  = L["Direction_Left"],
-                                        RIGHT = L["Direction_Right"],
-                                        UP    = L["Direction_Up"],
-                                        DOWN  = L["Direction_Down"],
+                                        LEFT  = L["Growth_Left"],
+                                        RIGHT = L["Growth_Right"],
+                                        UP    = L["Growth_Up"],
+                                        DOWN  = L["Growth_Down"],
                                     },
                                     disabled = disabledIfDisabled("partyTargetIndicators"),
                                 },
@@ -5832,4349 +5839,4371 @@ local function setDRIcons()
     return inputs
 end
 
-local conflictType, conflictNames = sArenaMixin:ConflictCheck()
-
-if conflictType == "sarena" then
-    sArenaMixin.optionsTable = {
-        type = "group",
-        name = sArenaMixin.addonTitle,
-        childGroups = "tab",
-        validate = validateCombat,
-        args = {
-            ImportOtherForkSettings = {
-                order = 1,
-                name = L["Option_AddonConflict"],
-                desc = L["Conflict_MultipleVersions"],
-                type = "group",
-                args = {
-                    warningTitle = {
-                        order = 1,
-                        type = "description",
-                        name = L["Conflict_Warning"],
-                        fontSize = "large",
-                    },
-                    spacer1 = {
-                        order = 1.1,
-                        type = "description",
-                        name = " ",
-                    },
-                    explanation = {
-                        order = 1.2,
-                        type = "description",
-                        name = L["Conflict_Explanation"],
-                        fontSize = "medium",
-                    },
-                    spacer2 = {
-                        order = 1.3,
-                        type = "description",
-                        name = " ",
-                    },
-                    option1 = {
-                        order = 2,
-                        type = "execute",
-                        name = L["Conflict_UseOther"],
-                        desc = L["Conflict_UseOther_Desc"],
-                        func = function()
-                            C_AddOns.DisableAddOn("sArena_Reloaded")
-                            ReloadUI()
-                        end,
-                        width = "full",
-                        confirm = true,
-                        confirmText = L["Conflict_UseOther_Confirm"],
-                    },
-                    option2 = {
-                        order = 3,
-                        type = "execute",
-                        name = L["Conflict_UseReloaded_Import"],
-                        desc = L["Conflict_UseReloaded_Import_Desc"],
-                        func = function(info)
-                            if info.handler.ImportOtherForkSettings then
-                                info.handler:ImportOtherForkSettings()
-                            end
-                        end,
-                        width = "full",
-                        confirm = true,
-                        confirmText = L["Conflict_UseReloaded_Import_Confirm"],
-                    },
-                    option3 = {
-                        order = 4,
-                        type = "execute",
-                        name = L["Conflict_UseReloaded_NoImport"],
-                        desc = L["Conflict_UseReloaded_NoImport_Desc"],
-                        func = function()
-                            sArenaMixin:CompatibilityEnsurer()
-                            ReloadUI()
-                        end,
-                        width = "full",
-                        confirm = true,
-                        confirmText = L["Conflict_UseReloaded_NoImport_Confirm"],
-                    },
-                    spacer3 = {
-                        order = 4.5,
-                        type = "description",
-                        name = " ",
-                    },
-                    conversionStatus = {
-                        order = 5,
-                        type = "description",
-                        name = function(info) return info.handler.conversionStatusText or "" end,
-                        fontSize = "large",
-                        hidden = function(info) return not info.handler.conversionStatusText end,
-                    },
-                },
-            },
-        },
-    }
-elseif conflictType == "other" then
-    local addonListText = ""
-    for _, name in ipairs(conflictNames) do
-        addonListText = addonListText .. "\n|cffff8800• " .. name .. "|r"
+function sArenaMixin:BuildOptionsTable()
+    BuildLocalizedValues()
+    if sArenaMixin.rangeTextures then
+        for key, label in pairs(sArenaMixin.rangeTextures) do
+            sArenaMixin.rangeTextures[key] = label:gsub(" Icon (%d+)$", " " .. L["Icon"] .. " %1")
+        end
+        sArenaMixin.rangeTextures[""] = L["Widget_RangeCheck_PresetNone"]
+        sArenaMixin.rangeTextures["custom"] = L["Widget_RangeCheck_CustomAtlas"]
     end
 
-    sArenaMixin.optionsTable = {
-        type = "group",
-        name = sArenaMixin.addonTitle,
-        childGroups = "tab",
-        validate = validateCombat,
-        args = {
-            OtherAddonConflict = {
-                order = 1,
-                name = L["Option_OtherAddonConflict"],
-                desc = L["OtherConflict_Detected"],
-                type = "group",
-                args = {
-                    warningTitle = {
-                        order = 1,
-                        type = "description",
-                        name = L["OtherConflict_Warning"],
-                        fontSize = "large",
-                    },
-                    spacer1 = {
-                        order = 1.1,
-                        type = "description",
-                        name = " ",
-                    },
-                    explanation = {
-                        order = 1.2,
-                        type = "description",
-                        name = L["OtherConflict_Explanation"],
-                        fontSize = "medium",
-                    },
-                    addonList = {
-                        order = 1.3,
-                        type = "description",
-                        name = addonListText,
-                        fontSize = "medium",
-                    },
-                    spacer2 = {
-                        order = 1.4,
-                        type = "description",
-                        name = " ",
-                    },
-                    disableButton = {
-                        order = 2,
-                        type = "execute",
-                        name = L["OtherConflict_DisableAndReload"],
-                        desc = L["OtherConflict_DisableAndReload_Desc"],
-                        func = function()
-                            sArenaMixin:CompatibilityEnsurer()
-                            sArena_ReloadedDB.reOpenOptions = true
-                            ReloadUI()
-                        end,
-                        width = "full",
-                        confirm = true,
-                        confirmText = L["OtherConflict_DisableAndReload_Confirm"],
+    local conflictType, conflictNames = sArenaMixin:ConflictCheck()
+
+    if conflictType == "sarena" then
+        sArenaMixin.optionsTable = {
+            type = "group",
+            name = sArenaMixin.addonTitle,
+            childGroups = "tab",
+            validate = validateCombat,
+            args = {
+                ImportOtherForkSettings = {
+                    order = 1,
+                    name = L["Option_AddonConflict"],
+                    desc = L["Conflict_MultipleVersions"],
+                    type = "group",
+                    args = {
+                        warningTitle = {
+                            order = 1,
+                            type = "description",
+                            name = L["Conflict_Warning"],
+                            fontSize = "large",
+                        },
+                        spacer1 = {
+                            order = 1.1,
+                            type = "description",
+                            name = " ",
+                        },
+                        explanation = {
+                            order = 1.2,
+                            type = "description",
+                            name = L["Conflict_Explanation"],
+                            fontSize = "medium",
+                        },
+                        spacer2 = {
+                            order = 1.3,
+                            type = "description",
+                            name = " ",
+                        },
+                        option1 = {
+                            order = 2,
+                            type = "execute",
+                            name = L["Conflict_UseOther"],
+                            desc = L["Conflict_UseOther_Desc"],
+                            func = function()
+                                C_AddOns.DisableAddOn("sArena_Reloaded")
+                                ReloadUI()
+                            end,
+                            width = "full",
+                            confirm = true,
+                            confirmText = sArenaMixin.popupHeader .. L["Conflict_UseOther_Confirm"],
+                        },
+                        option2 = {
+                            order = 3,
+                            type = "execute",
+                            name = L["Conflict_UseReloaded_Import"],
+                            desc = L["Conflict_UseReloaded_Import_Desc"],
+                            func = function(info)
+                                if info.handler.ImportOtherForkSettings then
+                                    info.handler:ImportOtherForkSettings()
+                                end
+                            end,
+                            width = "full",
+                            confirm = true,
+                            confirmText = sArenaMixin.popupHeader .. L["Conflict_UseReloaded_Import_Confirm"],
+                        },
+                        option3 = {
+                            order = 4,
+                            type = "execute",
+                            name = L["Conflict_UseReloaded_NoImport"],
+                            desc = L["Conflict_UseReloaded_NoImport_Desc"],
+                            func = function()
+                                sArenaMixin:CompatibilityEnsurer()
+                                ReloadUI()
+                            end,
+                            width = "full",
+                            confirm = true,
+                            confirmText = sArenaMixin.popupHeader .. L["Conflict_UseReloaded_NoImport_Confirm"],
+                        },
+                        spacer3 = {
+                            order = 4.5,
+                            type = "description",
+                            name = " ",
+                        },
+                        conversionStatus = {
+                            order = 5,
+                            type = "description",
+                            name = function(info) return info.handler.conversionStatusText or "" end,
+                            fontSize = "large",
+                            hidden = function(info) return not info.handler.conversionStatusText end,
+                        },
                     },
                 },
             },
-        },
-    }
-else
-    sArenaMixin.optionsTable = {
-        type = "group",
-        name = sArenaMixin.addonTitle,
-        childGroups = "tab",
-        validate = validateCombat,
-        args = {
-            setLayout = {
-                order = 1,
-                name = L["Option_Layout"],
-                type = "select",
-                style = "dropdown",
-                dialogControl = "sArena_LayoutPreviewDropdown",
-                get = function(info) return info.handler.db.profile.currentLayout end,
-                set = "SetLayout",
-                values = getLayoutTable,
-            },
-            test = {
-                order = 2,
-                name = L["Option_Test"],
-                type = "execute",
-                func = "Test",
-                width = "half",
-            },
-            hide = {
-                order = 3,
-                name = L["Option_Hide"],
-                type = "execute",
-                func = function(info)
-                    for i = 1, info.handler.maxArenaOpponents do
-                        info.handler["arena" .. i]:OnEvent("PLAYER_ENTERING_WORLD")
-                    end
-                end,
-                width = "half",
-            },
-            dragNotice = {
-                order = 4,
-                name = ("|T132961:16|t |cffff3300"..L["Drag_Hint"].."|r"),
-                type = "description",
-                fontSize = "medium",
-                width = 1.5,
-            },
-            layoutSettingsGroup = {
-                order = 5,
-                name = L["Layout_Settings"],
-                desc = L["Layout_Settings_Desc"],
-                type = "group",
-                args = {},
-            },
-            globalSettingsGroup = {
-                order = 6,
-                name = L["Global_Settings"],
-                desc = L["Global_Settings_Desc"],
-                type = "group",
-                childGroups = "tree",
-                args = {
-                    arenaWidgetsGroup = {
-                        order = 1.5,
-                        name = L["Category_ArenaWidgets"],
-                        desc = L["Category_ArenaWidgets_Desc"],
-                        type = "group",
-                        args = {
-                            shadowSightTimer = {
-                                order = 1,
-                                name = L["Option_ShadowsightTimer"],
-                                desc = L["Option_ShadowsightTimer_Desc"],
-                                type = "toggle",
-                                width = "full",
-                                get = function(info) return info.handler.db.profile.shadowSightTimer end,
-                                set = function(info, val)
-                                    info.handler.db.profile.shadowSightTimer = val
-                                end,
-                            },
-                            showDampening = {
-                                order = 2,
-                                name = L["Option_ShowDampening"],
-                                desc = L["Option_ShowDampening_Desc"],
-                                type = "toggle",
-                                width = "full",
-                                get = function(info) return info.handler.db.profile.showDampening end,
-                                set = function(info, val)
-                                    info.handler.db.profile.showDampening = val
-                                    if val and info.handler:IsInArena() then
-                                        info.handler:StartDampening()
-                                    else
-                                        info.handler:ResetDampening()
-                                    end
-                                end,
-                            },
-                            gladTracker = {
-                                order = 3,
-                                name = L["Option_GladTracker"],
-                                desc = L["Option_GladTracker_Desc"],
-                                type = "toggle",
-                                width = "full",
-                                get = function(info) return info.handler.db.profile.gladTracker end,
-                                set = function(info, val)
-                                    info.handler.db.profile.gladTracker = val
-                                    info.handler:GladTracker()
-                                end,
-                            },
+        }
+    elseif conflictType == "other" then
+        local addonListText = ""
+        for _, name in ipairs(conflictNames) do
+            addonListText = addonListText .. "\n|cffff8800• " .. name .. "|r"
+        end
+
+        sArenaMixin.optionsTable = {
+            type = "group",
+            name = sArenaMixin.addonTitle,
+            childGroups = "tab",
+            validate = validateCombat,
+            args = {
+                OtherAddonConflict = {
+                    order = 1,
+                    name = L["Option_OtherAddonConflict"],
+                    desc = L["OtherConflict_Detected"],
+                    type = "group",
+                    args = {
+                        warningTitle = {
+                            order = 1,
+                            type = "description",
+                            name = L["OtherConflict_Warning"],
+                            fontSize = "large",
+                        },
+                        spacer1 = {
+                            order = 1.1,
+                            type = "description",
+                            name = " ",
+                        },
+                        explanation = {
+                            order = 1.2,
+                            type = "description",
+                            name = L["OtherConflict_Explanation"],
+                            fontSize = "medium",
+                        },
+                        addonList = {
+                            order = 1.3,
+                            type = "description",
+                            name = addonListText,
+                            fontSize = "medium",
+                        },
+                        spacer2 = {
+                            order = 1.4,
+                            type = "description",
+                            name = " ",
+                        },
+                        disableButton = {
+                            order = 2,
+                            type = "execute",
+                            name = L["OtherConflict_DisableAndReload"],
+                            desc = L["OtherConflict_DisableAndReload_Desc"],
+                            func = function()
+                                sArenaMixin:CompatibilityEnsurer()
+                                sArena_ReloadedDB.reOpenOptions = true
+                                ReloadUI()
+                            end,
+                            width = "full",
+                            confirm = true,
+                            confirmText = sArenaMixin.popupHeader .. L["OtherConflict_DisableAndReload_Confirm"],
                         },
                     },
-                    framesGroup = {
-                        order = 1,
-                        name = L["Option_ArenaFrames"],
-                        type = "group",
-                        args = {
-                            statusText = {
-                                order = 5,
-                                name = L["Option_StatusText"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    alwaysShow = {
-                                        order = 1,
-                                        name = L["Option_AlwaysShow"],
-                                        desc = L["Text_ShowOnMouseover_Desc"],
-                                        type = "toggle",
-                                        get = function(info) return info.handler.db.profile.statusText.alwaysShow end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.statusText.alwaysShow = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                info.handler["arena" .. i]:UpdateStatusTextVisible()
-                                            end
-                                        end,
-                                    },
-                                    usePercentage = {
-                                        order = 2,
-                                        name = L["Option_UsePercentage"],
-                                        type = "toggle",
-                                        get = function(info) return info.handler.db.profile.statusText.usePercentage end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.statusText.usePercentage = val
-                                            if val then
-                                                info.handler.db.profile.statusText.formatNumbers = false
-                                            end
-
-                                            local _, instanceType = IsInInstance()
-                                            if (instanceType ~= "arena" and info.handler.arena1:IsShown()) then
-                                                info.handler:Test()
-                                            end
-                                        end,
-                                    },
-                                    formatNumbers = {
-                                        order = 3,
-                                        name = L["Option_FormatNumbers"],
-                                        desc = L["Text_FormatLargeNumbers_Desc"],
-                                        type = "toggle",
-                                        get = function(info) return info.handler.db.profile.statusText.formatNumbers end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.statusText.formatNumbers = val
-                                            if val then
-                                                info.handler.db.profile.statusText.usePercentage = false
-                                            end
-
-                                            local _, instanceType = IsInInstance()
-                                            if (instanceType ~= "arena" and info.handler.arena1:IsShown()) then
-                                                info.handler:Test()
-                                            end
-                                        end,
-                                    },
-                                    hidePowerText = {
-                                        order = 4,
-                                        name = L["Text_HidePowerText"],
-                                        desc = L["Text_HidePowerText_Desc"],
-                                        type = "toggle",
-                                        get = function(info) return info.handler.db.profile.hidePowerText end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.hidePowerText = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                info.handler["arena" .. i]:UpdateStatusTextVisible()
-                                            end
-                                        end,
-                                    },
+                },
+            },
+        }
+    else
+        sArenaMixin.optionsTable = {
+            type = "group",
+            name = sArenaMixin.addonTitle,
+            childGroups = "tab",
+            validate = validateCombat,
+            args = {
+                setLayout = {
+                    order = 1,
+                    name = L["Option_Layout"],
+                    type = "select",
+                    style = "dropdown",
+                    dialogControl = "sArena_LayoutPreviewDropdown",
+                    get = function(info) return info.handler.db.profile.currentLayout end,
+                    set = "SetLayout",
+                    values = getLayoutTable,
+                },
+                test = {
+                    order = 2,
+                    name = L["Option_Test"],
+                    type = "execute",
+                    func = "Test",
+                    width = "half",
+                },
+                hide = {
+                    order = 3,
+                    name = L["Option_Hide"],
+                    type = "execute",
+                    func = function(info)
+                        for i = 1, info.handler.maxArenaOpponents do
+                            info.handler["arena" .. i]:OnEvent("PLAYER_ENTERING_WORLD")
+                        end
+                    end,
+                    width = "half",
+                },
+                layoutSettingsGroup = {
+                    order = 5,
+                    name = L["Layout_Settings"],
+                    desc = L["Layout_Settings_Desc"],
+                    type = "group",
+                    args = {},
+                },
+                globalSettingsGroup = {
+                    order = 6,
+                    name = L["Global_Settings"],
+                    desc = L["Global_Settings_Desc"],
+                    type = "group",
+                    childGroups = "tree",
+                    args = {
+                        arenaWidgetsGroup = {
+                            order = 1.5,
+                            name = L["Category_ArenaWidgets"],
+                            desc = L["Category_ArenaWidgets_Desc"],
+                            type = "group",
+                            args = {
+                                shadowSightTimer = {
+                                    order = 1,
+                                    name = L["Option_ShadowsightTimer"],
+                                    desc = L["Option_ShadowsightTimer_Desc"],
+                                    type = "toggle",
+                                    width = "full",
+                                    get = function(info) return info.handler.db.profile.shadowSightTimer end,
+                                    set = function(info, val)
+                                        info.handler.db.profile.shadowSightTimer = val
+                                    end,
+                                },
+                                showDampening = {
+                                    order = 2,
+                                    name = L["Option_ShowDampening"],
+                                    desc = L["Option_ShowDampening_Desc"],
+                                    type = "toggle",
+                                    width = "full",
+                                    get = function(info) return info.handler.db.profile.showDampening end,
+                                    set = function(info, val)
+                                        info.handler.db.profile.showDampening = val
+                                        if val and info.handler:IsInArena() then
+                                            info.handler:StartDampening()
+                                        else
+                                            info.handler:ResetDampening()
+                                        end
+                                    end,
+                                },
+                                gladTracker = {
+                                    order = 3,
+                                    name = L["Option_GladTracker"],
+                                    desc = L["Option_GladTracker_Desc"],
+                                    type = "toggle",
+                                    width = "full",
+                                    get = function(info) return info.handler.db.profile.gladTracker end,
+                                    set = function(info, val)
+                                        info.handler.db.profile.gladTracker = val
+                                        info.handler:GladTracker()
+                                    end,
                                 },
                             },
-                            darkModeGroup = {
-                                order = 5.5,
-                                name = L["Option_DarkMode"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    darkMode = {
-                                        order = 1,
-                                        name = L["DarkMode_Enable"],
-                                        type = "toggle",
-                                        width = 1,
-                                        desc = function(info)
-                                            local baseDesc = L["DarkMode_Enable_Desc"]
-                                            local layout = info.handler.db.profile.currentLayout
-                                            if layout == "BlizzCompact" then
-                                                return baseDesc .. "\n\nCan be combined with Class Color FrameTexture. When combined, class colors take priority - use 'Only Class Icon' to apply class color to the icon while Dark Mode colors the rest."
-                                            end
-                                            return baseDesc
-                                        end,
-                                        get = function(info) return info.handler.db.profile.darkMode end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.darkMode = val
-                                            info.handler:RefreshConfig()
-                                            info.handler:Test()
-                                        end,
-                                    },
-                                    darkModeValue = {
-                                        order = 2,
-                                        name = L["DarkMode_Value"],
-                                        type = "range",
-                                        width = 0.75,
-                                        desc = L["DarkMode_Value_Desc"],
-                                        min = 0,
-                                        max = 1,
-                                        step = 0.01,
-                                        disabled = function(info)
-                                            return not info.handler.db.profile.darkMode
-                                        end,
-                                        get = function(info) return info.handler.db.profile.darkModeValue end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.darkModeValue = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena"..i]
-                                                if frame then
-                                                    frame:UpdateFrameColors()
+                        },
+                        framesGroup = {
+                            order = 1,
+                            name = L["Option_ArenaFrames"],
+                            type = "group",
+                            args = {
+                                statusText = {
+                                    order = 5,
+                                    name = L["Option_StatusText"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        alwaysShow = {
+                                            order = 1,
+                                            name = L["Option_AlwaysShow"],
+                                            desc = L["Text_ShowOnMouseover_Desc"],
+                                            type = "toggle",
+                                            get = function(info) return info.handler.db.profile.statusText.alwaysShow end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.statusText.alwaysShow = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    info.handler["arena" .. i]:UpdateStatusTextVisible()
                                                 end
-                                            end
-                                        end,
-                                    },
-                                    darkModeDesaturate = {
-                                        order = 3,
-                                        name = L["Option_Desaturate"],
-                                        type = "toggle",
-                                        width = 0.75,
-                                        desc = L["DarkMode_Desaturate_Desc"],
-                                        disabled = function(info)
-                                            return not info.handler.db.profile.darkMode
-                                        end,
-                                        get = function(info) return info.handler.db.profile.darkModeDesaturate end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.darkModeDesaturate = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena"..i]
-                                                if frame then
-                                                    frame:UpdateFrameColors()
+                                            end,
+                                        },
+                                        usePercentage = {
+                                            order = 2,
+                                            name = L["Option_UsePercentage"],
+                                            type = "toggle",
+                                            get = function(info) return info.handler.db.profile.statusText.usePercentage end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.statusText.usePercentage = val
+                                                if val then
+                                                    info.handler.db.profile.statusText.formatNumbers = false
                                                 end
-                                            end
-                                        end,
+
+                                                local _, instanceType = IsInInstance()
+                                                if (instanceType ~= "arena" and info.handler.arena1:IsShown()) then
+                                                    info.handler:Test()
+                                                end
+                                            end,
+                                        },
+                                        formatNumbers = {
+                                            order = 3,
+                                            name = L["Option_FormatNumbers"],
+                                            desc = L["Text_FormatLargeNumbers_Desc"],
+                                            type = "toggle",
+                                            get = function(info) return info.handler.db.profile.statusText.formatNumbers end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.statusText.formatNumbers = val
+                                                if val then
+                                                    info.handler.db.profile.statusText.usePercentage = false
+                                                end
+
+                                                local _, instanceType = IsInInstance()
+                                                if (instanceType ~= "arena" and info.handler.arena1:IsShown()) then
+                                                    info.handler:Test()
+                                                end
+                                            end,
+                                        },
+                                        hidePowerText = {
+                                            order = 4,
+                                            name = L["Text_HidePowerText"],
+                                            desc = L["Text_HidePowerText_Desc"],
+                                            type = "toggle",
+                                            get = function(info) return info.handler.db.profile.hidePowerText end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.hidePowerText = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    info.handler["arena" .. i]:UpdateStatusTextVisible()
+                                                end
+                                            end,
+                                        },
                                     },
                                 },
-                            },
-                            misc = {
-                                order = 6,
-                                name = L["Option_Miscellaneous"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    classColors = {
-                                        order = 1,
-                                        name = L["ClassColor_Healthbars"],
-                                        desc = L["ClassColor_Healthbars_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.classColors end,
-                                        set = function(info, val)
-                                            local db = info.handler.db
-                                            db.profile.classColors = val
+                                darkModeGroup = {
+                                    order = 5.5,
+                                    name = L["Option_DarkMode"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        darkMode = {
+                                            order = 1,
+                                            name = L["DarkMode_Enable"],
+                                            type = "toggle",
+                                            width = 1,
+                                            desc = function(info)
+                                                local baseDesc = L["DarkMode_Enable_Desc"]
+                                                local layout = info.handler.db.profile.currentLayout
+                                                if layout == "BlizzCompact" then
+                                                    return baseDesc .. "\n\n" .. L["DarkMode_Enable_BlizzCompact_Desc"]
+                                                end
+                                                return baseDesc
+                                            end,
+                                            get = function(info) return info.handler.db.profile.darkMode end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.darkMode = val
+                                                info.handler:RefreshConfig()
+                                                info.handler:Test()
+                                            end,
+                                        },
+                                        darkModeValue = {
+                                            order = 2,
+                                            name = L["DarkMode_Value"],
+                                            type = "range",
+                                            width = 0.75,
+                                            desc = L["DarkMode_Value_Desc"],
+                                            min = 0,
+                                            max = 1,
+                                            step = 0.01,
+                                            disabled = function(info)
+                                                return not info.handler.db.profile.darkMode
+                                            end,
+                                            get = function(info) return info.handler.db.profile.darkModeValue end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.darkModeValue = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena"..i]
+                                                    if frame then
+                                                        frame:UpdateFrameColors()
+                                                    end
+                                                end
+                                            end,
+                                        },
+                                        darkModeDesaturate = {
+                                            order = 3,
+                                            name = L["Option_Desaturate"],
+                                            type = "toggle",
+                                            width = 0.75,
+                                            desc = L["DarkMode_Desaturate_Desc"],
+                                            disabled = function(info)
+                                                return not info.handler.db.profile.darkMode
+                                            end,
+                                            get = function(info) return info.handler.db.profile.darkModeDesaturate end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.darkModeDesaturate = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena"..i]
+                                                    if frame then
+                                                        frame:UpdateFrameColors()
+                                                    end
+                                                end
+                                            end,
+                                        },
+                                    },
+                                },
+                                misc = {
+                                    order = 6,
+                                    name = L["Option_Miscellaneous"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        classColors = {
+                                            order = 1,
+                                            name = L["ClassColor_Healthbars"],
+                                            desc = L["ClassColor_Healthbars_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.classColors end,
+                                            set = function(info, val)
+                                                local db = info.handler.db
+                                                db.profile.classColors = val
 
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                local class = frame.tempClass
-                                                local color = C_ClassColor.GetClassColor(class)
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    local class = frame.tempClass
+                                                    local color = C_ClassColor.GetClassColor(class)
 
-                                                if val and color then
-                                                    frame.HealthBar:SetStatusBarColor(color.r, color.g, color.b, 1)
-                                                else
-                                                    frame.HealthBar:SetStatusBarColor(0, 1, 0, 1)
+                                                    if val and color then
+                                                        frame.HealthBar:SetStatusBarColor(color.r, color.g, color.b, 1)
+                                                    else
+                                                        frame.HealthBar:SetStatusBarColor(0, 1, 0, 1)
+                                                    end
                                                 end
-                                            end
-                                        end,
-                                    },
-                                    classColorFrameTexture = {
-                                        order = 1.05,
-                                        name = L["ClassColor_FrameTexture"],
-                                        desc = L["ClassColor_FrameTexture_Desc"],
-                                        type = "toggle",
-                                        width = 1.1,
-                                        get = function(info) return info.handler.db.profile.classColorFrameTexture end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.classColorFrameTexture = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena"..i]
-                                                if frame then
-                                                    frame:UpdateFrameColors()
+                                            end,
+                                        },
+                                        classColorFrameTexture = {
+                                            order = 1.05,
+                                            name = L["ClassColor_FrameTexture"],
+                                            desc = L["ClassColor_FrameTexture_Desc"],
+                                            type = "toggle",
+                                            width = 1.1,
+                                            get = function(info) return info.handler.db.profile.classColorFrameTexture end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.classColorFrameTexture = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena"..i]
+                                                    if frame then
+                                                        frame:UpdateFrameColors()
+                                                    end
                                                 end
-                                            end
-                                        end,
-                                    },
-                                    classColorFrameTextureOnlyClassIcon = {
-                                        order = 1.06,
-                                        name = L["ClassColor_OnlyClassIcon"],
-                                        desc = L["ClassColor_OnlyClassIcon_Desc"],
-                                        type = "toggle",
-                                        width = 0.8,
-                                        hidden = function(info)
-                                            local layout = info.handler.db.profile.currentLayout
-                                            return layout ~= "BlizzCompact"
-                                        end,
-                                        disabled = function(info) return not info.handler.db.profile.classColorFrameTexture end,
-                                        get = function(info) return info.handler.db.profile.classColorFrameTextureOnlyClassIcon end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.classColorFrameTextureOnlyClassIcon = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena"..i]
-                                                if frame then
-                                                    frame:UpdateFrameColors()
+                                            end,
+                                        },
+                                        classColorFrameTextureOnlyClassIcon = {
+                                            order = 1.06,
+                                            name = L["ClassColor_OnlyClassIcon"],
+                                            desc = L["ClassColor_OnlyClassIcon_Desc"],
+                                            type = "toggle",
+                                            width = 0.8,
+                                            hidden = function(info)
+                                                local layout = info.handler.db.profile.currentLayout
+                                                return layout ~= "BlizzCompact"
+                                            end,
+                                            disabled = function(info) return not info.handler.db.profile.classColorFrameTexture end,
+                                            get = function(info) return info.handler.db.profile.classColorFrameTextureOnlyClassIcon end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.classColorFrameTextureOnlyClassIcon = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena"..i]
+                                                    if frame then
+                                                        frame:UpdateFrameColors()
+                                                    end
                                                 end
-                                            end
-                                        end,
-                                    },
-                                    classColorFrameTextureHealerGreen = {
-                                        hidden = function(info) return info.handler:IsArenaSpecSecret() end,
-                                        order = 1.07,
-                                        name = L["ClassColor_HealerGreen"],
-                                        desc = L["ClassColor_HealerGreen_Desc"],
-                                        type = "toggle",
-                                        disabled = function(info) return not info.handler.db.profile.classColorFrameTexture end,
-                                        get = function(info) return info.handler.db.profile.classColorFrameTextureHealerGreen end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.classColorFrameTextureHealerGreen = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena"..i]
-                                                if frame then
-                                                    frame:UpdateFrameColors()
+                                            end,
+                                        },
+                                        classColorFrameTextureHealerGreen = {
+                                            hidden = function(info) return info.handler:IsArenaSpecSecret() end,
+                                            order = 1.07,
+                                            name = L["ClassColor_HealerGreen"],
+                                            desc = L["ClassColor_HealerGreen_Desc"],
+                                            type = "toggle",
+                                            disabled = function(info) return not info.handler.db.profile.classColorFrameTexture end,
+                                            get = function(info) return info.handler.db.profile.classColorFrameTextureHealerGreen end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.classColorFrameTextureHealerGreen = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena"..i]
+                                                    if frame then
+                                                        frame:UpdateFrameColors()
+                                                    end
                                                 end
-                                            end
-                                        end,
-                                    },
-                                    spacerAfterFrameTexture = {
-                                        order = 1.08,
-                                        name = "",
-                                        type = "description",
-                                        width = "full",
-                                    },
-                                    classColorNames = {
-                                        order = 1.1,
-                                        name = L["Option_ClassColorNames"],
-                                        desc = L["ClassColor_NameText_Desc"],
-                                        type = "toggle",
-                                        width = 1,
-                                        disabled = function(info) return info.handler.db.profile.colorNameEnabled end,
-                                        get = function(info) return info.handler.db.profile.classColorNames end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.classColorNames = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                if frame.Name:IsShown() then
-                                                    frame:UpdateNameColor()
+                                            end,
+                                        },
+                                        spacerAfterFrameTexture = {
+                                            order = 1.08,
+                                            name = "",
+                                            type = "description",
+                                            width = "full",
+                                        },
+                                        classColorNames = {
+                                            order = 1.1,
+                                            name = L["Option_ClassColorNames"],
+                                            desc = L["ClassColor_NameText_Desc"],
+                                            type = "toggle",
+                                            width = 1,
+                                            disabled = function(info) return info.handler.db.profile.colorNameEnabled end,
+                                            get = function(info) return info.handler.db.profile.classColorNames end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.classColorNames = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    if frame.Name:IsShown() then
+                                                        frame:UpdateNameColor()
+                                                    end
                                                 end
-                                            end
-                                        end,
-                                    },
-                                    colorNameEnabled = {
-                                        order = 1.11,
-                                        name = L["Option_ColorName"],
-                                        desc = L["Option_ColorName_Desc"],
-                                        type = "toggle",
-                                        width = 0.7,
-                                        get = function(info) return info.handler.db.profile.colorNameEnabled end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.colorNameEnabled = val
-                                            if val then
-                                                info.handler.db.profile.classColorNames = false
-                                            end
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                if frame.Name:IsShown() then
-                                                    frame:UpdateNameColor()
+                                            end,
+                                        },
+                                        colorNameEnabled = {
+                                            order = 1.11,
+                                            name = L["Option_ColorName"],
+                                            desc = L["Option_ColorName_Desc"],
+                                            type = "toggle",
+                                            width = 0.7,
+                                            get = function(info) return info.handler.db.profile.colorNameEnabled end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.colorNameEnabled = val
+                                                if val then
+                                                    info.handler.db.profile.classColorNames = false
                                                 end
-                                            end
-                                        end,
-                                    },
-                                    colorNameColor = {
-                                        order = 1.12,
-                                        name = "",
-                                        type = "color",
-                                        width = 0.15,
-                                        disabled = function(info) return not info.handler.db.profile.colorNameEnabled end,
-                                        get = function(info)
-                                            local color = info.handler.db.profile.colorNameColor
-                                            if color then
-                                                return color.r, color.g, color.b, 1
-                                            end
-                                            return 1, 1, 1, 1
-                                        end,
-                                        set = function(info, r, g, b)
-                                            info.handler.db.profile.colorNameColor = {r = r, g = g, b = b}
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                if frame.Name:IsShown() then
-                                                    frame:UpdateNameColor()
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    if frame.Name:IsShown() then
+                                                        frame:UpdateNameColor()
+                                                    end
                                                 end
-                                            end
-                                        end,
-                                    },
-                                    spacerAfterNameColor = {
-                                        order = 1.13,
-                                        name = "",
-                                        type = "description",
-                                        width = "full",
-                                    },
-                                    classColorSpecNames = {
-                                        order = 1.15,
-                                        name = L["Option_ClassColorSpecNames"],
-                                        desc = L["Option_ClassColorSpecNames_Desc"],
-                                        type = "toggle",
-                                        width = 1,
-                                        disabled = function(info) return info.handler.db.profile.colorSpecNameEnabled end,
-                                        get = function(info) return info.handler.db.profile.classColorSpecNames end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.classColorSpecNames = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                frame:UpdateSpecNameColor()
-                                            end
-                                        end,
-                                    },
-                                    colorSpecNameEnabled = {
-                                        order = 1.16,
-                                        name = L["Option_ColorSpecName"],
-                                        desc = L["Option_ColorSpecName_Desc"],
-                                        type = "toggle",
-                                        width = 0.8,
-                                        get = function(info) return info.handler.db.profile.colorSpecNameEnabled end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.colorSpecNameEnabled = val
-                                            if val then
-                                                info.handler.db.profile.classColorSpecNames = false
-                                            end
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                frame:UpdateSpecNameColor()
-                                            end
-                                        end,
-                                    },
-                                    colorSpecNameColor = {
-                                        order = 1.17,
-                                        name = "",
-                                        type = "color",
-                                        width = 0.15,
-                                        disabled = function(info) return not info.handler.db.profile.colorSpecNameEnabled end,
-                                        get = function(info)
-                                            local color = info.handler.db.profile.colorSpecNameColor
-                                            if color then
-                                                return color.r, color.g, color.b, 1
-                                            end
-                                            return 1, 1, 1, 1
-                                        end,
-                                        set = function(info, r, g, b)
-                                            info.handler.db.profile.colorSpecNameColor = {r = r, g = g, b = b}
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                frame:UpdateSpecNameColor()
-                                            end
-                                        end,
-                                    },
-                                    spacerAfterSpecNameColor = {
-                                        order = 1.18,
-                                        name = "",
-                                        type = "description",
-                                        width = "full",
-                                    },
-                                    showNames = {
-                                        order = 4,
-                                        name = L["Option_ShowNames"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.showNames end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.showNames = val
-                                            info.handler.db.profile.showArenaNumber = false
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                frame.Name:SetShown(val)
-                                                frame.Name:SetText(frame.tempName or "name")
-                                            end
-                                        end,
-                                    },
-                                    showArenaNumber = {
-                                        order = 5,
-                                        name = L["Option_ShowArenaNumber"],
-                                        type = "toggle",
-                                        width = 1,
-                                        get = function(info) return info.handler.db.profile.showArenaNumber end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.showArenaNumber = val
-                                            info.handler.db.profile.showNames = false
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                local id = i
-                                                if FrameSortApi then
-                                                    id = FrameSortApi.v3.Frame:FrameNumberForUnit(frame.unit or ("arena"..i)) or i
+                                            end,
+                                        },
+                                        colorNameColor = {
+                                            order = 1.12,
+                                            name = "",
+                                            type = "color",
+                                            width = 0.15,
+                                            disabled = function(info) return not info.handler.db.profile.colorNameEnabled end,
+                                            get = function(info)
+                                                local color = info.handler.db.profile.colorNameColor
+                                                if color then
+                                                    return color.r, color.g, color.b, 1
                                                 end
-                                                frame.Name:SetShown(val)
-                                                if info.handler.db.profile.arenaNumberIdOnly then
-                                                    frame.Name:SetText(id)
-                                                else
-                                                    frame.Name:SetText("Arena " .. id)
+                                                return 1, 1, 1, 1
+                                            end,
+                                            set = function(info, r, g, b)
+                                                info.handler.db.profile.colorNameColor = {r = r, g = g, b = b}
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    if frame.Name:IsShown() then
+                                                        frame:UpdateNameColor()
+                                                    end
                                                 end
-                                            end
-                                        end,
-                                    },
-                                    arenaNumberIdOnly = {
-                                        order = 5.01,
-                                        name = L["Option_ArenaNumberIdOnly"],
-                                        type = "toggle",
-                                        width = 1,
-                                        disabled = function(info) return not info.handler.db.profile.showArenaNumber end,
-                                        get = function(info) return info.handler.db.profile.arenaNumberIdOnly end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.arenaNumberIdOnly = val
-                                            if info.handler.db.profile.showArenaNumber then
+                                            end,
+                                        },
+                                        spacerAfterNameColor = {
+                                            order = 1.13,
+                                            name = "",
+                                            type = "description",
+                                            width = "full",
+                                        },
+                                        classColorSpecNames = {
+                                            order = 1.15,
+                                            name = L["Option_ClassColorSpecNames"],
+                                            desc = L["Option_ClassColorSpecNames_Desc"],
+                                            type = "toggle",
+                                            width = 1,
+                                            disabled = function(info) return info.handler.db.profile.colorSpecNameEnabled end,
+                                            get = function(info) return info.handler.db.profile.classColorSpecNames end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.classColorSpecNames = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    frame:UpdateSpecNameColor()
+                                                end
+                                            end,
+                                        },
+                                        colorSpecNameEnabled = {
+                                            order = 1.16,
+                                            name = L["Option_ColorSpecName"],
+                                            desc = L["Option_ColorSpecName_Desc"],
+                                            type = "toggle",
+                                            width = 0.8,
+                                            get = function(info) return info.handler.db.profile.colorSpecNameEnabled end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.colorSpecNameEnabled = val
+                                                if val then
+                                                    info.handler.db.profile.classColorSpecNames = false
+                                                end
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    frame:UpdateSpecNameColor()
+                                                end
+                                            end,
+                                        },
+                                        colorSpecNameColor = {
+                                            order = 1.17,
+                                            name = "",
+                                            type = "color",
+                                            width = 0.15,
+                                            disabled = function(info) return not info.handler.db.profile.colorSpecNameEnabled end,
+                                            get = function(info)
+                                                local color = info.handler.db.profile.colorSpecNameColor
+                                                if color then
+                                                    return color.r, color.g, color.b, 1
+                                                end
+                                                return 1, 1, 1, 1
+                                            end,
+                                            set = function(info, r, g, b)
+                                                info.handler.db.profile.colorSpecNameColor = {r = r, g = g, b = b}
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    frame:UpdateSpecNameColor()
+                                                end
+                                            end,
+                                        },
+                                        spacerAfterSpecNameColor = {
+                                            order = 1.18,
+                                            name = "",
+                                            type = "description",
+                                            width = "full",
+                                        },
+                                        showNames = {
+                                            order = 4,
+                                            name = L["Option_ShowNames"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.showNames end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.showNames = val
+                                                info.handler.db.profile.showArenaNumber = false
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    frame.Name:SetShown(val)
+                                                    frame.Name:SetText(frame.tempName or "name")
+                                                end
+                                            end,
+                                        },
+                                        showArenaNumber = {
+                                            order = 5,
+                                            name = L["Option_ShowArenaNumber"],
+                                            type = "toggle",
+                                            width = 1,
+                                            get = function(info) return info.handler.db.profile.showArenaNumber end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.showArenaNumber = val
+                                                info.handler.db.profile.showNames = false
                                                 for i = 1, info.handler.maxArenaOpponents do
                                                     local frame = info.handler["arena" .. i]
                                                     local id = i
                                                     if FrameSortApi then
                                                         id = FrameSortApi.v3.Frame:FrameNumberForUnit(frame.unit or ("arena"..i)) or i
                                                     end
-                                                    if val then
+                                                    frame.Name:SetShown(val)
+                                                    if info.handler.db.profile.arenaNumberIdOnly then
                                                         frame.Name:SetText(id)
                                                     else
-                                                        frame.Name:SetText("Arena " .. id)
+                                                        frame.Name:SetText(string.format(L["ArenaFrame_Name"], id))
                                                     end
                                                 end
-                                            end
-                                        end,
-                                    },
-                                    reverseBarsFill = {
-                                        order = 6,
-                                        name = L["Option_ReverseBarsFill"],
-                                        desc = L["Healthbar_ReverseFill_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.reverseBarsFill end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.reverseBarsFill = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                frame.HealthBar:SetReverseFill(val)
-                                                frame.PowerBar:SetReverseFill(val)
-                                            end
-                                        end,
-                                    },
-                                    colorMysteryGray = {
-                                        order = 9,
-                                        name = L["Option_ColorNonVisibleFramesGray"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["MysteryPlayer_GrayBars_Desc"],
-                                        get = function(info) return info.handler.db.profile.colorMysteryGray end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.colorMysteryGray = val
-                                        end,
-                                    },
-                                    stealthAlpha = {
-                                        order = 12,
-                                        name = L["Option_StealthAlpha"],
-                                        desc = L["Option_StealthAlpha_Desc"],
-                                        type = "range",
-                                        min = 0,
-                                        max = 1,
-                                        step = 0.01,
-                                        isPercent = true,
-                                        width = 0.8,
-                                        get = function(info) return info.handler.db.profile.stealthAlpha end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.stealthAlpha = val
-                                            info.handler:UpdateStealthAlpha()
-                                            if not sArenaMixin.stealthAlphaPreviewActive then
-                                                sArenaMixin.stealthAlphaPreviewActive = true
-                                                sArenaMixin.stealthAlphaPreviewSaved = {}
+                                            end,
+                                        },
+                                        arenaNumberIdOnly = {
+                                            order = 5.01,
+                                            name = L["Option_ArenaNumberIdOnly"],
+                                            type = "toggle",
+                                            width = 1,
+                                            disabled = function(info) return not info.handler.db.profile.showArenaNumber end,
+                                            get = function(info) return info.handler.db.profile.arenaNumberIdOnly end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.arenaNumberIdOnly = val
+                                                if info.handler.db.profile.showArenaNumber then
+                                                    for i = 1, info.handler.maxArenaOpponents do
+                                                        local frame = info.handler["arena" .. i]
+                                                        local id = i
+                                                        if FrameSortApi then
+                                                            id = FrameSortApi.v3.Frame:FrameNumberForUnit(frame.unit or ("arena"..i)) or i
+                                                        end
+                                                        if val then
+                                                            frame.Name:SetText(id)
+                                                        else
+                                                            frame.Name:SetText(string.format(L["ArenaFrame_Name"], id))
+                                                        end
+                                                    end
+                                                end
+                                            end,
+                                        },
+                                        reverseBarsFill = {
+                                            order = 6,
+                                            name = L["Option_ReverseBarsFill"],
+                                            desc = L["Healthbar_ReverseFill_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.reverseBarsFill end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.reverseBarsFill = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    frame.HealthBar:SetReverseFill(val)
+                                                    frame.PowerBar:SetReverseFill(val)
+                                                end
+                                            end,
+                                        },
+                                        colorMysteryGray = {
+                                            order = 9,
+                                            name = L["Option_ColorNonVisibleFramesGray"],
+                                            type = "toggle",
+                                            width = "full",
+                                            desc = L["MysteryPlayer_GrayBars_Desc"],
+                                            get = function(info) return info.handler.db.profile.colorMysteryGray end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.colorMysteryGray = val
+                                            end,
+                                        },
+                                        stealthAlpha = {
+                                            order = 12,
+                                            name = L["Option_StealthAlpha"],
+                                            desc = L["Option_StealthAlpha_Desc"],
+                                            type = "range",
+                                            min = 0,
+                                            max = 1,
+                                            step = 0.01,
+                                            isPercent = true,
+                                            width = 0.8,
+                                            get = function(info) return info.handler.db.profile.stealthAlpha end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.stealthAlpha = val
+                                                info.handler:UpdateStealthAlpha()
+                                                if not sArenaMixin.stealthAlphaPreviewActive then
+                                                    sArenaMixin.stealthAlphaPreviewActive = true
+                                                    sArenaMixin.stealthAlphaPreviewSaved = {}
+                                                    for i = 1, info.handler.maxArenaOpponents do
+                                                        local frame = info.handler["arena" .. i]
+                                                        if frame and frame:IsShown() then
+                                                            sArenaMixin.stealthAlphaPreviewSaved[i] = frame:GetAlpha()
+                                                        end
+                                                    end
+                                                end
+
                                                 for i = 1, info.handler.maxArenaOpponents do
                                                     local frame = info.handler["arena" .. i]
                                                     if frame and frame:IsShown() then
-                                                        sArenaMixin.stealthAlphaPreviewSaved[i] = frame:GetAlpha()
+                                                        frame:SetAlpha(val)
                                                     end
                                                 end
-                                            end
 
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                if frame and frame:IsShown() then
-                                                    frame:SetAlpha(val)
-                                                end
-                                            end
-
-                                            sArenaMixin.stealthAlphaPreviewGen = (sArenaMixin.stealthAlphaPreviewGen or 0) + 1
-                                            local gen = sArenaMixin.stealthAlphaPreviewGen
-                                            C_Timer.After(0.7, function()
-                                                if sArenaMixin.stealthAlphaPreviewGen ~= gen then return end
-                                                local saved = sArenaMixin.stealthAlphaPreviewSaved
-                                                sArenaMixin.stealthAlphaPreviewActive = nil
-                                                sArenaMixin.stealthAlphaPreviewSaved = nil
-                                                sArenaMixin.stealthAlphaPreviewGen = nil
-                                                for i = 1, sArenaMixin.maxArenaOpponents do
-                                                    local frame = sArena["arena" .. i]
-                                                    if frame and frame:IsShown() then
-                                                        frame:SetAlpha(saved and saved[i] or 1)
+                                                sArenaMixin.stealthAlphaPreviewGen = (sArenaMixin.stealthAlphaPreviewGen or 0) + 1
+                                                local gen = sArenaMixin.stealthAlphaPreviewGen
+                                                C_Timer.After(0.7, function()
+                                                    if sArenaMixin.stealthAlphaPreviewGen ~= gen then return end
+                                                    local saved = sArenaMixin.stealthAlphaPreviewSaved
+                                                    sArenaMixin.stealthAlphaPreviewActive = nil
+                                                    sArenaMixin.stealthAlphaPreviewSaved = nil
+                                                    sArenaMixin.stealthAlphaPreviewGen = nil
+                                                    for i = 1, sArenaMixin.maxArenaOpponents do
+                                                        local frame = sArena["arena" .. i]
+                                                        if frame and frame:IsShown() then
+                                                            frame:SetAlpha(saved and saved[i] or 1)
+                                                        end
                                                     end
-                                                end
-                                            end)
-                                        end,
-                                    },
-                                },
-                            },
-                            swipeAnimations = {
-                                order = 7,
-                                name = L["Option_SwipeAnimations"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    cooldownSwipeColor = {
-                                        order = -1,
-                                        name = L["Option_CooldownSwipeColor"],
-                                        desc = L["Option_CooldownSwipeColor_Desc"],
-                                        type = "color",
-                                        hasAlpha = true,
-                                        get = function(info)
-                                            local c = info.handler.db.profile.cooldownSwipeColor or { 0, 0, 0, 0.55 }
-                                            return c[1] or 0, c[2] or 0, c[3] or 0, c[4] or 0.55
-                                        end,
-                                        set = function(info, r, g, b, a)
-                                            info.handler.db.profile.cooldownSwipeColor = { r, g, b, a }
-                                            info.handler:UpdateCooldownSwipeColor()
-                                            local layoutdb = info.handler.layoutdb
-                                            if layoutdb and layoutdb.dr then
-                                                info.handler:UpdateDRSettings(layoutdb.dr)
-                                            end
-                                            if isMidnight then
-                                                info.handler:RefreshAuraDisplays()
-                                            end
-                                        end,
-                                    },
-                                    disableSwipeEdge = {
-                                        order = 0,
-                                        name = L["Option_DisableCooldownSwipeEdge"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["Cooldown_DisableBrightEdge_Desc"],
-                                        get = function(info) return info.handler.db.profile.disableSwipeEdge end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.disableSwipeEdge = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                info.handler["arena" .. i]:UpdateSwipeEdgeSettings()
-                                            end
-                                            -- Update DR settings for current layout
-                                            local currentLayout = info.handler.db.profile.currentLayout
-                                            if currentLayout and info.handler.db.profile.layoutSettings[currentLayout] then
-                                                local drSettings = info.handler.db.profile.layoutSettings[currentLayout].dr
-                                                if drSettings then
-                                                    info.handler:UpdateDRSettings(drSettings, info)
-                                                end
-                                            end
-                                            if isMidnight then
-                                                info.handler:RefreshAuraDisplays()
-                                            end
-                                        end,
-                                    },
-                                    disableClassIconSwipe = {
-                                        order = 1,
-                                        name = L["Option_DisableClassIconSwipe"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["Cooldown_DisableClassIconSwipe_Desc"],
-                                        get = function(info) return info.handler.db.profile.disableClassIconSwipe end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.disableClassIconSwipe = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                info.handler["arena" .. i]:UpdateClassIconSwipeSettings()
-                                            end
-                                            if isMidnight then
-                                                info.handler:RefreshAuraDisplays()
-                                            end
-                                        end,
-                                    },
-                                    disableDRSwipe = {
-                                        order = 2,
-                                        name = L["Option_DisableDRSwipeAnimation"],
-                                        desc = L["Cooldown_DisableDRSwipe_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info)
-                                            return info.handler.db.profile.disableDRSwipe
-                                        end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.disableDRSwipe = val
-                                            -- Update DR settings for current layout
-                                            local currentLayout = info.handler.db.profile.currentLayout
-                                            if currentLayout and info.handler.db.profile.layoutSettings[currentLayout] then
-                                                local drSettings = info.handler.db.profile.layoutSettings[currentLayout].dr
-                                                if drSettings then
-                                                    info.handler:UpdateDRSettings(drSettings, info)
-                                                end
-                                            end
-                                        end,
-                                    },
-                                    disableTrinketRacialSwipe = {
-                                        order = 3,
-                                        name = L["Option_DisableTrinketRacialSwipe"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["Cooldown_DisableTrinketRacialSwipe_Desc"],
-                                        get = function(info) return info.handler.db.profile.disableTrinketRacialSwipe end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.disableTrinketRacialSwipe = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                info.handler["arena" .. i]:UpdateTrinketRacialSwipeSettings()
-                                            end
-                                        end,
-                                    },
-                                    invertClassIconCooldown = {
-                                        order = 4,
-                                        name = L["Option_ReverseClassIconSwipe"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["Cooldown_ReverseClassIcon_Desc"],
-                                        disabled = function(info) return info.handler.db.profile.disableClassIconSwipe end,
-                                        get = function(info) return info.handler.db.profile.invertClassIconCooldown end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.invertClassIconCooldown = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                info.handler["arena" .. i]:UpdateClassIconCooldownReverse()
-                                            end
-                                            if isMidnight then
-                                                info.handler:RefreshAuraDisplays()
-                                            end
-                                        end,
-                                    },
-                                    invertDRCooldown = {
-                                        order = 5,
-                                        name = L["Option_ReverseDRSwipeAnimation"],
-                                        desc = L["Cooldown_ReverseDR_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        disabled = function(info) return info.handler.db.profile.drSwipeOff end,
-                                        get = function(info) return info.handler.db.profile.invertDRCooldown end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.invertDRCooldown = val
-                                            -- Update DR settings which now handles cooldown reverse
-                                            local layoutdb = info.handler.layoutdb
-                                            if layoutdb and layoutdb.dr then
-                                                info.handler:UpdateDRSettings(layoutdb.dr)
-                                            end
-                                        end
-                                    },
-                                    invertTrinketRacialCooldown = {
-                                        order = 6,
-                                        name = L["Option_ReverseTrinketRacialSwipe"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["Cooldown_ReverseTrinketRacial_Desc"],
-                                        disabled = function(info) return info.handler.db.profile.disableTrinketRacialSwipe end,
-                                        get = function(info) return info.handler.db.profile.invertTrinketRacialCooldown end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.invertTrinketRacialCooldown = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                info.handler["arena" .. i]:UpdateTrinketRacialCooldownReverse()
-                                            end
-                                        end,
-                                    },
-                                    disableCDTextClassIcon = {
-                                        order = 7,
-                                        name = L["Option_DisableCDTextClassIcon"],
-                                        desc = L["Option_DisableCDTextClassIcon_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.disableCDTextClassIcon end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.disableCDTextClassIcon = val
-                                            info.handler:UpdateCDTextVisibility()
-                                        end,
-                                    },
-                                    disableCDTextDR = {
-                                        order = 8,
-                                        name = L["Option_DisableCDTextDR"],
-                                        desc = L["Option_DisableCDTextDR_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.disableCDTextDR end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.disableCDTextDR = val
-                                            info.handler:UpdateCDTextVisibility()
-                                        end,
-                                    },
-                                    disableCDTextTrinket = {
-                                        order = 9,
-                                        name = L["Option_DisableCDTextTrinket"],
-                                        desc = L["Option_DisableCDTextTrinket_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.disableCDTextTrinket end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.disableCDTextTrinket = val
-                                            info.handler:UpdateCDTextVisibility()
-                                        end,
-                                    },
-                                    disableCDTextRacial = {
-                                        order = 10,
-                                        name = L["Option_DisableCDTextRacial"],
-                                        desc = L["Option_DisableCDTextRacial_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.disableCDTextRacial end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.disableCDTextRacial = val
-                                            info.handler:UpdateCDTextVisibility()
-                                        end,
-                                    },
-                                },
-                            },
-                            masque = {
-                                order = 8,
-                                name = L["Option_Miscellaneous"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    enableMasque = {
-                                        order = 1,
-                                        name = L["Option_EnableMasqueSupport"],
-                                        desc = L["Masque_Support_Desc"],
-                                        type = "toggle",
-                                        width = 1,
-                                        get = function(info) return info.handler.db.profile.enableMasque end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.enableMasque = val
-                                            info.handler:AddMasqueSupport()
-                                            info.handler:Test()
-                                        end
-                                    },
-                                    enableMasqueExtra = {
-                                        order = 1.2,
-                                        name = L["Option_EnableMasqueExtraSupport"],
-                                        desc = L["Masque_Extra_Support_Desc"],
-                                        type = "toggle",
-                                        width = "normal",
-                                        disabled = function(info) return not info.handler.db.profile.enableMasque end,
-                                        confirm = function(info, val) info.handler.db.profile.enableMasqueExtra = val; return L["Masque_Extra_Reload_Desc"] end,
-                                        get = function(info) return info.handler.db.profile.enableMasqueExtra end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.enableMasqueExtra = val
-                                            sArena_ReloadedDB.reOpenOptions = true
-                                            ReloadUI()
-                                        end
-                                    },
-                                    desaturateTrinketCD = {
-                                        order = 2.1,
-                                        name = L["Option_DesaturateTrinketCD"],
-                                        desc = L["Trinket_DesaturateOnCD_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.desaturateTrinketCD end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.desaturateTrinketCD = val
-                                        end
-                                    },
-                                    desaturateDispelCD = {
-                                        order = 2.2,
-                                        name = L["Option_DesaturateDispelCD"],
-                                        desc = L["Dispel_DesaturateOnCD_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.desaturateDispelCD end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.desaturateDispelCD = val
-                                        end
-                                    },
-                                    disableOvershields = {
-                                        order = 2.3,
-                                        name = L["Option_DisableOvershields"],
-                                        desc = L["Option_DisableOvershields_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.disableOvershields end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.disableOvershields = val
-                                        end
-                                    },
-                                    useDefaultPartyFrames = {
-                                        order = 2.5,
-                                        name = L["Option_UseDefaultPartyFrames"],
-                                        desc = L["Option_UseDefaultPartyFrames_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.useDefaultPartyFrames end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.useDefaultPartyFrames = val
-                                            info.handler:UpdatePartyFrameReferences()
-                                        end
-                                    },
-                                },
-                            },
-                        },
-                    },
-                    petFramesGroup = {
-                        order = 5.5,
-                        name = L["Category_PetFrames"],
-                        desc = L["Category_PetFrames_Desc"],
-                        type = "group",
-                        get = function(info)
-                            return info.handler.db.profile.petFrames[info[#info]]
-                        end,
-                        set = function(info, val)
-                            info.handler.db.profile.petFrames[info[#info]] = val
-                            if info.handler.RefreshPetFrames then
-                                info.handler:RefreshPetFrames()
-                            end
-                        end,
-                        args = {
-                            enabled = {
-                                order = 1,
-                                name = L["Option_PetEnabled"],
-                                desc = L["Option_PetEnabled_Desc"],
-                                type = "toggle",
-                            },
-                            classesGroup = {
-                                order = 2,
-                                name = L["Option_PetClassesEnabled"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    classDeathknight = {
-                                        order = 1,
-                                        name = GetClassOptionName("DEATHKNIGHT"),
-                                        type = "toggle",
-                                        hidden = function() return sArenaMixin.isTBC end,
-                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
-                                        get = function(info) return info.handler.db.profile.petFrames.classes.DEATHKNIGHT end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.petFrames.classes.DEATHKNIGHT = val
-                                            info.handler:RefreshPetFrames()
-                                        end,
-                                    },
-                                    classMage = {
-                                        order = 2,
-                                        name = GetClassOptionName("MAGE"),
-                                        type = "toggle",
-                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
-                                        get = function(info) return info.handler.db.profile.petFrames.classes.MAGE end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.petFrames.classes.MAGE = val
-                                            info.handler:RefreshPetFrames()
-                                        end,
-                                    },
-                                    classMonk = {
-                                        order = 3,
-                                        name = GetClassOptionName("MONK"),
-                                        type = "toggle",
-                                        hidden = function() return sArenaMixin.isTBC or sArenaMixin.isWrath end,
-                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
-                                        get = function(info) return info.handler.db.profile.petFrames.classes.MONK end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.petFrames.classes.MONK = val
-                                            info.handler:RefreshPetFrames()
-                                        end,
-                                    },
-                                    classWarlock = {
-                                        order = 4,
-                                        name = GetClassOptionName("WARLOCK"),
-                                        type = "toggle",
-                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
-                                        get = function(info) return info.handler.db.profile.petFrames.classes.WARLOCK end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.petFrames.classes.WARLOCK = val
-                                            info.handler:RefreshPetFrames()
-                                        end,
-                                    },
-                                    classHunter = {
-                                        order = 5,
-                                        name = GetClassOptionName("HUNTER"),
-                                        type = "toggle",
-                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
-                                        get = function(info) return info.handler.db.profile.petFrames.classes.HUNTER end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.petFrames.classes.HUNTER = val
-                                            info.handler:RefreshPetFrames()
-                                        end,
-                                    },
-                                },
-                            },
-                            colorsGroup = {
-                                order = 3,
-                                name = L["Option_Colors"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    classColors = {
-                                        order = 1,
-                                        name = L["Option_PetClassColors"],
-                                        desc = L["Option_PetClassColors_Desc"],
-                                        type = "toggle",
-                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
-                                    },
-                                    spacerAfterClassColors = {
-                                        order = 1.5,
-                                        name = "",
-                                        type = "description",
-                                        width = "full",
-                                    },
-                                    customColor = {
-                                        order = 2,
-                                        name = L["Option_PetCustomColor"],
-                                        type = "color",
-                                        hasAlpha = true,
-                                        disabled = function(info)
-                                            return not info.handler.db.profile.petFrames.enabled
-                                                or info.handler.db.profile.petFrames.classColors
-                                        end,
-                                        get = function(info)
-                                            local c = info.handler.db.profile.petFrames.customColor
-                                            return c[1], c[2], c[3], c[4] or 1
-                                        end,
-                                        set = function(info, r, g, b, a)
-                                            info.handler.db.profile.petFrames.customColor = { r, g, b, a }
-                                            info.handler:RefreshPetFrameSettings()
-                                        end,
-                                    },
-                                },
-                            },
-                            displayGroup = {
-                                order = 4,
-                                name = L["Option_PetDisplay"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    showPetName = {
-                                        order = 1,
-                                        name = L["Option_ShowPetName"],
-                                        type = "toggle",
-                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
-                                        get = function(info) return info.handler.db.profile.petFrames.showPetName end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.petFrames.showPetName = val
-                                            if val then
-                                                info.handler.db.profile.petFrames.showPetNumber = false
-                                            end
-                                            info.handler:RefreshPetFrames()
-                                        end,
-                                    },
-                                    spacerAfterShowPetName = {
-                                        order = 1.5,
-                                        name = "",
-                                        type = "description",
-                                        width = "full",
-                                    },
-                                    showPetNumber = {
-                                        order = 2,
-                                        name = L["Option_ShowPetNumber"],
-                                        type = "toggle",
-                                        width = 1,
-                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
-                                        get = function(info) return info.handler.db.profile.petFrames.showPetNumber end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.petFrames.showPetNumber = val
-                                            if val then
-                                                info.handler.db.profile.petFrames.showPetName = false
-                                            end
-                                            info.handler:RefreshPetFrames()
-                                        end,
-                                    },
-                                    petNumberIdOnly = {
-                                        order = 3,
-                                        name = L["Option_PetNumberIdOnly"],
-                                        type = "toggle",
-                                        width = 1,
-                                        disabled = function(info)
-                                            return not info.handler.db.profile.petFrames.enabled
-                                                or not info.handler.db.profile.petFrames.showPetNumber
-                                        end,
-                                        get = function(info) return info.handler.db.profile.petFrames.petNumberIdOnly end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.petFrames.petNumberIdOnly = val
-                                            info.handler:RefreshPetFrames()
-                                        end,
-                                    },
-                                    spacerBeforeBorderStyle = {
-                                        order = 3.5,
-                                        name = "",
-                                        type = "description",
-                                        width = "full",
-                                    },
-                                    borderStyle = {
-                                        order = 4,
-                                        name = L["Option_PetBorderStyle"],
-                                        desc = L["Option_PetBorderStyle_Desc"],
-                                        type = "select",
-                                        style = "dropdown",
-                                        width = 1,
-                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
-                                        values = {
-                                            layoutBorders = L["Option_PetBorderStyle_LayoutBorders"],
-                                            pixelBorder   = L["Option_PetBorderStyle_PixelBorder"],
-                                            modernBorder  = L["Option_PetBorderStyle_ModernBorder"],
-                                            classicBorder = L["Option_PetBorderStyle_ClassicBorder"],
-                                            none          = L["None"],
+                                                end)
+                                            end,
                                         },
-                                        sorting = {
-                                            "layoutBorders",
-                                            "pixelBorder",
-                                            "modernBorder",
-                                            "classicBorder",
-                                            "none",
+                                    },
+                                },
+                                swipeAnimations = {
+                                    order = 7,
+                                    name = L["Option_SwipeAnimations"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        cooldownSwipeColor = {
+                                            order = -1,
+                                            name = L["Option_CooldownSwipeColor"],
+                                            desc = L["Option_CooldownSwipeColor_Desc"],
+                                            type = "color",
+                                            hasAlpha = true,
+                                            get = function(info)
+                                                local c = info.handler.db.profile.cooldownSwipeColor or { 0, 0, 0, 0.55 }
+                                                return c[1] or 0, c[2] or 0, c[3] or 0, c[4] or 0.55
+                                            end,
+                                            set = function(info, r, g, b, a)
+                                                info.handler.db.profile.cooldownSwipeColor = { r, g, b, a }
+                                                info.handler:UpdateCooldownSwipeColor()
+                                                local layoutdb = info.handler.layoutdb
+                                                if layoutdb and layoutdb.dr then
+                                                    info.handler:UpdateDRSettings(layoutdb.dr)
+                                                end
+                                                if isMidnight then
+                                                    info.handler:RefreshAuraDisplays()
+                                                end
+                                            end,
                                         },
-                                        get = function(info)
-                                            return info.handler.db.profile.petFrames.borderStyle or "layoutBorders"
-                                        end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.petFrames.borderStyle = val
-                                            info.handler:RefreshPetFrameSettings()
-                                        end,
-                                    },
-                                },
-                            },
-                            statusTextGroup = {
-                                order = 5,
-                                name = L["Option_StatusText"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    alwaysShow = {
-                                        order = 1,
-                                        name = L["Option_AlwaysShow"],
-                                        desc = L["Text_ShowOnMouseover_Desc"],
-                                        type = "toggle",
-                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
-                                        get = function(info)
-                                            local petSt = info.handler.db.profile.petFrames.statusText
-                                            if petSt ~= nil and petSt.alwaysShow ~= nil then
-                                                return petSt.alwaysShow
-                                            end
-                                            return info.handler.db.profile.statusText.alwaysShow
-                                        end,
-                                        set = function(info, val)
-                                            local pf = info.handler.db.profile.petFrames
-                                            pf.statusText = pf.statusText or {}
-                                            pf.statusText.alwaysShow = val
-                                            info.handler:RefreshPetFrames()
-                                        end,
-                                    },
-                                    usePercentage = {
-                                        order = 2,
-                                        name = L["Option_UsePercentage"],
-                                        type = "toggle",
-                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
-                                        get = function(info)
-                                            local petSt = info.handler.db.profile.petFrames.statusText
-                                            if petSt ~= nil and petSt.usePercentage ~= nil then
-                                                return petSt.usePercentage
-                                            end
-                                            return info.handler.db.profile.statusText.usePercentage
-                                        end,
-                                        set = function(info, val)
-                                            local pf = info.handler.db.profile.petFrames
-                                            pf.statusText = pf.statusText or {}
-                                            pf.statusText.usePercentage = val
-                                            if val then
-                                                pf.statusText.formatNumbers = false
-                                            end
-                                            info.handler:RefreshPetFrames()
-                                        end,
-                                    },
-                                    formatNumbers = {
-                                        order = 3,
-                                        name = L["Option_FormatNumbers"],
-                                        desc = L["Text_FormatLargeNumbers_Desc"],
-                                        type = "toggle",
-                                        disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
-                                        get = function(info)
-                                            local petSt = info.handler.db.profile.petFrames.statusText
-                                            if petSt ~= nil and petSt.formatNumbers ~= nil then
-                                                return petSt.formatNumbers
-                                            end
-                                            if petSt ~= nil and petSt.usePercentage then
-                                                return false
-                                            end
-                                            return info.handler.db.profile.statusText.formatNumbers
-                                        end,
-                                        set = function(info, val)
-                                            local pf = info.handler.db.profile.petFrames
-                                            pf.statusText = pf.statusText or {}
-                                            pf.statusText.formatNumbers = val
-                                            if val then
-                                                pf.statusText.usePercentage = false
-                                            end
-                                            info.handler:RefreshPetFrames()
-                                        end,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                    auraHighlightGroup = {
-                        order = 2,
-                        name = L["AuraHighlight"],
-                        desc = L["AuraHighlight_TabDesc"],
-                        type = "group",
-                        get = function(info)
-                            local ah = info.handler.db.profile.auraHighlight
-                            return ah and ah[info[#info]]
-                        end,
-                        set = function(info, val)
-                            local profile = info.handler.db.profile
-                            profile.auraHighlight = profile.auraHighlight or {}
-                            profile.auraHighlight[info[#info]] = val
-                            info.handler:RefreshAllAuraHighlights()
-                        end,
-                        args = {
-                            enable = {
-                                order = 1,
-                                name = L["AuraHighlight_Enable"],
-                                desc = L["AuraHighlight_Desc"],
-                                type = "toggle",
-                                width = "normal",
-                                get = function(info)
-                                    local ah = info.handler.db.profile.auraHighlight
-                                    return ah and ah.enabled
-                                end,
-                                set = function(info, val)
-                                    local profile = info.handler.db.profile
-                                    profile.auraHighlight = profile.auraHighlight or {}
-                                    profile.auraHighlight.enabled = val
-                                    info.handler:RefreshAllAuraHighlights()
-                                end,
-                            },
-                            onlyOnHealer = {
-                                hidden = function(info) return info.handler:IsArenaSpecSecret() end,
-                                order = 1.1,
-                                name = L["AuraHighlight_OnlyOnHealer"],
-                                desc = L["AuraHighlight_OnlyOnHealer_Desc"],
-                                type = "toggle",
-                                width = "normal",
-                                disabled = function(info)
-                                    local ah = info.handler.db.profile.auraHighlight
-                                    return not (ah and ah.enabled)
-                                end,
-                                get = function(info)
-                                    local ah = info.handler.db.profile.auraHighlight
-                                    return ah and ah.onlyOnHealer
-                                end,
-                                set = function(info, val)
-                                    local profile = info.handler.db.profile
-                                    profile.auraHighlight = profile.auraHighlight or {}
-                                    profile.auraHighlight.onlyOnHealer = val
-                                    info.handler:RefreshAllAuraHighlights()
-                                end,
-                            },
-                            categoriesGroup = {
-                                order = 2,
-                                name = L["AuraHighlight_Categories"],
-                                type = "group",
-                                inline = true,
-                                args = (function()
-                                    local args = {}
-                                    local cats = {
-                                        { key = "cc",        order = 1, label = "AuraHighlight_CC",        desc = "AuraHighlight_CC_Desc",        defaultColor = {1, 0.87, 0,    1} },
-                                        { key = "important", order = 2, label = "AuraHighlight_Important", desc = "AuraHighlight_Important_Desc", defaultColor = {0, 1,    0,    1} },
-                                        { key = "defensive", order = 3, label = "AuraHighlight_Defensive", desc = "AuraHighlight_Defensive_Desc", defaultColor = {1, 0.66, 0.95, 1} },
-                                    }
-                                    for _, cat in ipairs(cats) do
-                                        local key = cat.key
-                                        args[key .. "Enabled"] = {
-                                            order = cat.order * 10,
-                                            name = L[cat.label],
-                                            desc = L[cat.desc],
+                                        disableSwipeEdge = {
+                                            order = 0,
+                                            name = L["Option_DisableCooldownSwipeEdge"],
                                             type = "toggle",
-                                            width = 0.7,
+                                            width = "full",
+                                            desc = L["Cooldown_DisableBrightEdge_Desc"],
+                                            get = function(info) return info.handler.db.profile.disableSwipeEdge end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.disableSwipeEdge = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    info.handler["arena" .. i]:UpdateSwipeEdgeSettings()
+                                                end
+                                                -- Update DR settings for current layout
+                                                local currentLayout = info.handler.db.profile.currentLayout
+                                                if currentLayout and info.handler.db.profile.layoutSettings[currentLayout] then
+                                                    local drSettings = info.handler.db.profile.layoutSettings[currentLayout].dr
+                                                    if drSettings then
+                                                        info.handler:UpdateDRSettings(drSettings, info)
+                                                    end
+                                                end
+                                                if isMidnight then
+                                                    info.handler:RefreshAuraDisplays()
+                                                end
+                                            end,
+                                        },
+                                        disableClassIconSwipe = {
+                                            order = 1,
+                                            name = L["Option_DisableClassIconSwipe"],
+                                            type = "toggle",
+                                            width = "full",
+                                            desc = L["Cooldown_DisableClassIconSwipe_Desc"],
+                                            get = function(info) return info.handler.db.profile.disableClassIconSwipe end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.disableClassIconSwipe = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    info.handler["arena" .. i]:UpdateClassIconSwipeSettings()
+                                                end
+                                                if isMidnight then
+                                                    info.handler:RefreshAuraDisplays()
+                                                end
+                                            end,
+                                        },
+                                        disableDRSwipe = {
+                                            order = 2,
+                                            name = L["Option_DisableDRSwipeAnimation"],
+                                            desc = L["Cooldown_DisableDRSwipe_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info)
+                                                return info.handler.db.profile.disableDRSwipe
+                                            end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.disableDRSwipe = val
+                                                -- Update DR settings for current layout
+                                                local currentLayout = info.handler.db.profile.currentLayout
+                                                if currentLayout and info.handler.db.profile.layoutSettings[currentLayout] then
+                                                    local drSettings = info.handler.db.profile.layoutSettings[currentLayout].dr
+                                                    if drSettings then
+                                                        info.handler:UpdateDRSettings(drSettings, info)
+                                                    end
+                                                end
+                                            end,
+                                        },
+                                        disableTrinketRacialSwipe = {
+                                            order = 3,
+                                            name = L["Option_DisableTrinketRacialSwipe"],
+                                            type = "toggle",
+                                            width = "full",
+                                            desc = L["Cooldown_DisableTrinketRacialSwipe_Desc"],
+                                            get = function(info) return info.handler.db.profile.disableTrinketRacialSwipe end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.disableTrinketRacialSwipe = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    info.handler["arena" .. i]:UpdateTrinketRacialSwipeSettings()
+                                                end
+                                            end,
+                                        },
+                                        invertClassIconCooldown = {
+                                            order = 4,
+                                            name = L["Option_ReverseClassIconSwipe"],
+                                            type = "toggle",
+                                            width = "full",
+                                            desc = L["Cooldown_ReverseClassIcon_Desc"],
+                                            disabled = function(info) return info.handler.db.profile.disableClassIconSwipe end,
+                                            get = function(info) return info.handler.db.profile.invertClassIconCooldown end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.invertClassIconCooldown = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    info.handler["arena" .. i]:UpdateClassIconCooldownReverse()
+                                                end
+                                                if isMidnight then
+                                                    info.handler:RefreshAuraDisplays()
+                                                end
+                                            end,
+                                        },
+                                        invertDRCooldown = {
+                                            order = 5,
+                                            name = L["Option_ReverseDRSwipeAnimation"],
+                                            desc = L["Cooldown_ReverseDR_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            disabled = function(info) return info.handler.db.profile.drSwipeOff end,
+                                            get = function(info) return info.handler.db.profile.invertDRCooldown end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.invertDRCooldown = val
+                                                -- Update DR settings which now handles cooldown reverse
+                                                local layoutdb = info.handler.layoutdb
+                                                if layoutdb and layoutdb.dr then
+                                                    info.handler:UpdateDRSettings(layoutdb.dr)
+                                                end
+                                            end
+                                        },
+                                        invertTrinketRacialCooldown = {
+                                            order = 6,
+                                            name = L["Option_ReverseTrinketRacialSwipe"],
+                                            type = "toggle",
+                                            width = "full",
+                                            desc = L["Cooldown_ReverseTrinketRacial_Desc"],
+                                            disabled = function(info) return info.handler.db.profile.disableTrinketRacialSwipe end,
+                                            get = function(info) return info.handler.db.profile.invertTrinketRacialCooldown end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.invertTrinketRacialCooldown = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    info.handler["arena" .. i]:UpdateTrinketRacialCooldownReverse()
+                                                end
+                                            end,
+                                        },
+                                        disableCDTextClassIcon = {
+                                            order = 7,
+                                            name = L["Option_DisableCDTextClassIcon"],
+                                            desc = L["Option_DisableCDTextClassIcon_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.disableCDTextClassIcon end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.disableCDTextClassIcon = val
+                                                info.handler:UpdateCDTextVisibility()
+                                            end,
+                                        },
+                                        disableCDTextDR = {
+                                            order = 8,
+                                            name = L["Option_DisableCDTextDR"],
+                                            desc = L["Option_DisableCDTextDR_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.disableCDTextDR end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.disableCDTextDR = val
+                                                info.handler:UpdateCDTextVisibility()
+                                            end,
+                                        },
+                                        disableCDTextTrinket = {
+                                            order = 9,
+                                            name = L["Option_DisableCDTextTrinket"],
+                                            desc = L["Option_DisableCDTextTrinket_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.disableCDTextTrinket end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.disableCDTextTrinket = val
+                                                info.handler:UpdateCDTextVisibility()
+                                            end,
+                                        },
+                                        disableCDTextRacial = {
+                                            order = 10,
+                                            name = L["Option_DisableCDTextRacial"],
+                                            desc = L["Option_DisableCDTextRacial_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.disableCDTextRacial end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.disableCDTextRacial = val
+                                                info.handler:UpdateCDTextVisibility()
+                                            end,
+                                        },
+                                    },
+                                },
+                                masque = {
+                                    order = 8,
+                                    name = L["Option_Miscellaneous"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        enableMasque = {
+                                            order = 1,
+                                            name = L["Option_EnableMasqueSupport"],
+                                            desc = L["Masque_Support_Desc"],
+                                            type = "toggle",
+                                            width = 1,
+                                            get = function(info) return info.handler.db.profile.enableMasque end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.enableMasque = val
+                                                info.handler:AddMasqueSupport()
+                                                info.handler:Test()
+                                            end
+                                        },
+                                        enableMasqueExtra = {
+                                            order = 1.2,
+                                            name = L["Option_EnableMasqueExtraSupport"],
+                                            desc = L["Masque_Extra_Support_Desc"],
+                                            type = "toggle",
+                                            width = "normal",
+                                            disabled = function(info) return not info.handler.db.profile.enableMasque end,
+                                            confirm = function(info, val) info.handler.db.profile.enableMasqueExtra = val; return sArenaMixin.popupHeader .. L["Masque_Extra_Reload_Desc"] end,
+                                            get = function(info) return info.handler.db.profile.enableMasqueExtra end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.enableMasqueExtra = val
+                                                sArena_ReloadedDB.reOpenOptions = true
+                                                ReloadUI()
+                                            end
+                                        },
+                                        desaturateTrinketCD = {
+                                            order = 2.1,
+                                            name = L["Option_DesaturateTrinketCD"],
+                                            desc = L["Trinket_DesaturateOnCD_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.desaturateTrinketCD end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.desaturateTrinketCD = val
+                                            end
+                                        },
+                                        desaturateDispelCD = {
+                                            order = 2.2,
+                                            name = L["Option_DesaturateDispelCD"],
+                                            desc = L["Dispel_DesaturateOnCD_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.desaturateDispelCD end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.desaturateDispelCD = val
+                                            end
+                                        },
+                                        disableOvershields = {
+                                            order = 2.3,
+                                            name = L["Option_DisableOvershields"],
+                                            desc = L["Option_DisableOvershields_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.disableOvershields end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.disableOvershields = val
+                                            end
+                                        },
+                                        useDefaultPartyFrames = {
+                                            order = 2.5,
+                                            name = L["Option_UseDefaultPartyFrames"],
+                                            desc = L["Option_UseDefaultPartyFrames_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.useDefaultPartyFrames end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.useDefaultPartyFrames = val
+                                                info.handler:UpdatePartyFrameReferences()
+                                            end
+                                        },
+                                        forceEnglishGUI = {
+                                            order = 2.6,
+                                            name = L["Option_ForceEnglishGUI"],
+                                            desc = L["Option_ForceEnglishGUI_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            hidden = function() return sArenaMixin.locale == "enUS" or sArenaMixin.locale == "enGB" end,
+                                            confirm = function() return sArenaMixin.popupHeader .. L["Masque_Extra_Reload_Desc"] end,
+                                            get = function() return sArenaMixin:IsForceEnglish() end,
+                                            set = function(info, val)
+                                                sArena_ReloadedDB.forceEnglish = val or nil
+                                                sArena_ReloadedDB.reOpenOptions = true
+                                                ReloadUI()
+                                            end
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        petFramesGroup = {
+                            order = 5.5,
+                            name = L["Category_PetFrames"],
+                            desc = L["Category_PetFrames_Desc"],
+                            type = "group",
+                            get = function(info)
+                                return info.handler.db.profile.petFrames[info[#info]]
+                            end,
+                            set = function(info, val)
+                                info.handler.db.profile.petFrames[info[#info]] = val
+                                if info.handler.RefreshPetFrames then
+                                    info.handler:RefreshPetFrames()
+                                end
+                            end,
+                            args = {
+                                enabled = {
+                                    order = 1,
+                                    name = L["Option_PetEnabled"],
+                                    desc = L["Option_PetEnabled_Desc"],
+                                    type = "toggle",
+                                },
+                                classesGroup = {
+                                    order = 2,
+                                    name = L["Option_PetClassesEnabled"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        classDeathknight = {
+                                            order = 1,
+                                            name = GetClassOptionName("DEATHKNIGHT"),
+                                            type = "toggle",
+                                            hidden = function() return sArenaMixin.isTBC end,
+                                            disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                            get = function(info) return info.handler.db.profile.petFrames.classes.DEATHKNIGHT end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.petFrames.classes.DEATHKNIGHT = val
+                                                info.handler:RefreshPetFrames()
+                                            end,
+                                        },
+                                        classMage = {
+                                            order = 2,
+                                            name = GetClassOptionName("MAGE"),
+                                            type = "toggle",
+                                            disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                            get = function(info) return info.handler.db.profile.petFrames.classes.MAGE end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.petFrames.classes.MAGE = val
+                                                info.handler:RefreshPetFrames()
+                                            end,
+                                        },
+                                        classMonk = {
+                                            order = 3,
+                                            name = GetClassOptionName("MONK"),
+                                            type = "toggle",
+                                            hidden = function() return sArenaMixin.isTBC or sArenaMixin.isWrath end,
+                                            disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                            get = function(info) return info.handler.db.profile.petFrames.classes.MONK end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.petFrames.classes.MONK = val
+                                                info.handler:RefreshPetFrames()
+                                            end,
+                                        },
+                                        classWarlock = {
+                                            order = 4,
+                                            name = GetClassOptionName("WARLOCK"),
+                                            type = "toggle",
+                                            disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                            get = function(info) return info.handler.db.profile.petFrames.classes.WARLOCK end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.petFrames.classes.WARLOCK = val
+                                                info.handler:RefreshPetFrames()
+                                            end,
+                                        },
+                                        classHunter = {
+                                            order = 5,
+                                            name = GetClassOptionName("HUNTER"),
+                                            type = "toggle",
+                                            disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                            get = function(info) return info.handler.db.profile.petFrames.classes.HUNTER end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.petFrames.classes.HUNTER = val
+                                                info.handler:RefreshPetFrames()
+                                            end,
+                                        },
+                                    },
+                                },
+                                colorsGroup = {
+                                    order = 3,
+                                    name = L["Option_Colors"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        classColors = {
+                                            order = 1,
+                                            name = L["Option_PetClassColors"],
+                                            desc = L["Option_PetClassColors_Desc"],
+                                            type = "toggle",
+                                            disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                        },
+                                        spacerAfterClassColors = {
+                                            order = 1.5,
+                                            name = "",
+                                            type = "description",
+                                            width = "full",
+                                        },
+                                        customColor = {
+                                            order = 2,
+                                            name = L["Option_PetCustomColor"],
+                                            type = "color",
+                                            hasAlpha = true,
+                                            disabled = function(info)
+                                                return not info.handler.db.profile.petFrames.enabled
+                                                    or info.handler.db.profile.petFrames.classColors
+                                            end,
+                                            get = function(info)
+                                                local c = info.handler.db.profile.petFrames.customColor
+                                                return c[1], c[2], c[3], c[4] or 1
+                                            end,
+                                            set = function(info, r, g, b, a)
+                                                info.handler.db.profile.petFrames.customColor = { r, g, b, a }
+                                                info.handler:RefreshPetFrameSettings()
+                                            end,
+                                        },
+                                    },
+                                },
+                                displayGroup = {
+                                    order = 4,
+                                    name = L["Option_PetDisplay"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        showPetName = {
+                                            order = 1,
+                                            name = L["Option_ShowPetName"],
+                                            type = "toggle",
+                                            disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                            get = function(info) return info.handler.db.profile.petFrames.showPetName end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.petFrames.showPetName = val
+                                                if val then
+                                                    info.handler.db.profile.petFrames.showPetNumber = false
+                                                end
+                                                info.handler:RefreshPetFrames()
+                                            end,
+                                        },
+                                        spacerAfterShowPetName = {
+                                            order = 1.5,
+                                            name = "",
+                                            type = "description",
+                                            width = "full",
+                                        },
+                                        showPetNumber = {
+                                            order = 2,
+                                            name = L["Option_ShowPetNumber"],
+                                            type = "toggle",
+                                            width = 1,
+                                            disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                            get = function(info) return info.handler.db.profile.petFrames.showPetNumber end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.petFrames.showPetNumber = val
+                                                if val then
+                                                    info.handler.db.profile.petFrames.showPetName = false
+                                                end
+                                                info.handler:RefreshPetFrames()
+                                            end,
+                                        },
+                                        petNumberIdOnly = {
+                                            order = 3,
+                                            name = L["Option_PetNumberIdOnly"],
+                                            type = "toggle",
+                                            width = 1,
+                                            disabled = function(info)
+                                                return not info.handler.db.profile.petFrames.enabled
+                                                    or not info.handler.db.profile.petFrames.showPetNumber
+                                            end,
+                                            get = function(info) return info.handler.db.profile.petFrames.petNumberIdOnly end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.petFrames.petNumberIdOnly = val
+                                                info.handler:RefreshPetFrames()
+                                            end,
+                                        },
+                                        spacerBeforeBorderStyle = {
+                                            order = 3.5,
+                                            name = "",
+                                            type = "description",
+                                            width = "full",
+                                        },
+                                        borderStyle = {
+                                            order = 4,
+                                            name = L["Option_PetBorderStyle"],
+                                            desc = L["Option_PetBorderStyle_Desc"],
+                                            type = "select",
+                                            style = "dropdown",
+                                            width = 1,
+                                            disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                            values = {
+                                                layoutBorders = L["Option_PetBorderStyle_LayoutBorders"],
+                                                pixelBorder   = L["Option_PetBorderStyle_PixelBorder"],
+                                                modernBorder  = L["Option_PetBorderStyle_ModernBorder"],
+                                                classicBorder = L["Option_PetBorderStyle_ClassicBorder"],
+                                                none          = L["None"],
+                                            },
+                                            sorting = {
+                                                "layoutBorders",
+                                                "pixelBorder",
+                                                "modernBorder",
+                                                "classicBorder",
+                                                "none",
+                                            },
+                                            get = function(info)
+                                                return info.handler.db.profile.petFrames.borderStyle or "layoutBorders"
+                                            end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.petFrames.borderStyle = val
+                                                info.handler:RefreshPetFrameSettings()
+                                            end,
+                                        },
+                                    },
+                                },
+                                statusTextGroup = {
+                                    order = 5,
+                                    name = L["Option_StatusText"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        alwaysShow = {
+                                            order = 1,
+                                            name = L["Option_AlwaysShow"],
+                                            desc = L["Text_ShowOnMouseover_Desc"],
+                                            type = "toggle",
+                                            disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                            get = function(info)
+                                                local petSt = info.handler.db.profile.petFrames.statusText
+                                                if petSt ~= nil and petSt.alwaysShow ~= nil then
+                                                    return petSt.alwaysShow
+                                                end
+                                                return info.handler.db.profile.statusText.alwaysShow
+                                            end,
+                                            set = function(info, val)
+                                                local pf = info.handler.db.profile.petFrames
+                                                pf.statusText = pf.statusText or {}
+                                                pf.statusText.alwaysShow = val
+                                                info.handler:RefreshPetFrames()
+                                            end,
+                                        },
+                                        usePercentage = {
+                                            order = 2,
+                                            name = L["Option_UsePercentage"],
+                                            type = "toggle",
+                                            disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                            get = function(info)
+                                                local petSt = info.handler.db.profile.petFrames.statusText
+                                                if petSt ~= nil and petSt.usePercentage ~= nil then
+                                                    return petSt.usePercentage
+                                                end
+                                                return info.handler.db.profile.statusText.usePercentage
+                                            end,
+                                            set = function(info, val)
+                                                local pf = info.handler.db.profile.petFrames
+                                                pf.statusText = pf.statusText or {}
+                                                pf.statusText.usePercentage = val
+                                                if val then
+                                                    pf.statusText.formatNumbers = false
+                                                end
+                                                info.handler:RefreshPetFrames()
+                                            end,
+                                        },
+                                        formatNumbers = {
+                                            order = 3,
+                                            name = L["Option_FormatNumbers"],
+                                            desc = L["Text_FormatLargeNumbers_Desc"],
+                                            type = "toggle",
+                                            disabled = function(info) return not info.handler.db.profile.petFrames.enabled end,
+                                            get = function(info)
+                                                local petSt = info.handler.db.profile.petFrames.statusText
+                                                if petSt ~= nil and petSt.formatNumbers ~= nil then
+                                                    return petSt.formatNumbers
+                                                end
+                                                if petSt ~= nil and petSt.usePercentage then
+                                                    return false
+                                                end
+                                                return info.handler.db.profile.statusText.formatNumbers
+                                            end,
+                                            set = function(info, val)
+                                                local pf = info.handler.db.profile.petFrames
+                                                pf.statusText = pf.statusText or {}
+                                                pf.statusText.formatNumbers = val
+                                                if val then
+                                                    pf.statusText.usePercentage = false
+                                                end
+                                                info.handler:RefreshPetFrames()
+                                            end,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        auraHighlightGroup = {
+                            order = 2,
+                            name = L["AuraHighlight"],
+                            desc = L["AuraHighlight_TabDesc"],
+                            type = "group",
+                            get = function(info)
+                                local ah = info.handler.db.profile.auraHighlight
+                                return ah and ah[info[#info]]
+                            end,
+                            set = function(info, val)
+                                local profile = info.handler.db.profile
+                                profile.auraHighlight = profile.auraHighlight or {}
+                                profile.auraHighlight[info[#info]] = val
+                                info.handler:RefreshAllAuraHighlights()
+                            end,
+                            args = {
+                                enable = {
+                                    order = 1,
+                                    name = L["AuraHighlight_Enable"],
+                                    desc = L["AuraHighlight_Desc"],
+                                    type = "toggle",
+                                    width = "normal",
+                                    get = function(info)
+                                        local ah = info.handler.db.profile.auraHighlight
+                                        return ah and ah.enabled
+                                    end,
+                                    set = function(info, val)
+                                        local profile = info.handler.db.profile
+                                        profile.auraHighlight = profile.auraHighlight or {}
+                                        profile.auraHighlight.enabled = val
+                                        info.handler:RefreshAllAuraHighlights()
+                                    end,
+                                },
+                                onlyOnHealer = {
+                                    hidden = function(info) return info.handler:IsArenaSpecSecret() end,
+                                    order = 1.1,
+                                    name = L["AuraHighlight_OnlyOnHealer"],
+                                    desc = L["AuraHighlight_OnlyOnHealer_Desc"],
+                                    type = "toggle",
+                                    width = "normal",
+                                    disabled = function(info)
+                                        local ah = info.handler.db.profile.auraHighlight
+                                        return not (ah and ah.enabled)
+                                    end,
+                                    get = function(info)
+                                        local ah = info.handler.db.profile.auraHighlight
+                                        return ah and ah.onlyOnHealer
+                                    end,
+                                    set = function(info, val)
+                                        local profile = info.handler.db.profile
+                                        profile.auraHighlight = profile.auraHighlight or {}
+                                        profile.auraHighlight.onlyOnHealer = val
+                                        info.handler:RefreshAllAuraHighlights()
+                                    end,
+                                },
+                                categoriesGroup = {
+                                    order = 2,
+                                    name = L["AuraHighlight_Categories"],
+                                    type = "group",
+                                    inline = true,
+                                    args = (function()
+                                        local args = {}
+                                        local cats = {
+                                            { key = "cc",        order = 1, label = "AuraHighlight_CC",        desc = "AuraHighlight_CC_Desc",        defaultColor = {1, 0.87, 0,    1} },
+                                            { key = "important", order = 2, label = "AuraHighlight_Important", desc = "AuraHighlight_Important_Desc", defaultColor = {0, 1,    0,    1} },
+                                            { key = "defensive", order = 3, label = "AuraHighlight_Defensive", desc = "AuraHighlight_Defensive_Desc", defaultColor = {1, 0.66, 0.95, 1} },
+                                        }
+                                        for _, cat in ipairs(cats) do
+                                            local key = cat.key
+                                            args[key .. "Enabled"] = {
+                                                order = cat.order * 10,
+                                                name = L[cat.label],
+                                                desc = L[cat.desc],
+                                                type = "toggle",
+                                                width = 0.7,
+                                                disabled = function(info)
+                                                    local ah = info.handler.db.profile.auraHighlight
+                                                    return not (ah and ah.enabled)
+                                                end,
+                                                get = function(info)
+                                                    local ah = info.handler.db.profile.auraHighlight
+                                                    local c = ah and ah[key]
+                                                    return c and c.enabled
+                                                end,
+                                                set = function(info, val)
+                                                    local profile = info.handler.db.profile
+                                                    profile.auraHighlight = profile.auraHighlight or {}
+                                                    profile.auraHighlight[key] = profile.auraHighlight[key] or {}
+                                                    profile.auraHighlight[key].enabled = val
+                                                    info.handler:RefreshAllAuraHighlights()
+                                                end,
+                                            }
+                                            args[key .. "Color"] = {
+                                                order = cat.order * 10 + 1,
+                                                name = L["Color"],
+                                                type = "color",
+                                                hasAlpha = true,
+                                                width = 0.5,
+                                                disabled = function(info)
+                                                    local ah = info.handler.db.profile.auraHighlight
+                                                    return not (ah and ah.enabled)
+                                                end,
+                                                get = function(info)
+                                                    local ah = info.handler.db.profile.auraHighlight
+                                                    local c = ah and ah[key] and ah[key].color
+                                                    c = c or cat.defaultColor
+                                                    return c[1], c[2], c[3], c[4] or 1
+                                                end,
+                                                set = function(info, r, g, b, a)
+                                                    local profile = info.handler.db.profile
+                                                    profile.auraHighlight = profile.auraHighlight or {}
+                                                    profile.auraHighlight[key] = profile.auraHighlight[key] or {}
+                                                    profile.auraHighlight[key].color = {r, g, b, a}
+                                                    info.handler:RefreshAllAuraHighlights()
+                                                end,
+                                            }
+                                            args[key .. "Spacer"] = {
+                                                order = cat.order * 10 + 2,
+                                                name = "",
+                                                type = "description",
+                                                width = "full",
+                                            }
+                                        end
+                                        return args
+                                    end)(),
+                                },
+                                glowClassIconGroup = {
+                                    order = 3,
+                                    name = L["AuraHighlight_GlowClassIcon"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        enabled = {
+                                            order = 1,
+                                            name = L["AuraHighlight_GlowClassIcon_Enable"],
+                                            desc = L["AuraHighlight_GlowClassIcon_Desc"],
+                                            type = "toggle",
+                                            width = "full",
                                             disabled = function(info)
                                                 local ah = info.handler.db.profile.auraHighlight
                                                 return not (ah and ah.enabled)
                                             end,
                                             get = function(info)
                                                 local ah = info.handler.db.profile.auraHighlight
-                                                local c = ah and ah[key]
-                                                return c and c.enabled
+                                                local g = ah and ah.glowClassIcon
+                                                return g and g.enabled
                                             end,
                                             set = function(info, val)
                                                 local profile = info.handler.db.profile
                                                 profile.auraHighlight = profile.auraHighlight or {}
-                                                profile.auraHighlight[key] = profile.auraHighlight[key] or {}
-                                                profile.auraHighlight[key].enabled = val
+                                                profile.auraHighlight.glowClassIcon = profile.auraHighlight.glowClassIcon or {}
+                                                profile.auraHighlight.glowClassIcon.enabled = val
                                                 info.handler:RefreshAllAuraHighlights()
                                             end,
-                                        }
-                                        args[key .. "Color"] = {
-                                            order = cat.order * 10 + 1,
-                                            name = L["Color"],
-                                            type = "color",
-                                            hasAlpha = true,
-                                            width = 0.5,
+                                        },
+                                    },
+                                },
+                                pixelBorderGroup = {
+                                    order = 4,
+                                    name = L["AuraHighlight_PixelBorder"],
+                                    type = "group",
+                                    inline = true,
+                                    hidden = function() return isMidnight end,
+                                    get = function(info)
+                                        local ah = info.handler.db.profile.auraHighlight
+                                        local p = ah and ah.pixelBorder
+                                        return p and p[info[#info]]
+                                    end,
+                                    set = function(info, val)
+                                        local profile = info.handler.db.profile
+                                        profile.auraHighlight = profile.auraHighlight or {}
+                                        profile.auraHighlight.pixelBorder = profile.auraHighlight.pixelBorder or {}
+                                        profile.auraHighlight.pixelBorder[info[#info]] = val
+                                        info.handler:RefreshAllAuraHighlights()
+                                    end,
+                                    args = {
+                                        enabled = {
+                                            order = 1,
+                                            name = L["AuraHighlight_PixelBorder_Enable"],
+                                            desc = L["AuraHighlight_PixelBorder_Desc"],
+                                            type = "toggle",
+                                            width = "full",
                                             disabled = function(info)
                                                 local ah = info.handler.db.profile.auraHighlight
                                                 return not (ah and ah.enabled)
                                             end,
+                                        },
+                                        lines = {
+                                            order = 2,
+                                            name = L["AuraHighlight_Lines"],
+                                            type = "range",
+                                            min = 1, max = 30, step = 1,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local pb = ah and ah.pixelBorder
+                                                return not (ah and ah.enabled and pb and pb.enabled)
+                                            end,
+                                        },
+                                        frequency = {
+                                            order = 3,
+                                            name = L["AuraHighlight_Speed"],
+                                            type = "range",
+                                            min = -1, max = 1, step = 0.01,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local pb = ah and ah.pixelBorder
+                                                return not (ah and ah.enabled and pb and pb.enabled)
+                                            end,
+                                        },
+                                        length = {
+                                            order = 4,
+                                            name = L["AuraHighlight_Length"],
+                                            type = "range",
+                                            min = 1, max = 30, step = 1,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local pb = ah and ah.pixelBorder
+                                                return not (ah and ah.enabled and pb and pb.enabled)
+                                            end,
+                                        },
+                                        thickness = {
+                                            order = 5,
+                                            name = L["AuraHighlight_Thickness"],
+                                            type = "range",
+                                            min = 1, max = 20, step = 1,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local pb = ah and ah.pixelBorder
+                                                return not (ah and ah.enabled and pb and pb.enabled)
+                                            end,
+                                        },
+                                        wrapClass = {
+                                            order = 6,
+                                            name = L["Widget_WrapClass"],
+                                            desc = L["Widget_WrapClass_Desc"],
+                                            type = "toggle",
+                                            width = 0.6,
                                             get = function(info)
                                                 local ah = info.handler.db.profile.auraHighlight
-                                                local c = ah and ah[key] and ah[key].color
-                                                c = c or cat.defaultColor
-                                                return c[1], c[2], c[3], c[4] or 1
+                                                local pb = ah and ah.pixelBorder
+                                                return pb and pb.wrapClass
                                             end,
-                                            set = function(info, r, g, b, a)
+                                            set = function(info, val)
                                                 local profile = info.handler.db.profile
                                                 profile.auraHighlight = profile.auraHighlight or {}
-                                                profile.auraHighlight[key] = profile.auraHighlight[key] or {}
-                                                profile.auraHighlight[key].color = {r, g, b, a}
+                                                profile.auraHighlight.pixelBorder = profile.auraHighlight.pixelBorder or {}
+                                                profile.auraHighlight.pixelBorder.wrapClass = val
                                                 info.handler:RefreshAllAuraHighlights()
                                             end,
-                                        }
-                                        args[key .. "Spacer"] = {
-                                            order = cat.order * 10 + 2,
-                                            name = "",
-                                            type = "description",
-                                            width = "full",
-                                        }
-                                    end
-                                    return args
-                                end)(),
-                            },
-                            glowClassIconGroup = {
-                                order = 3,
-                                name = L["AuraHighlight_GlowClassIcon"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    enabled = {
-                                        order = 1,
-                                        name = L["AuraHighlight_GlowClassIcon_Enable"],
-                                        desc = L["AuraHighlight_GlowClassIcon_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            return not (ah and ah.enabled)
-                                        end,
-                                        get = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local g = ah and ah.glowClassIcon
-                                            return g and g.enabled
-                                        end,
-                                        set = function(info, val)
-                                            local profile = info.handler.db.profile
-                                            profile.auraHighlight = profile.auraHighlight or {}
-                                            profile.auraHighlight.glowClassIcon = profile.auraHighlight.glowClassIcon or {}
-                                            profile.auraHighlight.glowClassIcon.enabled = val
-                                            info.handler:RefreshAllAuraHighlights()
-                                        end,
-                                    },
-                                },
-                            },
-                            pixelBorderGroup = {
-                                order = 4,
-                                name = L["AuraHighlight_PixelBorder"],
-                                type = "group",
-                                inline = true,
-                                hidden = function() return isMidnight end,
-                                get = function(info)
-                                    local ah = info.handler.db.profile.auraHighlight
-                                    local p = ah and ah.pixelBorder
-                                    return p and p[info[#info]]
-                                end,
-                                set = function(info, val)
-                                    local profile = info.handler.db.profile
-                                    profile.auraHighlight = profile.auraHighlight or {}
-                                    profile.auraHighlight.pixelBorder = profile.auraHighlight.pixelBorder or {}
-                                    profile.auraHighlight.pixelBorder[info[#info]] = val
-                                    info.handler:RefreshAllAuraHighlights()
-                                end,
-                                args = {
-                                    enabled = {
-                                        order = 1,
-                                        name = L["AuraHighlight_PixelBorder_Enable"],
-                                        desc = L["AuraHighlight_PixelBorder_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            return not (ah and ah.enabled)
-                                        end,
-                                    },
-                                    lines = {
-                                        order = 2,
-                                        name = L["AuraHighlight_Lines"],
-                                        type = "range",
-                                        min = 1, max = 30, step = 1,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pb = ah and ah.pixelBorder
-                                            return not (ah and ah.enabled and pb and pb.enabled)
-                                        end,
-                                    },
-                                    frequency = {
-                                        order = 3,
-                                        name = L["AuraHighlight_Speed"],
-                                        type = "range",
-                                        min = -1, max = 1, step = 0.01,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pb = ah and ah.pixelBorder
-                                            return not (ah and ah.enabled and pb and pb.enabled)
-                                        end,
-                                    },
-                                    length = {
-                                        order = 4,
-                                        name = L["AuraHighlight_Length"],
-                                        type = "range",
-                                        min = 1, max = 30, step = 1,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pb = ah and ah.pixelBorder
-                                            return not (ah and ah.enabled and pb and pb.enabled)
-                                        end,
-                                    },
-                                    thickness = {
-                                        order = 5,
-                                        name = L["AuraHighlight_Thickness"],
-                                        type = "range",
-                                        min = 1, max = 20, step = 1,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pb = ah and ah.pixelBorder
-                                            return not (ah and ah.enabled and pb and pb.enabled)
-                                        end,
-                                    },
-                                    wrapClass = {
-                                        order = 6,
-                                        name = L["Widget_WrapClass"],
-                                        desc = L["Widget_WrapClass_Desc"],
-                                        type = "toggle",
-                                        width = 0.6,
-                                        get = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pb = ah and ah.pixelBorder
-                                            return pb and pb.wrapClass
-                                        end,
-                                        set = function(info, val)
-                                            local profile = info.handler.db.profile
-                                            profile.auraHighlight = profile.auraHighlight or {}
-                                            profile.auraHighlight.pixelBorder = profile.auraHighlight.pixelBorder or {}
-                                            profile.auraHighlight.pixelBorder.wrapClass = val
-                                            info.handler:RefreshAllAuraHighlights()
-                                        end,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pb = ah and ah.pixelBorder
-                                            return not (ah and ah.enabled and pb and pb.enabled)
-                                        end,
-                                    },
-                                    wrapTrinket = {
-                                        order = 7,
-                                        name = L["Widget_WrapTrinket"],
-                                        desc = L["Widget_WrapTrinket_Desc"],
-                                        type = "toggle",
-                                        width = 0.6,
-                                        get = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pb = ah and ah.pixelBorder
-                                            return pb and pb.wrapTrinket
-                                        end,
-                                        set = function(info, val)
-                                            local profile = info.handler.db.profile
-                                            profile.auraHighlight = profile.auraHighlight or {}
-                                            profile.auraHighlight.pixelBorder = profile.auraHighlight.pixelBorder or {}
-                                            profile.auraHighlight.pixelBorder.wrapTrinket = val
-                                            if val then profile.auraHighlight.pixelBorder.wrapRacial = false end
-                                            info.handler:RefreshAllAuraHighlights()
-                                        end,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pb = ah and ah.pixelBorder
-                                            return not (ah and ah.enabled and pb and pb.enabled)
-                                        end,
-                                    },
-                                    wrapRacial = {
-                                        order = 8,
-                                        name = L["Widget_WrapRacial"],
-                                        desc = L["Widget_WrapRacial_Desc"],
-                                        type = "toggle",
-                                        width = 0.6,
-                                        get = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pb = ah and ah.pixelBorder
-                                            return pb and pb.wrapRacial
-                                        end,
-                                        set = function(info, val)
-                                            local profile = info.handler.db.profile
-                                            profile.auraHighlight = profile.auraHighlight or {}
-                                            profile.auraHighlight.pixelBorder = profile.auraHighlight.pixelBorder or {}
-                                            profile.auraHighlight.pixelBorder.wrapRacial = val
-                                            if val then profile.auraHighlight.pixelBorder.wrapTrinket = false end
-                                            info.handler:RefreshAllAuraHighlights()
-                                        end,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pb = ah and ah.pixelBorder
-                                            return not (ah and ah.enabled and pb and pb.enabled)
-                                        end,
-                                    },
-                                },
-                            },
-                            framePulseGroup = {
-                                order = 6,
-                                name = L["AuraHighlight_FramePulse"],
-                                type = "group",
-                                inline = true,
-                                get = function(info)
-                                    local ah = info.handler.db.profile.auraHighlight
-                                    local p = ah and ah.framePulse
-                                    return p and p[info[#info]]
-                                end,
-                                set = function(info, val)
-                                    local profile = info.handler.db.profile
-                                    profile.auraHighlight = profile.auraHighlight or {}
-                                    profile.auraHighlight.framePulse = profile.auraHighlight.framePulse or {}
-                                    profile.auraHighlight.framePulse[info[#info]] = val
-                                    info.handler:RefreshAllAuraHighlights()
-                                end,
-                                args = {
-                                    enabled = {
-                                        order = 1,
-                                        name = L["AuraHighlight_FramePulse_Enable"],
-                                        desc = L["AuraHighlight_FramePulse_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            return not (ah and ah.enabled)
-                                        end,
-                                    },
-                                    speed = {
-                                        order = 2,
-                                        name = L["AuraHighlight_Speed"],
-                                        type = "range",
-                                        min = 0.05, max = 1, step = 0.05,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local fp = ah and ah.framePulse
-                                            return not (ah and ah.enabled and fp and fp.enabled)
-                                        end,
-                                    },
-                                    size = {
-                                        order = 2.5,
-                                        name = L["AuraHighlight_FramePulse_Size"],
-                                        type = "range",
-                                        min = 0.5, max = 4, step = 0.5,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local fp = ah and ah.framePulse
-                                            return not (ah and ah.enabled and fp and fp.enabled)
-                                        end,
-                                    },
-                                    minAlpha = {
-                                        order = 2.6,
-                                        name = L["AuraHighlight_FramePulse_MinAlpha"],
-                                        type = "range",
-                                        min = 0, max = 1, step = 0.05,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local fp = ah and ah.framePulse
-                                            return not (ah and ah.enabled and fp and fp.enabled)
-                                        end,
-                                    },
-                                    maxAlpha = {
-                                        order = 2.7,
-                                        name = L["AuraHighlight_FramePulse_MaxAlpha"],
-                                        type = "range",
-                                        min = 0, max = 1, step = 0.05,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local fp = ah and ah.framePulse
-                                            return not (ah and ah.enabled and fp and fp.enabled)
-                                        end,
-                                    },
-                                    wrapTrinket = {
-                                        order = 3,
-                                        name = L["Widget_WrapTrinket"],
-                                        desc = L["Widget_WrapTrinket_Desc"],
-                                        type = "toggle",
-                                        width = 0.6,
-                                        get = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local fp = ah and ah.framePulse
-                                            return fp and fp.wrapTrinket
-                                        end,
-                                        set = function(info, val)
-                                            local profile = info.handler.db.profile
-                                            profile.auraHighlight = profile.auraHighlight or {}
-                                            profile.auraHighlight.framePulse = profile.auraHighlight.framePulse or {}
-                                            profile.auraHighlight.framePulse.wrapTrinket = val
-                                            if val then profile.auraHighlight.framePulse.wrapRacial = false end
-                                            info.handler:RefreshAllAuraHighlights()
-                                        end,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local fp = ah and ah.framePulse
-                                            return not (ah and ah.enabled and fp and fp.enabled)
-                                        end,
-                                    },
-                                    wrapRacial = {
-                                        order = 4,
-                                        name = L["Widget_WrapRacial"],
-                                        desc = L["Widget_WrapRacial_Desc"],
-                                        type = "toggle",
-                                        width = 0.6,
-                                        get = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local fp = ah and ah.framePulse
-                                            return fp and fp.wrapRacial
-                                        end,
-                                        set = function(info, val)
-                                            local profile = info.handler.db.profile
-                                            profile.auraHighlight = profile.auraHighlight or {}
-                                            profile.auraHighlight.framePulse = profile.auraHighlight.framePulse or {}
-                                            profile.auraHighlight.framePulse.wrapRacial = val
-                                            if val then profile.auraHighlight.framePulse.wrapTrinket = false end
-                                            info.handler:RefreshAllAuraHighlights()
-                                        end,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local fp = ah and ah.framePulse
-                                            return not (ah and ah.enabled and fp and fp.enabled)
-                                        end,
-                                    },
-                                },
-                            },
-                            pixelClassIconGroup = {
-                                order = 5,
-                                name = L["AuraHighlight_PixelClassIcon"],
-                                type = "group",
-                                inline = true,
-                                hidden = function() return isMidnight end,
-                                get = function(info)
-                                    local ah = info.handler.db.profile.auraHighlight
-                                    local p = ah and ah.pixelClassIcon
-                                    return p and p[info[#info]]
-                                end,
-                                set = function(info, val)
-                                    local profile = info.handler.db.profile
-                                    profile.auraHighlight = profile.auraHighlight or {}
-                                    profile.auraHighlight.pixelClassIcon = profile.auraHighlight.pixelClassIcon or {}
-                                    profile.auraHighlight.pixelClassIcon[info[#info]] = val
-                                    info.handler:RefreshAllAuraHighlights()
-                                end,
-                                args = {
-                                    enabled = {
-                                        order = 1,
-                                        name = L["AuraHighlight_PixelClassIcon_Enable"],
-                                        desc = L["AuraHighlight_PixelClassIcon_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            return not (ah and ah.enabled)
-                                        end,
-                                    },
-                                    lines = {
-                                        order = 2,
-                                        name = L["AuraHighlight_Lines"],
-                                        type = "range",
-                                        min = 1, max = 30, step = 1,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pi = ah and ah.pixelClassIcon
-                                            return not (ah and ah.enabled and pi and pi.enabled)
-                                        end,
-                                    },
-                                    frequency = {
-                                        order = 3,
-                                        name = L["AuraHighlight_Speed"],
-                                        type = "range",
-                                        min = -2, max = 2, step = 0.05,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pi = ah and ah.pixelClassIcon
-                                            return not (ah and ah.enabled and pi and pi.enabled)
-                                        end,
-                                    },
-                                    length = {
-                                        order = 4,
-                                        name = L["AuraHighlight_Length"],
-                                        type = "range",
-                                        min = 1, max = 30, step = 1,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pi = ah and ah.pixelClassIcon
-                                            return not (ah and ah.enabled and pi and pi.enabled)
-                                        end,
-                                    },
-                                    thickness = {
-                                        order = 5,
-                                        name = L["AuraHighlight_Thickness"],
-                                        type = "range",
-                                        min = 1, max = 20, step = 1,
-                                        disabled = function(info)
-                                            local ah = info.handler.db.profile.auraHighlight
-                                            local pi = ah and ah.pixelClassIcon
-                                            return not (ah and ah.enabled and pi and pi.enabled)
-                                        end,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                    classIconGroup = {
-                        order = 3,
-                        name = L["Category_ClassIcon"],
-                        type = "group",
-                        args = {
-                            options = {
-                                order = 1,
-                                name = L["Options"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    onlyShowAuras = {
-                                        order = 1,
-                                        name = L["Option_HideClassIconShowAurasOnly"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["ClassIcon_HideAndShowOnlyAuras_Desc"],
-                                        disabled = function(info) return info.handler.db.profile.hideClassIcon end,
-                                        get = function(info) return info.handler.db.profile.onlyShowAuras end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.onlyShowAuras = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                if val then
-                                                    info.handler["arena" .. i].ClassIcon.Texture:SetTexture(nil)
-                                                else
-                                                    if info.handler["arena" .. i].replaceClassIcon then
-                                                        info.handler["arena" .. i].ClassIcon.Texture:SetTexture(info.handler["arena" .. i].tempSpecIcon)
-                                                    else
-                                                        info.handler["arena" .. i].ClassIcon.Texture:SetTexture(info.handler.classIcons[info.handler["arena" .. i].tempClass])
-                                                    end
-                                                end
-                                            end
-                                            info.handler:Test()
-                                        end,
-                                    },
-                                    onlyShowCCAuras = {
-                                        order = 2.5,
-                                        name = L["Option_OnlyShowCCAuras"],
-                                        type = "toggle",
-                                        width = "full",
-                                        disabled = function(info) return info.handler.db.profile.hideClassIcon or info.handler.db.profile.disableAurasOnClassIcon end,
-                                        get = function(info) return info.handler.db.profile.onlyShowCCAuras end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.onlyShowCCAuras = val
-                                            info.handler:Test()
-                                        end,
-                                    },
-                                    disableAurasOnClassIcon = {
-                                        order = 3,
-                                        name = L["Option_DisableAurasOnClassIcon"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["ClassIcon_DontShowAuras_Desc"],
-                                        disabled = function(info) return info.handler.db.profile.hideClassIcon end,
-                                        get = function(info) return info.handler.db.profile.disableAurasOnClassIcon end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.disableAurasOnClassIcon = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                if frame then
-                                                    frame:SetUnitAuraRegistration()
-                                                end
-                                            end
-                                            info.handler:Test()
-                                        end,
-                                    },
-                                    replaceHealerIcon = {
-                                        order = 4,
-                                        name = L["Option_ReplaceHealerIcon"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["Icon_ReplaceHealerWithHealerIcon_Desc"],
-                                        get = function(info) return info.handler.db.profile.replaceHealerIcon end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.replaceHealerIcon = val
-                                            info.handler:Test()
-                                        end,
-                                    },
-                                    hideClassIcon = {
-                                        order = 5,
-                                        name = L["Option_HideClassIcon"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["Option_HideClassIcon_Desc"],
-                                        get = function(info) return info.handler.db.profile.hideClassIcon end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.hideClassIcon = val
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                if frame then
-                                                    frame:SetUnitAuraRegistration()
-                                                    if val then
-                                                        frame.ClassIcon.Texture:SetTexture(nil)
-                                                        frame.ClassIcon.Cooldown:Clear()
-                                                    end
-                                                end
-                                            end
-                                            info.handler:Test()
-                                        end,
-                                    },
-                                    showDecimalsClassIcon = {
-                                        order = 6,
-                                        name = L["Option_ShowDecimalsOnClassIcon"],
-                                        desc = L["Option_ShowDecimalsOnClassIcon_Desc"],
-                                        type = "toggle",
-                                        width = 1.4,
-                                        confirm = function() return isMidnight and L["Option_HideDRs_Reload_Desc"] or false end,
-                                        get = function(info) return info.handler.db.profile.showDecimalsClassIcon end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.showDecimalsClassIcon = val
-                                            info.handler:CustomizeDefaultCD()
-                                            if isMidnight then
-                                                sArena_ReloadedDB.reOpenOptions = true
-                                                ReloadUI()
-                                            end
-                                        end
-                                    },
-                                    decimalThreshold = {
-                                        order = 7,
-                                        name = L["Option_DecimalThreshold"],
-                                        desc = L["Cooldown_ShowDecimalsThreshold_Desc"],
-                                        type = "range",
-                                        min = 1,
-                                        max = 10,
-                                        step = 0.1,
-                                        width = 0.75,
-                                        disabled = function(info) return not info.handler.db.profile.showDecimalsClassIcon end,
-                                        get = function(info) return info.handler.db.profile.decimalThreshold or 6 end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.decimalThreshold = val
-                                            info.handler:UpdateDecimalThreshold()
-                                            info.handler:CustomizeDefaultCD()
-                                        end
-                                    },
-                                },
-                            },
-                            sorting = {
-                                order = 2,
-                                name = L["AuraSort_Sorting"],
-                                type = "group",
-                                inline = true,
-                                hidden = not isMidnight,
-                                args = {
-                                    ccSort = {
-                                        order = 1,
-                                        name = L["AuraSort_CC_Sort"],
-                                        type = "select",
-                                        width = 1.5,
-                                        values = {
-                                            last = L["AuraSort_LastAdded"],
-                                            blizzDefault = L["AuraSort_Default"],
-                                            lastending = L["AuraSort_LastEnding"],
-                                            firstending = L["AuraSort_FirstEnding"],
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local pb = ah and ah.pixelBorder
+                                                return not (ah and ah.enabled and pb and pb.enabled)
+                                            end,
                                         },
-                                        sorting = { "last", "blizzDefault", "lastending", "firstending" },
-                                        get = function(info) return info.handler.db.profile.ccSort or "last" end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.ccSort = val
-                                            info.handler:UpdateAuraSortSettings()
-                                        end,
-                                    },
-                                    sep2 = { order = 2.5, type = "description", name = "", width = "full" },
-                                    defensiveSort = {
-                                        order = 3,
-                                        name = L["AuraSort_Defensive_Sort"],
-                                        type = "select",
-                                        width = 1.5,
-                                        values = {
-                                            last = L["AuraSort_LastAdded"],
-                                            blizzDefault = L["AuraSort_Default"],
-                                            lastending = L["AuraSort_LastEnding"],
-                                            firstending = L["AuraSort_FirstEnding"],
+                                        wrapTrinket = {
+                                            order = 7,
+                                            name = L["Widget_WrapTrinket"],
+                                            desc = L["Widget_WrapTrinket_Desc"],
+                                            type = "toggle",
+                                            width = 0.6,
+                                            get = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local pb = ah and ah.pixelBorder
+                                                return pb and pb.wrapTrinket
+                                            end,
+                                            set = function(info, val)
+                                                local profile = info.handler.db.profile
+                                                profile.auraHighlight = profile.auraHighlight or {}
+                                                profile.auraHighlight.pixelBorder = profile.auraHighlight.pixelBorder or {}
+                                                profile.auraHighlight.pixelBorder.wrapTrinket = val
+                                                if val then profile.auraHighlight.pixelBorder.wrapRacial = false end
+                                                info.handler:RefreshAllAuraHighlights()
+                                            end,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local pb = ah and ah.pixelBorder
+                                                return not (ah and ah.enabled and pb and pb.enabled)
+                                            end,
                                         },
-                                        sorting = { "last", "blizzDefault", "lastending", "firstending" },
-                                        get = function(info) return info.handler.db.profile.defensiveSort or "last" end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.defensiveSort = val
-                                            info.handler:UpdateAuraSortSettings()
-                                        end,
-                                    },
-                                    sep3 = { order = 3.5, type = "description", name = "", width = "full" },
-                                    importantSort = {
-                                        order = 4,
-                                        name = L["AuraSort_Important_Sort"],
-                                        type = "select",
-                                        width = 1.5,
-                                        values = {
-                                            last = L["AuraSort_LastAdded"],
-                                            blizzDefault = L["AuraSort_Default"],
-                                            lastending = L["AuraSort_LastEnding"],
-                                            firstending = L["AuraSort_FirstEnding"],
+                                        wrapRacial = {
+                                            order = 8,
+                                            name = L["Widget_WrapRacial"],
+                                            desc = L["Widget_WrapRacial_Desc"],
+                                            type = "toggle",
+                                            width = 0.6,
+                                            get = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local pb = ah and ah.pixelBorder
+                                                return pb and pb.wrapRacial
+                                            end,
+                                            set = function(info, val)
+                                                local profile = info.handler.db.profile
+                                                profile.auraHighlight = profile.auraHighlight or {}
+                                                profile.auraHighlight.pixelBorder = profile.auraHighlight.pixelBorder or {}
+                                                profile.auraHighlight.pixelBorder.wrapRacial = val
+                                                if val then profile.auraHighlight.pixelBorder.wrapTrinket = false end
+                                                info.handler:RefreshAllAuraHighlights()
+                                            end,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local pb = ah and ah.pixelBorder
+                                                return not (ah and ah.enabled and pb and pb.enabled)
+                                            end,
                                         },
-                                        sorting = { "last", "blizzDefault", "lastending", "firstending" },
-                                        get = function(info) return info.handler.db.profile.importantSort or "last" end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.importantSort = val
-                                            info.handler:UpdateAuraSortSettings()
-                                        end,
                                     },
                                 },
-                            },
-                        },
-                    },
-                    clickActionsGroup = {
-                        order = 4,
-                        name = L["Category_ClickActions"],
-                        desc = L["Category_ClickActions_Desc"],
-                        type = "group",
-                        args = (function()
-                            local CLICK_BUTTONS = {
-                                ["1"] = L["ClickAction_Left"],
-                                ["2"] = L["ClickAction_Right"],
-                                ["3"] = L["ClickAction_Middle"],
-                                ["4"] = L["ClickAction_Button4"],
-                                ["5"] = L["ClickAction_Button5"],
-                            }
-                            local CLICK_MODIFIERS = {
-                                [""] = L["ClickAction_ModNone"],
-                                ["ctrl-"] = L["ClickAction_ModCtrl"],
-                                ["shift-"] = L["ClickAction_ModShift"],
-                                ["alt-"] = L["ClickAction_ModAlt"],
-                            }
-                            local CLICK_ACTIONS = {
-                                ["target"] = L["ClickAction_Target"],
-                                ["focus"] = L["ClickAction_Focus"],
-                                ["macro"] = L["ClickAction_Macro"],
-                                ["spell"] = L["ClickAction_Spell"],
-                            }
-
-                            local addAttrButton = "1"
-                            local addAttrMod = ""
-                            local petAddAttrButton = "1"
-                            local petAddAttrMod = ""
-
-                            local function GetAttrDisplayName(modifier, button)
-                                local modName = CLICK_MODIFIERS[modifier] or ""
-                                local btnName = CLICK_BUTTONS[button] or button
-                                if modifier ~= "" then
-                                    return modName .. "-" .. btnName
-                                end
-                                return btnName
-                            end
-
-                            function sArenaMixin:BuildClickActionOption(key, orderStart, dbKey)
-                                dbKey = dbKey or "clickAttributes"
-                                return {
+                                framePulseGroup = {
+                                    order = 6,
+                                    name = L["AuraHighlight_FramePulse"],
                                     type = "group",
-                                    name = key,
                                     inline = true,
-                                    order = orderStart,
-                                    args = {
-                                        action = {
-                                            order = 1,
-                                            name = L["ClickAction_Action"],
-                                            type = "select",
-                                            width = 0.7,
-                                            values = CLICK_ACTIONS,
-                                            get = function(info)
-                                                local attrs = info.handler.db.profile[dbKey]
-                                                return attrs[key] and attrs[key].action or "target"
-                                            end,
-                                            set = function(info, value)
-                                                local attrs = info.handler.db.profile[dbKey]
-                                                if attrs[key] then
-                                                    attrs[key].action = value
-                                                    info.handler:ApplyAllClickActions()
-                                                end
-                                            end,
-                                        },
-                                        macrotext = {
-                                            order = 2,
-                                            name = L["ClickAction_MacroText"],
-                                            desc = L["ClickAction_MacroText_Desc"],
-                                            type = "input",
-                                            width = "full",
-                                            multiline = 4,
-                                            hidden = function(info)
-                                                local attrs = info.handler.db.profile[dbKey]
-                                                local action = attrs[key] and attrs[key].action
-                                                return action ~= "macro"
-                                            end,
-                                            get = function(info)
-                                                local attrs = info.handler.db.profile[dbKey]
-                                                return attrs[key] and attrs[key].macro or ""
-                                            end,
-                                            set = function(info, value)
-                                                local attrs = info.handler.db.profile[dbKey]
-                                                if attrs[key] then
-                                                    attrs[key].macro = value
-                                                    info.handler:ApplyAllClickActions()
-                                                end
-                                            end,
-                                        },
-                                        spellname = {
-                                            order = 2.5,
-                                            name = L["ClickAction_SpellName"],
-                                            desc = L["ClickAction_SpellName_Desc"],
-                                            type = "input",
-                                            width = 1.5,
-                                            hidden = function(info)
-                                                local attrs = info.handler.db.profile[dbKey]
-                                                local action = attrs[key] and attrs[key].action
-                                                return action ~= "spell"
-                                            end,
-                                            get = function(info)
-                                                local attrs = info.handler.db.profile[dbKey]
-                                                return attrs[key] and attrs[key].macro or ""
-                                            end,
-                                            set = function(info, value)
-                                                local attrs = info.handler.db.profile[dbKey]
-                                                if attrs[key] then
-                                                    attrs[key].macro = value
-                                                    info.handler:ApplyAllClickActions()
-                                                end
-                                            end,
-                                        },
-                                        delete = {
-                                            order = 3,
-                                            name = L["ClickAction_Delete"],
-                                            desc = L["ClickAction_Delete_Desc"],
-                                            type = "execute",
-                                            width = 0.5,
-                                            confirm = function() return sArenaMixin.popupHeader..L["ClickAction_Delete_Confirm"] end,
-                                            func = function(info)
-                                                info.handler.db.profile[dbKey][key] = nil
-                                                info.handler:ApplyAllClickActions()
-                                                info.handler:RebuildClickActionsOptions()
-                                                LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-                                            end,
-                                        },
-                                    },
-                                }
-                            end
-
-                            local isCliqueLoaded = C_AddOns.IsAddOnLoaded("Clique")
-
-                            local args = {
-                                description = {
-                                    order = 0,
-                                    type = "description",
-                                    name = L["ClickAction_Desc"],
-                                    fontSize = "medium",
-                                },
-                                cliqueDescription = {
-                                    order = 0.1,
-                                    type = "description",
-                                    name = "\n" .. L["ClickAction_CliqueDetected"],
-                                    fontSize = "medium",
-                                    hidden = not isCliqueLoaded,
-                                },
-                                enableCliqueSupport = {
-                                    order = 0.2,
-                                    type = "toggle",
-                                    name = L["ClickAction_EnableClique"],
-                                    width = "full",
-                                    hidden = not isCliqueLoaded,
-                                    get = function(info) return info.handler.db.profile.enableCliqueSupport end,
-                                    set = function(info, value)
-                                        info.handler.db.profile.enableCliqueSupport = value
-                                        info.handler:ApplyAllClickActions()
+                                    get = function(info)
+                                        local ah = info.handler.db.profile.auraHighlight
+                                        local p = ah and ah.framePulse
+                                        return p and p[info[#info]]
                                     end,
-                                },
-                                addGroup = {
-                                    order = 1,
-                                    type = "group",
-                                    name = L["ClickAction_Add"],
-                                    inline = true,
-                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport or info.handler.db.profile.clickthroughFrames end,
+                                    set = function(info, val)
+                                        local profile = info.handler.db.profile
+                                        profile.auraHighlight = profile.auraHighlight or {}
+                                        profile.auraHighlight.framePulse = profile.auraHighlight.framePulse or {}
+                                        profile.auraHighlight.framePulse[info[#info]] = val
+                                        info.handler:RefreshAllAuraHighlights()
+                                    end,
                                     args = {
-                                        addButton = {
+                                        enabled = {
                                             order = 1,
-                                            name = L["ClickAction_Button"],
-                                            type = "select",
-                                            width = 0.6,
-                                            values = CLICK_BUTTONS,
-                                            get = function() return addAttrButton end,
-                                            set = function(_, value) addAttrButton = value end,
+                                            name = L["AuraHighlight_FramePulse_Enable"],
+                                            desc = L["AuraHighlight_FramePulse_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                return not (ah and ah.enabled)
+                                            end,
                                         },
-                                        addModifier = {
+                                        speed = {
                                             order = 2,
-                                            name = L["ClickAction_Modifier"],
-                                            type = "select",
-                                            width = 0.6,
-                                            values = CLICK_MODIFIERS,
-                                            get = function() return addAttrMod end,
-                                            set = function(_, value) addAttrMod = value end,
+                                            name = L["AuraHighlight_Speed"],
+                                            type = "range",
+                                            min = 0.05, max = 1, step = 0.05,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local fp = ah and ah.framePulse
+                                                return not (ah and ah.enabled and fp and fp.enabled)
+                                            end,
                                         },
-                                        addExecute = {
+                                        size = {
+                                            order = 2.5,
+                                            name = L["AuraHighlight_FramePulse_Size"],
+                                            type = "range",
+                                            min = 0.5, max = 4, step = 0.5,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local fp = ah and ah.framePulse
+                                                return not (ah and ah.enabled and fp and fp.enabled)
+                                            end,
+                                        },
+                                        minAlpha = {
+                                            order = 2.6,
+                                            name = L["AuraHighlight_FramePulse_MinAlpha"],
+                                            type = "range",
+                                            min = 0, max = 1, step = 0.05,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local fp = ah and ah.framePulse
+                                                return not (ah and ah.enabled and fp and fp.enabled)
+                                            end,
+                                        },
+                                        maxAlpha = {
+                                            order = 2.7,
+                                            name = L["AuraHighlight_FramePulse_MaxAlpha"],
+                                            type = "range",
+                                            min = 0, max = 1, step = 0.05,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local fp = ah and ah.framePulse
+                                                return not (ah and ah.enabled and fp and fp.enabled)
+                                            end,
+                                        },
+                                        wrapTrinket = {
                                             order = 3,
-                                            name = L["ClickAction_AddButton"],
-                                            desc = L["ClickAction_AddButton_Desc"],
-                                            type = "execute",
-                                            width = 0.5,
-                                            func = function(info)
-                                                local displayName = GetAttrDisplayName(addAttrMod, addAttrButton)
-                                                local attrs = info.handler.db.profile.clickAttributes
-                                                if not attrs[displayName] then
-                                                    attrs[displayName] = {
-                                                        button = addAttrButton,
-                                                        modifier = addAttrMod,
-                                                        action = "target",
-                                                    }
+                                            name = L["Widget_WrapTrinket"],
+                                            desc = L["Widget_WrapTrinket_Desc"],
+                                            type = "toggle",
+                                            width = 0.6,
+                                            get = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local fp = ah and ah.framePulse
+                                                return fp and fp.wrapTrinket
+                                            end,
+                                            set = function(info, val)
+                                                local profile = info.handler.db.profile
+                                                profile.auraHighlight = profile.auraHighlight or {}
+                                                profile.auraHighlight.framePulse = profile.auraHighlight.framePulse or {}
+                                                profile.auraHighlight.framePulse.wrapTrinket = val
+                                                if val then profile.auraHighlight.framePulse.wrapRacial = false end
+                                                info.handler:RefreshAllAuraHighlights()
+                                            end,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local fp = ah and ah.framePulse
+                                                return not (ah and ah.enabled and fp and fp.enabled)
+                                            end,
+                                        },
+                                        wrapRacial = {
+                                            order = 4,
+                                            name = L["Widget_WrapRacial"],
+                                            desc = L["Widget_WrapRacial_Desc"],
+                                            type = "toggle",
+                                            width = 0.6,
+                                            get = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local fp = ah and ah.framePulse
+                                                return fp and fp.wrapRacial
+                                            end,
+                                            set = function(info, val)
+                                                local profile = info.handler.db.profile
+                                                profile.auraHighlight = profile.auraHighlight or {}
+                                                profile.auraHighlight.framePulse = profile.auraHighlight.framePulse or {}
+                                                profile.auraHighlight.framePulse.wrapRacial = val
+                                                if val then profile.auraHighlight.framePulse.wrapTrinket = false end
+                                                info.handler:RefreshAllAuraHighlights()
+                                            end,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local fp = ah and ah.framePulse
+                                                return not (ah and ah.enabled and fp and fp.enabled)
+                                            end,
+                                        },
+                                    },
+                                },
+                                pixelClassIconGroup = {
+                                    order = 5,
+                                    name = L["AuraHighlight_PixelClassIcon"],
+                                    type = "group",
+                                    inline = true,
+                                    hidden = function() return isMidnight end,
+                                    get = function(info)
+                                        local ah = info.handler.db.profile.auraHighlight
+                                        local p = ah and ah.pixelClassIcon
+                                        return p and p[info[#info]]
+                                    end,
+                                    set = function(info, val)
+                                        local profile = info.handler.db.profile
+                                        profile.auraHighlight = profile.auraHighlight or {}
+                                        profile.auraHighlight.pixelClassIcon = profile.auraHighlight.pixelClassIcon or {}
+                                        profile.auraHighlight.pixelClassIcon[info[#info]] = val
+                                        info.handler:RefreshAllAuraHighlights()
+                                    end,
+                                    args = {
+                                        enabled = {
+                                            order = 1,
+                                            name = L["AuraHighlight_PixelClassIcon_Enable"],
+                                            desc = L["AuraHighlight_PixelClassIcon_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                return not (ah and ah.enabled)
+                                            end,
+                                        },
+                                        lines = {
+                                            order = 2,
+                                            name = L["AuraHighlight_Lines"],
+                                            type = "range",
+                                            min = 1, max = 30, step = 1,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local pi = ah and ah.pixelClassIcon
+                                                return not (ah and ah.enabled and pi and pi.enabled)
+                                            end,
+                                        },
+                                        frequency = {
+                                            order = 3,
+                                            name = L["AuraHighlight_Speed"],
+                                            type = "range",
+                                            min = -2, max = 2, step = 0.05,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local pi = ah and ah.pixelClassIcon
+                                                return not (ah and ah.enabled and pi and pi.enabled)
+                                            end,
+                                        },
+                                        length = {
+                                            order = 4,
+                                            name = L["AuraHighlight_Length"],
+                                            type = "range",
+                                            min = 1, max = 30, step = 1,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local pi = ah and ah.pixelClassIcon
+                                                return not (ah and ah.enabled and pi and pi.enabled)
+                                            end,
+                                        },
+                                        thickness = {
+                                            order = 5,
+                                            name = L["AuraHighlight_Thickness"],
+                                            type = "range",
+                                            min = 1, max = 20, step = 1,
+                                            disabled = function(info)
+                                                local ah = info.handler.db.profile.auraHighlight
+                                                local pi = ah and ah.pixelClassIcon
+                                                return not (ah and ah.enabled and pi and pi.enabled)
+                                            end,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        classIconGroup = {
+                            order = 3,
+                            name = L["Category_ClassIcon"],
+                            type = "group",
+                            args = {
+                                options = {
+                                    order = 1,
+                                    name = L["Options"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        onlyShowAuras = {
+                                            order = 1,
+                                            name = L["Option_HideClassIconShowAurasOnly"],
+                                            type = "toggle",
+                                            width = "full",
+                                            desc = L["ClassIcon_HideAndShowOnlyAuras_Desc"],
+                                            disabled = function(info) return info.handler.db.profile.hideClassIcon end,
+                                            get = function(info) return info.handler.db.profile.onlyShowAuras end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.onlyShowAuras = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    if val then
+                                                        info.handler["arena" .. i].ClassIcon.Texture:SetTexture(nil)
+                                                    else
+                                                        if info.handler["arena" .. i].replaceClassIcon then
+                                                            info.handler["arena" .. i].ClassIcon.Texture:SetTexture(info.handler["arena" .. i].tempSpecIcon)
+                                                        else
+                                                            info.handler["arena" .. i].ClassIcon.Texture:SetTexture(info.handler.classIcons[info.handler["arena" .. i].tempClass])
+                                                        end
+                                                    end
+                                                end
+                                                info.handler:Test()
+                                            end,
+                                        },
+                                        onlyShowCCAuras = {
+                                            order = 2.5,
+                                            name = L["Option_OnlyShowCCAuras"],
+                                            type = "toggle",
+                                            width = "full",
+                                            disabled = function(info) return info.handler.db.profile.hideClassIcon or info.handler.db.profile.disableAurasOnClassIcon end,
+                                            get = function(info) return info.handler.db.profile.onlyShowCCAuras end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.onlyShowCCAuras = val
+                                                info.handler:Test()
+                                            end,
+                                        },
+                                        disableAurasOnClassIcon = {
+                                            order = 3,
+                                            name = L["Option_DisableAurasOnClassIcon"],
+                                            type = "toggle",
+                                            width = "full",
+                                            desc = L["ClassIcon_DontShowAuras_Desc"],
+                                            disabled = function(info) return info.handler.db.profile.hideClassIcon end,
+                                            get = function(info) return info.handler.db.profile.disableAurasOnClassIcon end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.disableAurasOnClassIcon = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    if frame then
+                                                        frame:SetUnitAuraRegistration()
+                                                    end
+                                                end
+                                                info.handler:Test()
+                                            end,
+                                        },
+                                        replaceHealerIcon = {
+                                            order = 4,
+                                            name = L["Option_ReplaceHealerIcon"],
+                                            type = "toggle",
+                                            width = "full",
+                                            desc = L["Icon_ReplaceHealerWithHealerIcon_Desc"],
+                                            get = function(info) return info.handler.db.profile.replaceHealerIcon end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.replaceHealerIcon = val
+                                                info.handler:Test()
+                                            end,
+                                        },
+                                        hideClassIcon = {
+                                            order = 5,
+                                            name = L["Option_HideClassIcon"],
+                                            type = "toggle",
+                                            width = "full",
+                                            desc = L["Option_HideClassIcon_Desc"],
+                                            get = function(info) return info.handler.db.profile.hideClassIcon end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.hideClassIcon = val
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    if frame then
+                                                        frame:SetUnitAuraRegistration()
+                                                        if val then
+                                                            frame.ClassIcon.Texture:SetTexture(nil)
+                                                            frame.ClassIcon.Cooldown:Clear()
+                                                        end
+                                                    end
+                                                end
+                                                info.handler:Test()
+                                            end,
+                                        },
+                                        showDecimalsClassIcon = {
+                                            order = 6,
+                                            name = L["Option_ShowDecimalsOnClassIcon"],
+                                            desc = L["Option_ShowDecimalsOnClassIcon_Desc"],
+                                            type = "toggle",
+                                            width = 1.4,
+                                            confirm = function() return isMidnight and sArenaMixin.popupHeader .. L["Option_HideDRs_Reload_Desc"] or false end,
+                                            get = function(info) return info.handler.db.profile.showDecimalsClassIcon end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.showDecimalsClassIcon = val
+                                                info.handler:CustomizeDefaultCD()
+                                                if isMidnight then
+                                                    sArena_ReloadedDB.reOpenOptions = true
+                                                    ReloadUI()
+                                                end
+                                            end
+                                        },
+                                        decimalThreshold = {
+                                            order = 7,
+                                            name = L["Option_DecimalThreshold"],
+                                            desc = L["Cooldown_ShowDecimalsThreshold_Desc"],
+                                            type = "range",
+                                            min = 1,
+                                            max = 10,
+                                            step = 0.1,
+                                            width = 0.75,
+                                            disabled = function(info) return not info.handler.db.profile.showDecimalsClassIcon end,
+                                            get = function(info) return info.handler.db.profile.decimalThreshold or 6 end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.decimalThreshold = val
+                                                info.handler:UpdateDecimalThreshold()
+                                                info.handler:CustomizeDefaultCD()
+                                            end
+                                        },
+                                    },
+                                },
+                                sorting = {
+                                    order = 2,
+                                    name = L["AuraSort_Sorting"],
+                                    type = "group",
+                                    inline = true,
+                                    hidden = not isMidnight,
+                                    args = {
+                                        ccSort = {
+                                            order = 1,
+                                            name = L["AuraSort_CC_Sort"],
+                                            type = "select",
+                                            width = 1.5,
+                                            values = {
+                                                last = L["AuraSort_LastAdded"],
+                                                blizzDefault = L["AuraSort_Default"],
+                                                lastending = L["AuraSort_LastEnding"],
+                                                firstending = L["AuraSort_FirstEnding"],
+                                            },
+                                            sorting = { "last", "blizzDefault", "lastending", "firstending" },
+                                            get = function(info) return info.handler.db.profile.ccSort or "last" end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.ccSort = val
+                                                info.handler:UpdateAuraSortSettings()
+                                            end,
+                                        },
+                                        sep2 = { order = 2.5, type = "description", name = "", width = "full" },
+                                        defensiveSort = {
+                                            order = 3,
+                                            name = L["AuraSort_Defensive_Sort"],
+                                            type = "select",
+                                            width = 1.5,
+                                            values = {
+                                                last = L["AuraSort_LastAdded"],
+                                                blizzDefault = L["AuraSort_Default"],
+                                                lastending = L["AuraSort_LastEnding"],
+                                                firstending = L["AuraSort_FirstEnding"],
+                                            },
+                                            sorting = { "last", "blizzDefault", "lastending", "firstending" },
+                                            get = function(info) return info.handler.db.profile.defensiveSort or "last" end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.defensiveSort = val
+                                                info.handler:UpdateAuraSortSettings()
+                                            end,
+                                        },
+                                        sep3 = { order = 3.5, type = "description", name = "", width = "full" },
+                                        importantSort = {
+                                            order = 4,
+                                            name = L["AuraSort_Important_Sort"],
+                                            type = "select",
+                                            width = 1.5,
+                                            values = {
+                                                last = L["AuraSort_LastAdded"],
+                                                blizzDefault = L["AuraSort_Default"],
+                                                lastending = L["AuraSort_LastEnding"],
+                                                firstending = L["AuraSort_FirstEnding"],
+                                            },
+                                            sorting = { "last", "blizzDefault", "lastending", "firstending" },
+                                            get = function(info) return info.handler.db.profile.importantSort or "last" end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.importantSort = val
+                                                info.handler:UpdateAuraSortSettings()
+                                            end,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        clickActionsGroup = {
+                            order = 4,
+                            name = L["Category_ClickActions"],
+                            desc = L["Category_ClickActions_Desc"],
+                            type = "group",
+                            args = (function()
+                                local CLICK_BUTTONS = {
+                                    ["1"] = L["ClickAction_Left"],
+                                    ["2"] = L["ClickAction_Right"],
+                                    ["3"] = L["ClickAction_Middle"],
+                                    ["4"] = L["ClickAction_Button4"],
+                                    ["5"] = L["ClickAction_Button5"],
+                                }
+                                local CLICK_MODIFIERS = {
+                                    [""] = L["ClickAction_ModNone"],
+                                    ["ctrl-"] = L["ClickAction_ModCtrl"],
+                                    ["shift-"] = L["ClickAction_ModShift"],
+                                    ["alt-"] = L["ClickAction_ModAlt"],
+                                }
+                                local CLICK_ACTIONS = {
+                                    ["target"] = L["ClickAction_Target"],
+                                    ["focus"] = L["ClickAction_Focus"],
+                                    ["macro"] = L["ClickAction_Macro"],
+                                    ["spell"] = L["ClickAction_Spell"],
+                                }
+
+                                local addAttrButton = "1"
+                                local addAttrMod = ""
+                                local petAddAttrButton = "1"
+                                local petAddAttrMod = ""
+
+                                local function GetAttrDisplayName(modifier, button)
+                                    local modName = CLICK_MODIFIERS[modifier] or ""
+                                    local btnName = CLICK_BUTTONS[button] or button
+                                    if modifier ~= "" then
+                                        return modName .. "-" .. btnName
+                                    end
+                                    return btnName
+                                end
+
+                                function sArenaMixin:BuildClickActionOption(key, orderStart, dbKey)
+                                    dbKey = dbKey or "clickAttributes"
+                                    return {
+                                        type = "group",
+                                        name = key,
+                                        inline = true,
+                                        order = orderStart,
+                                        args = {
+                                            action = {
+                                                order = 1,
+                                                name = L["ClickAction_Action"],
+                                                type = "select",
+                                                width = 0.7,
+                                                values = CLICK_ACTIONS,
+                                                get = function(info)
+                                                    local attrs = info.handler.db.profile[dbKey]
+                                                    return attrs[key] and attrs[key].action or "target"
+                                                end,
+                                                set = function(info, value)
+                                                    local attrs = info.handler.db.profile[dbKey]
+                                                    if attrs[key] then
+                                                        attrs[key].action = value
+                                                        info.handler:ApplyAllClickActions()
+                                                    end
+                                                end,
+                                            },
+                                            macrotext = {
+                                                order = 2,
+                                                name = L["ClickAction_MacroText"],
+                                                desc = L["ClickAction_MacroText_Desc"],
+                                                type = "input",
+                                                width = "full",
+                                                multiline = 4,
+                                                hidden = function(info)
+                                                    local attrs = info.handler.db.profile[dbKey]
+                                                    local action = attrs[key] and attrs[key].action
+                                                    return action ~= "macro"
+                                                end,
+                                                get = function(info)
+                                                    local attrs = info.handler.db.profile[dbKey]
+                                                    return attrs[key] and attrs[key].macro or ""
+                                                end,
+                                                set = function(info, value)
+                                                    local attrs = info.handler.db.profile[dbKey]
+                                                    if attrs[key] then
+                                                        attrs[key].macro = value
+                                                        info.handler:ApplyAllClickActions()
+                                                    end
+                                                end,
+                                            },
+                                            spellname = {
+                                                order = 2.5,
+                                                name = L["ClickAction_SpellName"],
+                                                desc = L["ClickAction_SpellName_Desc"],
+                                                type = "input",
+                                                width = 1.5,
+                                                hidden = function(info)
+                                                    local attrs = info.handler.db.profile[dbKey]
+                                                    local action = attrs[key] and attrs[key].action
+                                                    return action ~= "spell"
+                                                end,
+                                                get = function(info)
+                                                    local attrs = info.handler.db.profile[dbKey]
+                                                    return attrs[key] and attrs[key].macro or ""
+                                                end,
+                                                set = function(info, value)
+                                                    local attrs = info.handler.db.profile[dbKey]
+                                                    if attrs[key] then
+                                                        attrs[key].macro = value
+                                                        info.handler:ApplyAllClickActions()
+                                                    end
+                                                end,
+                                            },
+                                            delete = {
+                                                order = 3,
+                                                name = L["ClickAction_Delete"],
+                                                desc = L["ClickAction_Delete_Desc"],
+                                                type = "execute",
+                                                width = 0.5,
+                                                confirm = function() return sArenaMixin.popupHeader..L["ClickAction_Delete_Confirm"] end,
+                                                func = function(info)
+                                                    info.handler.db.profile[dbKey][key] = nil
                                                     info.handler:ApplyAllClickActions()
                                                     info.handler:RebuildClickActionsOptions()
                                                     LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                                end,
+                                            },
+                                        },
+                                    }
+                                end
+
+                                local isCliqueLoaded = C_AddOns.IsAddOnLoaded("Clique")
+
+                                local args = {
+                                    description = {
+                                        order = 0,
+                                        type = "description",
+                                        name = L["ClickAction_Desc"],
+                                        fontSize = "medium",
+                                    },
+                                    cliqueDescription = {
+                                        order = 0.1,
+                                        type = "description",
+                                        name = "\n" .. L["ClickAction_CliqueDetected"],
+                                        fontSize = "medium",
+                                        hidden = not isCliqueLoaded,
+                                    },
+                                    enableCliqueSupport = {
+                                        order = 0.2,
+                                        type = "toggle",
+                                        name = L["ClickAction_EnableClique"],
+                                        width = "full",
+                                        hidden = not isCliqueLoaded,
+                                        get = function(info) return info.handler.db.profile.enableCliqueSupport end,
+                                        set = function(info, value)
+                                            info.handler.db.profile.enableCliqueSupport = value
+                                            info.handler:ApplyAllClickActions()
+                                        end,
+                                    },
+                                    addGroup = {
+                                        order = 1,
+                                        type = "group",
+                                        name = L["ClickAction_Add"],
+                                        inline = true,
+                                        disabled = function(info) return info.handler.db.profile.enableCliqueSupport or info.handler.db.profile.clickthroughFrames end,
+                                        args = {
+                                            addButton = {
+                                                order = 1,
+                                                name = L["ClickAction_Button"],
+                                                type = "select",
+                                                width = 0.6,
+                                                values = CLICK_BUTTONS,
+                                                get = function() return addAttrButton end,
+                                                set = function(_, value) addAttrButton = value end,
+                                            },
+                                            addModifier = {
+                                                order = 2,
+                                                name = L["ClickAction_Modifier"],
+                                                type = "select",
+                                                width = 0.6,
+                                                values = CLICK_MODIFIERS,
+                                                get = function() return addAttrMod end,
+                                                set = function(_, value) addAttrMod = value end,
+                                            },
+                                            addExecute = {
+                                                order = 3,
+                                                name = L["ClickAction_AddButton"],
+                                                desc = L["ClickAction_AddButton_Desc"],
+                                                type = "execute",
+                                                width = 0.5,
+                                                func = function(info)
+                                                    local displayName = GetAttrDisplayName(addAttrMod, addAttrButton)
+                                                    local attrs = info.handler.db.profile.clickAttributes
+                                                    if not attrs[displayName] then
+                                                        attrs[displayName] = {
+                                                            button = addAttrButton,
+                                                            modifier = addAttrMod,
+                                                            action = "target",
+                                                        }
+                                                        info.handler:ApplyAllClickActions()
+                                                        info.handler:RebuildClickActionsOptions()
+                                                        LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                                    end
+                                                end,
+                                            },
+                                        },
+                                    },
+                                    attributeList = {
+                                        order = 2,
+                                        type = "group",
+                                        name = L["ClickAction_Existing"],
+                                        inline = true,
+                                        disabled = function(info) return info.handler.db.profile.enableCliqueSupport or info.handler.db.profile.clickthroughFrames end,
+                                        args = {},
+                                    },
+                                    petFrameGroup = {
+                                        order = 3,
+                                        type = "group",
+                                        name = L["ClickAction_PetFrames"],
+                                        inline = true,
+                                        disabled = function(info) return info.handler.db.profile.enableCliqueSupport or info.handler.db.profile.clickthroughFrames end,
+                                        args = {
+                                            usePetFrameClickActions = {
+                                                order = 1,
+                                                type = "toggle",
+                                                name = L["ClickAction_UsePetFrameClickActions"],
+                                                desc = L["ClickAction_UsePetFrameClickActions_Desc"],
+                                                width = "full",
+                                                get = function(info) return info.handler.db.profile.usePetFrameClickActions end,
+                                                set = function(info, value)
+                                                    info.handler.db.profile.usePetFrameClickActions = value
+                                                    info.handler:ApplyAllClickActions()
+                                                end,
+                                            },
+                                            petAddGroup = {
+                                                order = 2,
+                                                type = "group",
+                                                name = L["ClickAction_Add"],
+                                                inline = true,
+                                                hidden = function(info) return not info.handler.db.profile.usePetFrameClickActions end,
+                                                args = {
+                                                    addButton = {
+                                                        order = 1,
+                                                        name = L["ClickAction_Button"],
+                                                        type = "select",
+                                                        width = 0.6,
+                                                        values = CLICK_BUTTONS,
+                                                        get = function() return petAddAttrButton end,
+                                                        set = function(_, value) petAddAttrButton = value end,
+                                                    },
+                                                    addModifier = {
+                                                        order = 2,
+                                                        name = L["ClickAction_Modifier"],
+                                                        type = "select",
+                                                        width = 0.6,
+                                                        values = CLICK_MODIFIERS,
+                                                        get = function() return petAddAttrMod end,
+                                                        set = function(_, value) petAddAttrMod = value end,
+                                                    },
+                                                    addExecute = {
+                                                        order = 3,
+                                                        name = L["ClickAction_AddButton"],
+                                                        desc = L["ClickAction_AddButton_Desc"],
+                                                        type = "execute",
+                                                        width = 0.5,
+                                                        func = function(info)
+                                                            local displayName = GetAttrDisplayName(petAddAttrMod, petAddAttrButton)
+                                                            local attrs = info.handler.db.profile.petFrameClickAttributes
+                                                            if not attrs[displayName] then
+                                                                attrs[displayName] = {
+                                                                    button = petAddAttrButton,
+                                                                    modifier = petAddAttrMod,
+                                                                    action = "target",
+                                                                }
+                                                                info.handler:ApplyAllClickActions()
+                                                                info.handler:RebuildClickActionsOptions()
+                                                                LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                                            end
+                                                        end,
+                                                    },
+                                                },
+                                            },
+                                            attributeList = {
+                                                order = 3,
+                                                type = "group",
+                                                name = L["ClickAction_Existing"],
+                                                inline = true,
+                                                hidden = function(info) return not info.handler.db.profile.usePetFrameClickActions end,
+                                                args = {},
+                                            },
+                                            resetPet = {
+                                                order = 4,
+                                                name = L["ClickAction_ResetAll"],
+                                                desc = L["ClickAction_ResetAll_Desc"],
+                                                type = "execute",
+                                                width = 0.7,
+                                                hidden = function(info) return not info.handler.db.profile.usePetFrameClickActions end,
+                                                confirm = function() return sArenaMixin.popupHeader .. L["ClickAction_ResetAll_Confirm"] end,
+                                                func = function(info)
+                                                    local defaults = sArenaMixin.defaultSettings.profile.petFrameClickAttributes
+                                                    local copy = {}
+                                                    for k, v in pairs(defaults) do
+                                                        copy[k] = { button = v.button, modifier = v.modifier, action = v.action, macro = v.macro }
+                                                    end
+                                                    info.handler.db.profile.petFrameClickAttributes = copy
+                                                    info.handler:ApplyAllClickActions()
+                                                    info.handler:RebuildClickActionsOptions()
+                                                    LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                                end,
+                                            },
+                                        },
+                                    },
+                                    clickthroughFrames = {
+                                        order = 98,
+                                        type = "toggle",
+                                        name = L["ClickAction_Clickthrough"],
+                                        desc = L["ClickAction_Clickthrough_Desc"],
+                                        width = "full",
+                                        get = function(info) return info.handler.db.profile.clickthroughFrames end,
+                                        set = function(info, value)
+                                            info.handler.db.profile.clickthroughFrames = value
+                                            info.handler:SetMouseState(not info.handler:IsInArena())
+                                        end,
+                                    },
+                                    resetAll = {
+                                        order = 99,
+                                        name = L["ClickAction_ResetAll"],
+                                        desc = L["ClickAction_ResetAll_Desc"],
+                                        type = "execute",
+                                        width = 0.7,
+                                        disabled = function(info) return info.handler.db.profile.enableCliqueSupport or info.handler.db.profile.clickthroughFrames end,
+                                        confirm = function() return sArenaMixin.popupHeader .. L["ClickAction_ResetAll_Confirm"] end,
+                                        func = function(info)
+                                            local defaults = sArenaMixin.defaultSettings.profile.clickAttributes
+                                            local copy = {}
+                                            for k, v in pairs(defaults) do
+                                                copy[k] = { button = v.button, modifier = v.modifier, action = v.action, macro = v.macro }
+                                            end
+                                            info.handler.db.profile.clickAttributes = copy
+                                            info.handler:ApplyAllClickActions()
+                                            info.handler:RebuildClickActionsOptions()
+                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                        end,
+                                    },
+                                }
+
+                                local order = 1
+                                for key, _ in pairs(sArenaMixin.defaultSettings.profile.clickAttributes) do
+                                    args.attributeList.args[key] = sArenaMixin:BuildClickActionOption(key, order, "clickAttributes")
+                                    order = order + 1
+                                end
+
+                                local petOrder = 1
+                                for key, _ in pairs(sArenaMixin.defaultSettings.profile.petFrameClickAttributes or {}) do
+                                    args.petFrameGroup.args.attributeList.args[key] = sArenaMixin:BuildClickActionOption(key, petOrder, "petFrameClickAttributes")
+                                    petOrder = petOrder + 1
+                                end
+
+                                sArenaMixin.ClickActionsArgs = args
+
+                                return args
+                            end)(),
+                        },
+                        drGroup = {
+                            order = 5,
+                            name = L["Category_DiminishingReturns"],
+                            type = "group",
+                            args = {
+                                drOptions = {
+                                    order = 1,
+                                    type = "group",
+                                    name = L["Option_Miscellaneous"],
+                                    inline = true,
+                                    args = {
+                                        drResetTime = {
+                                            order = 1,
+                                            name = L["Option_DRResetTime"],
+                                            desc = isMidnight and L["Option_DRResetTime_Desc_Midnight"] or L["Option_DRResetTime_Desc"],
+                                            type = "range",
+                                            min = isMidnight and 20 or 15,
+                                            max = isMidnight and 20.5 or 20,
+                                            step = 0.1,
+                                            width = "normal",
+                                            get = function(info)
+                                                return info.handler.db.profile.drResetTime or (isMidnight and 20.1 or 20)
+                                            end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.drResetTime = val
+                                                info.handler:UpdateDRTimeSetting()
+                                            end,
+                                        },
+                                        drResetTime_break = {
+                                            order = 1.1,
+                                            type = "description",
+                                            name = " ",
+                                            width = "full",
+                                        },
+                                        showDecimalsDR = {
+                                            order = 2,
+                                            name = L["Option_ShowDecimalsOnDRs"],
+                                            desc = L["Option_ShowDecimalsOnDRs_Desc"],
+                                            type = "toggle",
+                                            width = 1.2,
+                                            get = function(info) return info.handler.db.profile.showDecimalsDR end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.showDecimalsDR = val
+                                                info.handler:CustomizeDefaultCD()
+                                            end
+                                        },
+                                        decimalThresholdDR = {
+                                            order = 2.5,
+                                            name = L["Option_DecimalThreshold"],
+                                            desc = L["Cooldown_ShowDecimalsThreshold_Desc"],
+                                            type = "range",
+                                            min = 1,
+                                            max = 10,
+                                            step = 0.1,
+                                            width = 0.75,
+                                            disabled = function(info) return not info.handler.db.profile.showDecimalsDR end,
+                                            get = function(info) return info.handler.db.profile.decimalThreshold or 6 end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.decimalThreshold = val
+                                                info.handler:UpdateDecimalThreshold()
+                                                info.handler:CustomizeDefaultCD()
+                                            end
+                                        },
+                                        colorDRCooldownText = {
+                                            order = 3,
+                                            name = L["Option_ColorDRCooldownText"],
+                                            desc = isMidnight and L["Option_ColorDRCooldownText_Desc_Midnight"] or L["Option_ColorDRCooldownText_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.colorDRCooldownText end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.colorDRCooldownText = val
+                                                if not val then
+                                                    for i = 1, info.handler.maxArenaOpponents do
+                                                        local frame = info.handler["arena" .. i]
+                                                        frame:ResetDRCooldownTextColors()
+                                                    end
                                                 end
+                                                info.handler:CustomizeDefaultCD()
+                                                info.handler:Test()
+                                            end
+                                        },
+                                        disableInstantDRCooldown = {
+                                            order = 4,
+                                            name = L["Option_DisableInstantDRCooldown"],
+                                            desc = L["Option_DisableInstantDRCooldown_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            hidden = not isMidnight,
+                                            get = function(info) return info.handler.db.profile.disableInstantDRCooldown end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.disableInstantDRCooldown = val
+                                            end,
+                                        },
+                                        drBugFixMidnight = {
+                                            order = 5,
+                                            name = L["Option_DrBugFixMidnight"],
+                                            desc = L["Option_DrBugFixMidnight_Desc"],
+                                            type = "toggle",
+                                            width = 1.3,
+                                            hidden = not isMidnight,
+                                            disabled = function(info) return info.handler.db.profile.disableInstantDRCooldown end,
+                                            get = function(info) return info.handler.db.profile.drBugFixMidnight end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.drBugFixMidnight = val
+                                            end,
+                                        },
+                                        drBugFixLonger = {
+                                            order = 5.5,
+                                            name = L["Option_DrBugFixLonger"],
+                                            desc = L["Option_DrBugFixLonger_Desc"],
+                                            type = "toggle",
+                                            width = 1.6,
+                                            hidden = not isMidnight,
+                                            disabled = function(info) return info.handler.db.profile.disableInstantDRCooldown or not info.handler.db.profile.drBugFixMidnight end,
+                                            get = function(info) return info.handler.db.profile.drBugFixLonger end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.drBugFixLonger = val
                                             end,
                                         },
                                     },
                                 },
-                                attributeList = {
+                                categories = {
                                     order = 2,
+                                    name = L["Option_DRCategories"],
                                     type = "group",
-                                    name = L["ClickAction_Existing"],
                                     inline = true,
-                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport or info.handler.db.profile.clickthroughFrames end,
-                                    args = {},
-                                },
-                                petFrameGroup = {
-                                    order = 3,
-                                    type = "group",
-                                    name = L["ClickAction_PetFrames"],
-                                    inline = true,
-                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport or info.handler.db.profile.clickthroughFrames end,
                                     args = {
-                                        usePetFrameClickActions = {
-                                            order = 1,
+                                        hideMidnightDRs = {
+                                            order = 0.1,
+                                            name = L["Option_HideDRs"],
+                                            desc = L["Option_HideDRs_Desc"],
                                             type = "toggle",
-                                            name = L["ClickAction_UsePetFrameClickActions"],
-                                            desc = L["ClickAction_UsePetFrameClickActions_Desc"],
                                             width = "full",
-                                            get = function(info) return info.handler.db.profile.usePetFrameClickActions end,
-                                            set = function(info, value)
-                                                info.handler.db.profile.usePetFrameClickActions = value
-                                                info.handler:ApplyAllClickActions()
+                                            hidden = function() return not isMidnight end,
+                                            confirm = function(info, val) info.handler.db.profile.hideMidnightDRs = val;return sArenaMixin.popupHeader .. L["Option_HideDRs_Reload_Desc"] end,
+                                            get = function(info) return info.handler.db.profile.hideMidnightDRs end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.hideMidnightDRs = val
+                                                sArena_ReloadedDB.reOpenOptions = true
+                                                ReloadUI()
                                             end,
                                         },
-                                        petAddGroup = {
+                                        onlyTriggerableDRs = {
+                                            order = 0.2,
+                                            name = L["Option_OnlyTriggerableDRs"],
+                                            desc = L["Option_OnlyTriggerableDRs_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            hidden = function() return not isMidnight end,
+                                            disabled = function(info) return info.handler.db.profile.hideMidnightDRs end,
+                                            get = function(info)
+                                                return C_CVar.GetCVarBool("spellDiminishPVPOnlyTriggerableByMe")
+                                            end,
+                                            set = function(info, val)
+                                                if InCombatLockdown() then return end
+                                                C_CVar.SetCVar("spellDiminishPVPOnlyTriggerableByMe", val and "1" or "0")
+                                            end,
+                                        },
+                                        midnightDRSpacer = {
+                                            order = 0.3,
+                                            type = "description",
+                                            name = " ",
+                                            width = "full",
+                                            hidden = function() return not isMidnight end,
+                                        },
+                                        drCategoriesPerClass = {
+                                            order = 1,
+                                            name = L["Option_PerClass"],
+                                            desc = L["DR_ClassSpecific_Desc"],
+                                            type = "toggle",
+                                            disabled = function() return isMidnight end,
+                                            get = function(info) return info.handler.db.profile.drCategoriesPerClass end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.drCategoriesPerClass = val
+                                                if val then
+                                                    info.handler.db.profile.drCategoriesPerSpec = false
+                                                end
+                                                LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                            end,
+                                        },
+                                        drCategoriesPerSpec = {
                                             order = 2,
+                                            name = L["Option_PerSpec"],
+                                            desc = L["DR_SpecSpecific_Desc"],
+                                            type = "toggle",
+                                            disabled = function() return isMidnight end,
+                                            get = function(info) return info.handler.db.profile.drCategoriesPerSpec end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.drCategoriesPerSpec = val
+                                                if val then
+                                                    info.handler.db.profile.drCategoriesPerClass = false
+                                                end
+                                                LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                            end,
+                                        },
+
+                                        categoriesMultiselect = {
+                                            order = 4,
+                                            disabled = function() return isMidnight end,
+                                            name = function(info)
+                                                local db = info.handler.db
+                                                if db.profile.drCategoriesPerSpec then
+                                                    local className = UnitClass("player") or L["Unknown"]
+                                                    local classKey = UnitClassBase("player")
+                                                    local specName = info.handler.playerSpecName or L["Unknown"]
+                                                    local classColor = C_ClassColor.GetClassColor(classKey)
+                                                    local coloredText = specName .. " " .. className
+                                                    if classColor then
+                                                        coloredText = classColor:WrapTextInColorCode(coloredText)
+                                                    end
+                                                    return string.format(L["DR_CategoriesPerSpec"], coloredText)
+                                                elseif db.profile.drCategoriesPerClass then
+                                                    local className = UnitClass("player") or L["Unknown"]
+                                                    local classKey = UnitClassBase("player")
+                                                    local classColor = C_ClassColor.GetClassColor(classKey)
+                                                    local coloredText = className
+                                                    if classColor then
+                                                        coloredText = classColor:WrapTextInColorCode(coloredText)
+                                                    end
+                                                    return string.format(L["DR_CategoriesPerClass"], coloredText)
+                                                else
+                                                    return L["DR_CategoriesGlobal"]
+                                                end
+                                            end,
+                                            type = "multiselect",
+                                            get = function(info, key) 
+                                                local db = info.handler.db
+                                                if db.profile.drCategoriesPerSpec then
+                                                    local specKey = info.handler.playerSpecID or 0
+                                                    local perSpec = db.profile.drCategoriesSpec or {}
+                                                    local specCategories = perSpec[specKey] or {}
+                                                    if specCategories[key] ~= nil then
+                                                        return specCategories[key]
+                                                    else
+                                                        return db.profile.drCategories[key]
+                                                    end
+                                                elseif db.profile.drCategoriesPerClass then
+                                                    local classKey = info.handler.playerClass
+                                                    local perClass = db.profile.drCategoriesClass or {}
+                                                    local classCategories = perClass[classKey] or {}
+                                                    if classCategories[key] ~= nil then
+                                                        return classCategories[key]
+                                                    else
+                                                        return db.profile.drCategories[key]
+                                                    end
+                                                else
+                                                    return db.profile.drCategories[key]
+                                                end
+                                            end,
+                                            set = function(info, key, val) 
+                                                local db = info.handler.db
+                                                if db.profile.drCategoriesPerSpec then
+                                                    db.profile.drCategoriesSpec = db.profile.drCategoriesSpec or {}
+                                                    local specKey = info.handler.playerSpecID or 0
+                                                    db.profile.drCategoriesSpec[specKey] = db.profile.drCategoriesSpec[specKey] or {}
+                                                    db.profile.drCategoriesSpec[specKey][key] = val
+                                                elseif db.profile.drCategoriesPerClass then
+                                                    db.profile.drCategoriesClass = db.profile.drCategoriesClass or {}
+                                                    local classKey = info.handler.playerClass
+                                                    db.profile.drCategoriesClass[classKey] = db.profile.drCategoriesClass[classKey] or {}
+                                                    db.profile.drCategoriesClass[classKey][key] = val
+                                                else
+                                                    db.profile.drCategories[key] = val
+                                                end
+                                            end,
+                                            values = drCategoryDisplay,
+                                        },
+                                    },
+                                },
+                                dynamicIcons = {
+                                    order = 3,
+                                    name = L["Option_DRIcons"],
+                                    disabled = function() return isMidnight end,
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        midnightDisclaimer = {
+                                            order = 0,
+                                            type = "description",
+                                            name = isMidnight and L["DR_MidnightDisclaimer"] or "",
+                                            fontSize = "medium",
+                                            hidden = function() return not isMidnight end,
+                                        },
+                                        drStaticIcons = {
+                                            order = 1,
+                                            name = L["Option_EnableStaticIcons"],
+                                            desc = L["DR_FixedIcons_Desc"],
+                                            type = "toggle",
+                                            get = function(info) return info.handler.db.profile.drStaticIcons end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.drStaticIcons = val
+                                                LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                            end,
+                                        },
+                                        dynamicIconsPerClass = {
+                                            order = 2,
+                                            name = L["Option_PerClass"],
+                                            desc = L["DR_ClassSpecificIcons_Desc"],
+                                            type = "toggle",
+                                            disabled = function(info) return not info.handler.db.profile.drStaticIcons end,
+                                            get = function(info) return info.handler.db.profile.drStaticIconsPerClass end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.drStaticIconsPerClass = val
+                                                if val then
+                                                    info.handler.db.profile.drStaticIconsPerSpec = false
+                                                end
+                                                LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                            end,
+                                        },
+                                        dynamicIconsPerSpec = {
+                                            order = 3,
+                                            name = L["Option_PerSpec"],
+                                            desc = L["DR_SpecSpecificIcons_Desc"],
+                                            type = "toggle",
+                                            disabled = function(info) return not info.handler.db.profile.drStaticIcons end,
+                                            get = function(info) return info.handler.db.profile.drStaticIconsPerSpec end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.drStaticIconsPerSpec = val
+                                                if val then
+                                                    info.handler.db.profile.drStaticIconsPerClass = false
+                                                end
+                                                LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                            end,
+                                        },
+                                        staticIconsSeparator = {
+                                            order = 4,
+                                            name = "",
+                                            type = "header",
+                                        },
+                                        drIconsSection = {
+                                            order = 4,
                                             type = "group",
-                                            name = L["ClickAction_Add"],
+                                            name = "",
                                             inline = true,
-                                            hidden = function(info) return not info.handler.db.profile.usePetFrameClickActions end,
-                                            args = {
-                                                addButton = {
-                                                    order = 1,
-                                                    name = L["ClickAction_Button"],
-                                                    type = "select",
-                                                    width = 0.6,
-                                                    values = CLICK_BUTTONS,
-                                                    get = function() return petAddAttrButton end,
-                                                    set = function(_, value) petAddAttrButton = value end,
-                                                },
-                                                addModifier = {
-                                                    order = 2,
-                                                    name = L["ClickAction_Modifier"],
-                                                    type = "select",
-                                                    width = 0.6,
-                                                    values = CLICK_MODIFIERS,
-                                                    get = function() return petAddAttrMod end,
-                                                    set = function(_, value) petAddAttrMod = value end,
-                                                },
-                                                addExecute = {
-                                                    order = 3,
-                                                    name = L["ClickAction_AddButton"],
-                                                    desc = L["ClickAction_AddButton_Desc"],
-                                                    type = "execute",
-                                                    width = 0.5,
-                                                    func = function(info)
-                                                        local displayName = GetAttrDisplayName(petAddAttrMod, petAddAttrButton)
-                                                        local attrs = info.handler.db.profile.petFrameClickAttributes
-                                                        if not attrs[displayName] then
-                                                            attrs[displayName] = {
-                                                                button = petAddAttrButton,
-                                                                modifier = petAddAttrMod,
-                                                                action = "target",
-                                                            }
-                                                            info.handler:ApplyAllClickActions()
-                                                            info.handler:RebuildClickActionsOptions()
-                                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                            disabled = function(info) return not info.handler.db.profile.drStaticIcons end,
+                                            get = function(info)
+                                                local key = info[#info]
+                                                local db = info.handler.db
+                                                if db.profile.drStaticIconsPerSpec then
+                                                    local specKey = info.handler.playerSpecID or 0
+                                                    local perSpec = db.profile.drIconsPerSpec or {}
+                                                    local specIcons = perSpec[specKey] or {}
+                                                    return tostring(specIcons[key] or "")
+                                                elseif db.profile.drStaticIconsPerClass then
+                                                    local classKey = info.handler.playerClass
+                                                    local perClass = db.profile.drIconsPerClass or {}
+                                                    local classIcons = perClass[classKey] or {}
+                                                    return tostring(classIcons[key] or "")
+                                                else
+                                                    return tostring(db.profile.drIcons[key] or drIcons[key])
+                                                end
+                                            end,
+                                            set = function(info, value)
+                                                local key = info[#info]
+                                                local db = info.handler.db
+                                                local num = tonumber(value)
+                                                if db.profile.drStaticIconsPerSpec then
+                                                    db.profile.drIconsPerSpec = db.profile.drIconsPerSpec or {}
+                                                    local specKey = info.handler.playerSpecID or 0
+                                                    db.profile.drIconsPerSpec[specKey] = db.profile.drIconsPerSpec[specKey] or {}
+                                                    db.profile.drIconsPerSpec[specKey][key] = num or value
+                                                elseif db.profile.drStaticIconsPerClass then
+                                                    db.profile.drIconsPerClass = db.profile.drIconsPerClass or {}
+                                                    local classKey = info.handler.playerClass
+                                                    db.profile.drIconsPerClass[classKey] = db.profile.drIconsPerClass[classKey] or {}
+                                                    db.profile.drIconsPerClass[classKey][key] = num or value
+                                                else
+                                                    db.profile.drIcons = db.profile.drIcons or {}
+                                                    db.profile.drIcons[key] = num or value
+                                                end
+                                                LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                            end,
+                                            args = setDRIcons(),
+                                        },
+                                    },
+                                },
+                                midnightDisclaimerBottom = {
+                                    order = 4,
+                                    type = "description",
+                                    name = isMidnight and L["DR_MidnightDisclaimer"] or "",
+                                    fontSize = "medium",
+                                    hidden = function() return not isMidnight end,
+                                },
+                                drDebug = {
+                                    order = 5,
+                                    name = L["Category_Debug"],
+                                    type = "group",
+                                    inline = true,
+                                    hidden = function() return not isMidnight end,
+                                    args = {
+                                        newMidnightDRHandling = {
+                                            order = 1,
+                                            name = L["Option_NewMidnightDRHandling"],
+                                            desc = L["Option_NewMidnightDRHandling_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.newMidnightDRHandling end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.newMidnightDRHandling = val
+                                                sArena_ReloadedDB.reOpenOptions = true
+                                                ReloadUI()
+                                            end,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        dispelGroup = {
+                            order = 6,
+                            name = L["Category_Dispels"],
+                            hidden = function() return isMidnight end,
+                            type = "group",
+                            args = (function()
+                                local args = {
+                                    showDispels = {
+                                        order = 0,
+                                        name = L["Option_ShowDispels"],
+                                        desc = L["Option_ShowDispels_Desc"],
+                                        type = "toggle",
+                                        width = "full",
+                                        get = function(info) return info.handler.db.profile.showDispels end,
+                                        set = function(info, val)
+                                            info.handler.db.profile.showDispels = val
+                                            info.handler:Test()
+                                        end,
+                                    },
+                                    spacer0 = {
+                                        order = 0.5,
+                                        type = "description",
+                                        name = "",
+                                        width = "full",
+                                    },
+                                }
+
+                                local healerDispels = {}
+                                local dpsDispels = {}
+
+                                for spellID, data in pairs(sArenaMixin.dispelData or {}) do
+                                    if data.healer or data.sharedSpecSpellID then
+                                        healerDispels[spellID] = data
+                                    end
+                                    if not data.healer or data.sharedSpecSpellID then
+                                        dpsDispels[spellID] = data
+                                    end
+                                end
+
+                                local order = 1
+
+                                if next(healerDispels) then
+                                    args["healer_dispels"] = {
+                                        order = order,
+                                        name = L["Option_HealerDispels"],
+                                        type = "group",
+                                        inline = true,
+                                        disabled = function(info) return not info.handler.db.profile.showDispels end,
+                                        args = {}
+                                    }
+                                    order = order + 1
+
+                                    local healerOrder = 1
+                                    for spellID, data in pairs(healerDispels) do
+                                        -- For MoP shared spells, use separate setting key
+                                        local settingKey = spellID
+                                        if not isRetail and data.sharedSpecSpellID then
+                                            settingKey = spellID .. "_healer"
+                                        end
+
+                                        args["healer_dispels"].args["spell_" .. spellID] = {
+                                            order = healerOrder,
+                                            name = function()
+                                                local spellName = C_Spell.GetSpellName(spellID)
+                                                return "|T" .. (data.texture or "") .. ":16|t " .. (spellName or data.name)
+                                            end,
+                                            type = "toggle",
+                                            disabled = function(info) return not info.handler.db.profile.showDispels end,
+                                            get = function(info) return info.handler.db.profile.dispelCategories[settingKey] end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.dispelCategories[settingKey] = val
+                                                for i = 1, 3 do
+                                                    local frame = info.handler["arena" .. i]
+                                                    if frame then
+                                                        frame:UpdateDispel()
+                                                    end
+                                                end
+                                            end,
+                                            desc = function()
+                                                local spellName = C_Spell.GetSpellName(spellID)
+                                                local spellDesc = C_Spell.GetSpellDescription(spellID)
+
+                                                spellName = spellName or data.name or L["Unknown_Spell"]
+                                                local cooldownText = data.cooldown and string.format(L["Cooldown_Seconds"], data.cooldown) or ""
+
+                                                local tooltipLines = {}
+                                                table.insert(tooltipLines, "|cFFFFD700" .. spellName .. "|r")
+                                                table.insert(tooltipLines, "|cFF87CEEB" .. L[data.classes] .. "|r")
+                                                if spellDesc and spellDesc ~= "" then
+                                                    table.insert(tooltipLines, spellDesc)
+                                                end
+                                                if cooldownText ~= "" then
+                                                    table.insert(tooltipLines, "|cFF00FF00" .. cooldownText .. "|r")
+                                                end
+                                                table.insert(tooltipLines, "|cFF808080" .. string.format(L["SpellID_Value"], spellID) .. "|r")
+
+                                                return table.concat(tooltipLines, "\n\n")
+                                            end,
+                                        }
+                                        healerOrder = healerOrder + 1
+                                    end
+                                end
+
+                                if next(dpsDispels) then
+                                    args["dps_dispels"] = {
+                                        order = order,
+                                        name = L["Option_DPSDispels"],
+                                        type = "group",
+                                        inline = true,
+                                        disabled = function(info) return not info.handler.db.profile.showDispels end,
+                                        args = {
+                                            description = {
+                                                order = 1,
+                                                type = "description",
+                                                name = L["Option_DPSDispelsNote"],
+                                                fontSize = "medium",
+                                            }
+                                        }
+                                    }
+                                    order = order + 1
+
+                                    local dpsOrder = 2
+                                    for spellID, data in pairs(dpsDispels) do
+
+                                        local settingKey = spellID
+                                        if not sArenaMixin.isRetail and data.sharedSpecSpellID then
+                                            settingKey = spellID .. "_dps"
+                                        end
+
+                                        args["dps_dispels"].args["spell_" .. spellID] = {
+                                            order = dpsOrder,
+                                            name = function()
+                                                local spellName = C_Spell.GetSpellName(spellID)
+                                                return "|T" .. (data.texture or "134400") .. ":16|t " .. (spellName or data.name)
+                                            end,
+                                            type = "toggle",
+                                            disabled = function(info) return not info.handler.db.profile.showDispels end,
+                                            get = function(info) return info.handler.db.profile.dispelCategories[settingKey] end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.dispelCategories[settingKey] = val
+                                                for i = 1, 3 do
+                                                    local frame = info.handler["arena" .. i]
+                                                    if frame then
+                                                        frame:UpdateDispel()
+                                                    end
+                                                end
+                                            end,
+                                            desc = function()
+                                                local spellName = C_Spell.GetSpellName(spellID)
+                                                local spellDesc = C_Spell.GetSpellDescription(spellID)
+
+                                                spellName = spellName or data.name or L["Unknown_Spell"]
+                                                local cooldownText = data.cooldown and string.format(L["Cooldown_Seconds"], data.cooldown) or ""
+
+                                                local tooltipLines = {}
+                                                table.insert(tooltipLines, "|cFFFFD700" .. spellName .. "|r")
+                                                table.insert(tooltipLines, "|cFF87CEEB" .. L[data.classes] .. "|r")
+                                                if spellDesc and spellDesc ~= "" then
+                                                    table.insert(tooltipLines, spellDesc)
+                                                end
+                                                if cooldownText ~= "" then
+                                                    table.insert(tooltipLines, "|cFF00FF00" .. cooldownText .. "|r")
+                                                end
+                                                table.insert(tooltipLines, "|cFF808080" .. string.format(L["SpellID_Value"], spellID) .. "|r")
+                                                table.insert(tooltipLines, "|cFFFFA500" .. L["Dispel_ShowsAfterUse"] .. "|r")
+
+                                                return table.concat(tooltipLines, "\n\n")
+                                            end,
+                                        }
+                                        dpsOrder = dpsOrder + 1
+                                    end
+                                end
+
+                                args["betaNotice"] = {
+                                    order = 999,
+                                    type = "description",
+                                    name = L["Option_DispelsBetaNotice"],
+                                    fontSize = "medium",
+                                    width = "full",
+                                }
+
+                                return args
+                            end)(),
+                        },
+                        racialGroup = {
+                            order = 7,
+                            name = L["Category_Racials"],
+                            type = "group",
+                            args = (function()
+                                local args = {
+                                    midnightTextureNotice = {
+                                        order = 0,
+                                        type = "description",
+                                        name = isMidnight and L["Racial_MidnightTextureNotice"] or "",
+                                        fontSize = "medium",
+                                        hidden = function() return not isMidnight end,
+                                    },
+                                    midnightDisclaimerSpacer = {
+                                        order = 0.1,
+                                        type = "description",
+                                        name = " ",
+                                        hidden = function() return not isMidnight end,
+                                    },
+                                    categories = {
+                                        order = 1,
+                                        name = L["Option_Categories"],
+                                        type = "group",
+                                        inline = true,
+                                        disabled = function() return isMidnight end,
+                                        args = (function()
+                                            local toggles = {}
+                                            local sortedKeys = {}
+                                            for raceKey in pairs(racialCategories) do
+                                                sortedKeys[#sortedKeys + 1] = raceKey
+                                            end
+                                            table.sort(sortedKeys)
+                                            if C_Spell and C_Spell.RequestLoadSpellData then
+                                                for _, raceKey in ipairs(sortedKeys) do
+                                                    local d = sArenaMixin.racialData and sArenaMixin.racialData[raceKey]
+                                                    if d and d.spellID then
+                                                        C_Spell.RequestLoadSpellData(d.spellID)
+                                                    end
+                                                end
+                                            end
+                                            for idx, raceKey in ipairs(sortedKeys) do
+                                                local displayName = racialCategories[raceKey]
+                                                local data = sArenaMixin.racialData and sArenaMixin.racialData[raceKey]
+                                                local spellID = data and data.spellID
+                                                local capturedSpellID = spellID
+                                                local capturedData = data
+                                                toggles[raceKey] = {
+                                                    order = idx,
+                                                    name = displayName,
+                                                    type = "toggle",
+                                                    desc = function()
+                                                        if not capturedSpellID then return "" end
+                                                        local spellName = C_Spell.GetSpellName(capturedSpellID)
+                                                        local spellDesc = C_Spell.GetSpellDescription(capturedSpellID)
+                                                        spellName = spellName or raceKey
+                                                        local lines = {}
+                                                        table.insert(lines, "|cFFFFD700" .. spellName .. "|r")
+                                                        if spellDesc and spellDesc ~= "" then
+                                                            table.insert(lines, spellDesc)
                                                         end
+                                                        local cd = capturedData and capturedData.sharedCD
+                                                        if cd and cd > 0 then
+                                                            table.insert(lines, "|cFF00FF00" .. string.format(L["Cooldown_Shared_Seconds"], cd) .. "|r")
+                                                        end
+                                                        table.insert(lines, "|cFF808080" .. string.format(L["SpellID_Value"], capturedSpellID) .. "|r")
+                                                        return table.concat(lines, "\n\n")
+                                                    end,
+                                                    get = function(info) return info.handler.db.profile.racialCategories[raceKey] end,
+                                                    set = function(info, val) info.handler.db.profile.racialCategories[raceKey] = val end,
+                                                }
+                                            end
+                                            return toggles
+                                        end)(),
+                                    },
+                                    enableAll = {
+                                        order = 1.1,
+                                        name = L["Racial_EnableAll"],
+                                        type = "execute",
+                                        width = 1.2,
+                                        disabled = function() return isMidnight end,
+                                        func = function(info)
+                                            for key in pairs(racialCategories) do
+                                                info.handler.db.profile.racialCategories[key] = true
+                                            end
+                                        end,
+                                    },
+                                    disableAll = {
+                                        order = 1.2,
+                                        name = L["Racial_DisableAll"],
+                                        type = "execute",
+                                        width = 1.2,
+                                        disabled = function() return isMidnight end,
+                                        func = function(info)
+                                            for key in pairs(racialCategories) do
+                                                info.handler.db.profile.racialCategories[key] = false
+                                            end
+                                        end,
+                                    },
+                                }
+                                args.racialOptions = {
+                                    order = 2,
+                                    type = "group",
+                                    name = L["Options"],
+                                    inline = true,
+                                    disabled = function() return isMidnight end,
+                                    args = {
+                                        swapRacialTrinket = {
+                                            order = 1,
+                                            name = L["Option_SwapMissingTrinketWithRacial"],
+                                            desc = L["Racial_ShowInTrinketSlot_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.swapRacialTrinket end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.swapRacialTrinket = val
+                                            end,
+                                        },
+                                        forceShowTrinketOnHuman = {
+                                            order = 2,
+                                            name = L["Option_ForceShowTrinketOnHuman"],
+                                            desc = L["Human_AlwaysShowTrinket_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            hidden = function() return isRetail or isTBC end,
+                                            get = function(info) return info.handler.db.profile.forceShowTrinketOnHuman end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.forceShowTrinketOnHuman = val
+                                                if val then
+                                                    info.handler.db.profile.replaceHumanRacialWithTrinket = false
+                                                end
+                                            end,
+                                        },
+                                        replaceHumanRacialWithTrinket = {
+                                            order = 3,
+                                            name = L["Option_ReplaceHumanRacialWithTrinket"],
+                                            desc = L["Option_ReplaceHumanRacialWithTrinket_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            hidden = function() return isRetail or isTBC end,
+                                            get = function(info) return info.handler.db.profile.replaceHumanRacialWithTrinket end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.replaceHumanRacialWithTrinket = val
+                                                if val then
+                                                    info.handler.db.profile.forceShowTrinketOnHuman = false
+                                                end
+                                            end,
+                                        },
+                                    }
+                                }
+
+                                return args
+                            end)(),
+                        },
+                        rangeCheckGroup = {
+                            order = 8,
+                            name = L["Category_RangeCheck"],
+                            desc = L["Category_RangeCheck_Desc"],
+                            type = "group",
+                            args = {
+                                rangeCheckSettings = {
+                                    order = 1,
+                                    name = L["Widget_RangeCheck"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        enabled = {
+                                            order = 1,
+                                            name = L["Widget_RangeCheck_Enable"],
+                                            desc = L["Widget_RangeCheck_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.rangeCheck.enabled end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.rangeCheck.enabled = val
+                                                info.handler:UnregisterRangeCheckEvents()
+                                                if not val then
+                                                    info.handler:ResetRangeChecks()
+                                                end
+                                                info.handler:Test()
+                                            end,
+                                        },
+                                        mode = {
+                                            order = 2,
+                                            name = L["Mode"],
+                                            desc = L["Widget_RangeCheck_Mode_Desc"],
+                                            type = "select",
+                                            width = 1,
+                                            values = {
+                                                ["transparency"] = L["Transparency"],
+                                                ["icon"] = L["Icon"],
+                                                ["both"] = L["Widget_RangeCheck_Mode_Both"],
+                                            },
+                                            get = function(info) return info.handler.db.profile.rangeCheck.mode end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.rangeCheck.mode = val
+                                                info.handler:UpdateRangeSettings()
+                                                info.handler:Test()
+                                            end,
+                                            disabled = function(info) return not info.handler.db.profile.rangeCheck.enabled end,
+                                        },
+                                        notInRangeAlpha = {
+                                            order = 3,
+                                            name = L["Widget_RangeCheck_NotInRangeAlpha"],
+                                            desc = L["Widget_RangeCheck_NotInRangeAlpha_Desc"],
+                                            type = "range",
+                                            min = 0,
+                                            max = 1,
+                                            step = 0.01,
+                                            isPercent = true,
+                                            width = 1.2,
+                                            get = function(info) return info.handler.db.profile.rangeCheck.notInRangeAlpha end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.rangeCheck.notInRangeAlpha = val
+                                                info.handler.rangeNotInRangeAlpha = val
+                                                local frame = info.handler["arena3"]
+                                                if frame and frame:IsShown() and frame.notInRange then
+                                                    frame:SetAlpha(val)
+                                                end
+                                            end,
+                                            disabled = function(info)
+                                                local rc = info.handler.db.profile.rangeCheck
+                                                return not rc.enabled or rc.mode == "icon"
+                                            end,
+                                        },
+                                        notInRangeGroup = {
+                                            order = 5,
+                                            name = L["Widget_RangeCheck_NotInRange"],
+                                            type = "group",
+                                            inline = true,
+                                            disabled = function(info)
+                                                local rc = info.handler.db.profile.rangeCheck
+                                                return not rc.enabled or rc.mode == "transparency"
+                                            end,
+                                            args = {
+                                                notInRangeAtlas = {
+                                                    order = 1,
+                                                    name = L["Widget_RangeCheck_NotInRangeTexture"],
+                                                    desc = L["Widget_RangeCheck_NotInRangeTexture_Desc"],
+                                                    type = "select",
+                                                    width = 1.2,
+                                                    values = sArenaMixin.rangeTextures,
+                                                    sorting = sArenaMixin.rangeTexturesSorting,
+                                                    get = function(info) return info.handler.db.profile.rangeCheck.notInRangeAtlas end,
+                                                    set = function(info, val)
+                                                        info.handler.db.profile.rangeCheck.notInRangeAtlas = val
+                                                        info.handler:ApplyRangeCheckTextures()
+                                                        info.handler:Test()
+                                                    end,
+                                                },
+                                                notInRangeCustomAtlas = {
+                                                    order = 2,
+                                                    name = L["Widget_RangeCheck_CustomAtlas"],
+                                                    desc = L["Widget_RangeCheck_CustomAtlas_Desc"],
+                                                    type = "input",
+                                                    width = 1.0,
+                                                    get = function(info) return info.handler.db.profile.rangeCheck.notInRangeCustomAtlas end,
+                                                    set = function(info, val)
+                                                        info.handler.db.profile.rangeCheck.notInRangeCustomAtlas = val
+                                                        info.handler:ApplyRangeCheckTextures()
+                                                        info.handler:Test()
+                                                    end,
+                                                    hidden = function(info) return info.handler.db.profile.rangeCheck.notInRangeAtlas ~= "custom" end,
+                                                },
+                                                notInRangeColorEnabled = {
+                                                    order = 3,
+                                                    name = L["Color"],
+                                                    desc = L["Widget_RangeCheck_ColorEnabled_Desc"],
+                                                    type = "toggle",
+                                                    width = 0.4,
+                                                    get = function(info) return info.handler.db.profile.rangeCheck.notInRangeColorEnabled end,
+                                                    set = function(info, val)
+                                                        info.handler.db.profile.rangeCheck.notInRangeColorEnabled = val
+                                                        info.handler:ApplyRangeCheckTextures()
+                                                        info.handler:Test()
+                                                    end,
+                                                    hidden = function(info) return info.handler.db.profile.rangeCheck.notInRangeAtlas == "" end,
+                                                },
+                                                notInRangeColor = {
+                                                    order = 4,
+                                                    name = "",
+                                                    type = "color",
+                                                    hasAlpha = true,
+                                                    width = 0.3,
+                                                    get = function(info)
+                                                        local c = info.handler.db.profile.rangeCheck.notInRangeColor
+                                                        return c[1], c[2], c[3], c[4]
+                                                    end,
+                                                    set = function(info, r, g, b, a)
+                                                        info.handler.db.profile.rangeCheck.notInRangeColor = { r, g, b, a }
+                                                        info.handler:ApplyRangeCheckTextures()
+                                                        info.handler:Test()
+                                                    end,
+                                                    disabled = function(info)
+                                                        local rc = info.handler.db.profile.rangeCheck
+                                                        return not rc.enabled or rc.mode == "transparency" or not rc.notInRangeColorEnabled
+                                                    end,
+                                                    hidden = function(info) return info.handler.db.profile.rangeCheck.notInRangeAtlas == "" end,
+                                                },
+                                                notInRangeSpacer = {
+                                                    order = 5,
+                                                    name = "",
+                                                    type = "description",
+                                                    width = "full",
+                                                },
+                                                notInRangePosX = {
+                                                    order = 6,
+                                                    name = L["Horizontal"],
+                                                    type = "range",
+                                                    min = -200,
+                                                    max = 200,
+                                                    step = 0.1,
+                                                    bigStep = 1,
+                                                    width = 0.95,
+                                                    get = function(info) return info.handler.db.profile.rangeCheck.notInRangePosX end,
+                                                    set = function(info, val)
+                                                        info.handler.db.profile.rangeCheck.notInRangePosX = val
+                                                        info.handler:ApplyRangeCheckTextures()
+                                                    end,
+                                                },
+                                                notInRangePosY = {
+                                                    order = 7,
+                                                    name = L["Vertical"],
+                                                    type = "range",
+                                                    min = -200,
+                                                    max = 200,
+                                                    step = 0.1,
+                                                    bigStep = 1,
+                                                    width = 0.95,
+                                                    get = function(info) return info.handler.db.profile.rangeCheck.notInRangePosY end,
+                                                    set = function(info, val)
+                                                        info.handler.db.profile.rangeCheck.notInRangePosY = val
+                                                        info.handler:ApplyRangeCheckTextures()
+                                                    end,
+                                                },
+                                                notInRangeScale = {
+                                                    order = 8,
+                                                    name = L["Scale"],
+                                                    type = "range",
+                                                    min = 0.1,
+                                                    max = 3.0,
+                                                    step = 0.01,
+                                                    bigStep = 0.01,
+                                                    isPercent = true,
+                                                    width = 0.95,
+                                                    get = function(info) return info.handler.db.profile.rangeCheck.notInRangeScale end,
+                                                    set = function(info, val)
+                                                        info.handler.db.profile.rangeCheck.notInRangeScale = val
+                                                        info.handler:ApplyRangeCheckTextures()
                                                     end,
                                                 },
                                             },
                                         },
-                                        attributeList = {
-                                            order = 3,
-                                            type = "group",
-                                            name = L["ClickAction_Existing"],
-                                            inline = true,
-                                            hidden = function(info) return not info.handler.db.profile.usePetFrameClickActions end,
-                                            args = {},
-                                        },
-                                        resetPet = {
+                                        inRangeGroup = {
                                             order = 4,
-                                            name = L["ClickAction_ResetAll"],
-                                            desc = L["ClickAction_ResetAll_Desc"],
+                                            name = L["Widget_RangeCheck_InRange"],
+                                            type = "group",
+                                            inline = true,
+                                            disabled = function(info)
+                                                local rc = info.handler.db.profile.rangeCheck
+                                                return not rc.enabled or rc.mode == "transparency"
+                                            end,
+                                            args = {
+                                                inRangeAtlas = {
+                                                    order = 1,
+                                                    name = L["Widget_RangeCheck_InRangeTexture"],
+                                                    desc = L["Widget_RangeCheck_InRangeTexture_Desc"],
+                                                    type = "select",
+                                                    width = 1.2,
+                                                    values = sArenaMixin.rangeTextures,
+                                                    sorting = sArenaMixin.rangeTexturesSorting,
+                                                    get = function(info) return info.handler.db.profile.rangeCheck.inRangeAtlas end,
+                                                    set = function(info, val)
+                                                        info.handler.db.profile.rangeCheck.inRangeAtlas = val
+                                                        info.handler:ApplyRangeCheckTextures()
+                                                        info.handler:Test()
+                                                    end,
+                                                },
+                                                inRangeCustomAtlas = {
+                                                    order = 2,
+                                                    name = L["Widget_RangeCheck_CustomAtlas"],
+                                                    desc = L["Widget_RangeCheck_CustomAtlas_Desc"],
+                                                    type = "input",
+                                                    width = 1.0,
+                                                    get = function(info) return info.handler.db.profile.rangeCheck.inRangeCustomAtlas end,
+                                                    set = function(info, val)
+                                                        info.handler.db.profile.rangeCheck.inRangeCustomAtlas = val
+                                                        info.handler:ApplyRangeCheckTextures()
+                                                        info.handler:Test()
+                                                    end,
+                                                    hidden = function(info) return info.handler.db.profile.rangeCheck.inRangeAtlas ~= "custom" end,
+                                                },
+                                                inRangeColorEnabled = {
+                                                    order = 3,
+                                                    name = L["Color"],
+                                                    desc = L["Widget_RangeCheck_ColorEnabled_Desc"],
+                                                    type = "toggle",
+                                                    width = 0.4,
+                                                    get = function(info) return info.handler.db.profile.rangeCheck.inRangeColorEnabled end,
+                                                    set = function(info, val)
+                                                        info.handler.db.profile.rangeCheck.inRangeColorEnabled = val
+                                                        info.handler:ApplyRangeCheckTextures()
+                                                        info.handler:Test()
+                                                    end,
+                                                    hidden = function(info) return info.handler.db.profile.rangeCheck.inRangeAtlas == "" end,
+                                                },
+                                                inRangeColor = {
+                                                    order = 4,
+                                                    name = "",
+                                                    type = "color",
+                                                    hasAlpha = true,
+                                                    width = 0.3,
+                                                    get = function(info)
+                                                        local c = info.handler.db.profile.rangeCheck.inRangeColor
+                                                        return c[1], c[2], c[3], c[4]
+                                                    end,
+                                                    set = function(info, r, g, b, a)
+                                                        info.handler.db.profile.rangeCheck.inRangeColor = { r, g, b, a }
+                                                        info.handler:ApplyRangeCheckTextures()
+                                                        info.handler:Test()
+                                                    end,
+                                                    disabled = function(info)
+                                                        local rc = info.handler.db.profile.rangeCheck
+                                                        return not rc.enabled or rc.mode == "transparency" or not rc.inRangeColorEnabled
+                                                    end,
+                                                    hidden = function(info) return info.handler.db.profile.rangeCheck.inRangeAtlas == "" end,
+                                                },
+                                                inRangeSpacer = {
+                                                    order = 5,
+                                                    name = "",
+                                                    type = "description",
+                                                    width = "full",
+                                                },
+                                                inRangePosX = {
+                                                    order = 6,
+                                                    name = L["Horizontal"],
+                                                    type = "range",
+                                                    min = -200,
+                                                    max = 200,
+                                                    step = 0.1,
+                                                    bigStep = 1,
+                                                    width = 0.95,
+                                                    get = function(info) return info.handler.db.profile.rangeCheck.inRangePosX end,
+                                                    set = function(info, val)
+                                                        info.handler.db.profile.rangeCheck.inRangePosX = val
+                                                        info.handler:ApplyRangeCheckTextures()
+                                                    end,
+                                                },
+                                                inRangePosY = {
+                                                    order = 7,
+                                                    name = L["Vertical"],
+                                                    type = "range",
+                                                    min = -200,
+                                                    max = 200,
+                                                    step = 0.1,
+                                                    bigStep = 1,
+                                                    width = 0.95,
+                                                    get = function(info) return info.handler.db.profile.rangeCheck.inRangePosY end,
+                                                    set = function(info, val)
+                                                        info.handler.db.profile.rangeCheck.inRangePosY = val
+                                                        info.handler:ApplyRangeCheckTextures()
+                                                    end,
+                                                },
+                                                inRangeScale = {
+                                                    order = 8,
+                                                    name = L["Scale"],
+                                                    type = "range",
+                                                    min = 0.1,
+                                                    max = 3.0,
+                                                    step = 0.01,
+                                                    bigStep = 0.01,
+                                                    isPercent = true,
+                                                    width = 0.95,
+                                                    get = function(info) return info.handler.db.profile.rangeCheck.inRangeScale end,
+                                                    set = function(info, val)
+                                                        info.handler.db.profile.rangeCheck.inRangeScale = val
+                                                        info.handler:ApplyRangeCheckTextures()
+                                                    end,
+                                                },
+                                            },
+                                        },
+                                        resetRangeCheck = {
+                                            order = 6,
+                                            name = L["Reset"],
+                                            width = 0.4,
                                             type = "execute",
-                                            width = 0.7,
-                                            hidden = function(info) return not info.handler.db.profile.usePetFrameClickActions end,
-                                            confirm = function() return L["ClickAction_ResetAll_Confirm"] end,
                                             func = function(info)
-                                                local defaults = sArenaMixin.defaultSettings.profile.petFrameClickAttributes
-                                                local copy = {}
+                                                local defaults = sArenaMixin.defaultSettings.profile.rangeCheck
+                                                local rc = info.handler.db.profile.rangeCheck
+                                                local currentEnabled = rc.enabled
                                                 for k, v in pairs(defaults) do
-                                                    copy[k] = { button = v.button, modifier = v.modifier, action = v.action, macro = v.macro }
+                                                    if k ~= "enabled" then
+                                                        if type(v) == "table" then
+                                                            rc[k] = { unpack(v) }
+                                                        else
+                                                            rc[k] = v
+                                                        end
+                                                    end
                                                 end
-                                                info.handler.db.profile.petFrameClickAttributes = copy
-                                                info.handler:ApplyAllClickActions()
-                                                info.handler:RebuildClickActionsOptions()
+                                                rc.enabled = currentEnabled
+                                                info.handler:ApplyRangeCheckTextures()
+                                                info.handler:Test()
                                                 LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
                                             end,
+                                            disabled = function(info) return not info.handler.db.profile.rangeCheck.enabled end,
                                         },
                                     },
                                 },
-                                clickthroughFrames = {
-                                    order = 98,
-                                    type = "toggle",
-                                    name = L["ClickAction_Clickthrough"],
-                                    desc = L["ClickAction_Clickthrough_Desc"],
-                                    width = "full",
-                                    get = function(info) return info.handler.db.profile.clickthroughFrames end,
-                                    set = function(info, value)
-                                        info.handler.db.profile.clickthroughFrames = value
-                                        info.handler:SetMouseState(not info.handler:IsInArena())
-                                    end,
-                                },
-                                resetAll = {
-                                    order = 99,
-                                    name = L["ClickAction_ResetAll"],
-                                    desc = L["ClickAction_ResetAll_Desc"],
-                                    type = "execute",
-                                    width = 0.7,
-                                    disabled = function(info) return info.handler.db.profile.enableCliqueSupport or info.handler.db.profile.clickthroughFrames end,
-                                    confirm = function() return L["ClickAction_ResetAll_Confirm"] end,
-                                    func = function(info)
-                                        local defaults = sArenaMixin.defaultSettings.profile.clickAttributes
-                                        local copy = {}
-                                        for k, v in pairs(defaults) do
-                                            copy[k] = { button = v.button, modifier = v.modifier, action = v.action, macro = v.macro }
-                                        end
-                                        info.handler.db.profile.clickAttributes = copy
-                                        info.handler:ApplyAllClickActions()
-                                        info.handler:RebuildClickActionsOptions()
-                                        LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-                                    end,
-                                },
-                            }
-
-                            local order = 1
-                            for key, _ in pairs(sArenaMixin.defaultSettings.profile.clickAttributes) do
-                                args.attributeList.args[key] = sArenaMixin:BuildClickActionOption(key, order, "clickAttributes")
-                                order = order + 1
-                            end
-
-                            local petOrder = 1
-                            for key, _ in pairs(sArenaMixin.defaultSettings.profile.petFrameClickAttributes or {}) do
-                                args.petFrameGroup.args.attributeList.args[key] = sArenaMixin:BuildClickActionOption(key, petOrder, "petFrameClickAttributes")
-                                petOrder = petOrder + 1
-                            end
-
-                            sArenaMixin.ClickActionsArgs = args
-
-                            return args
-                        end)(),
-                    },
-                    drGroup = {
-                        order = 5,
-                        name = L["Category_DiminishingReturns"],
-                        type = "group",
-                        args = {
-                            drOptions = {
-                                order = 1,
-                                type = "group",
-                                name = L["Option_Miscellaneous"],
-                                inline = true,
-                                args = {
-                                    drResetTime = {
-                                        order = 1,
-                                        name = L["Option_DRResetTime"],
-                                        desc = isMidnight and L["Option_DRResetTime_Desc_Midnight"] or L["Option_DRResetTime_Desc"],
-                                        type = "range",
-                                        min = isMidnight and 20 or 15,
-                                        max = isMidnight and 20.5 or 20,
-                                        step = 0.1,
-                                        width = "normal",
-                                        get = function(info)
-                                            return info.handler.db.profile.drResetTime or (isMidnight and 20.1 or 20)
-                                        end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.drResetTime = val
-                                            info.handler:UpdateDRTimeSetting()
-                                        end,
-                                    },
-                                    drResetTime_break = {
-                                        order = 1.1,
-                                        type = "description",
-                                        name = " ",
-                                        width = "full",
-                                    },
-                                    showDecimalsDR = {
-                                        order = 2,
-                                        name = L["Option_ShowDecimalsOnDRs"],
-                                        desc = L["Option_ShowDecimalsOnDRs_Desc"],
-                                        type = "toggle",
-                                        width = 1.2,
-                                        get = function(info) return info.handler.db.profile.showDecimalsDR end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.showDecimalsDR = val
-                                            info.handler:CustomizeDefaultCD()
-                                        end
-                                    },
-                                    decimalThresholdDR = {
-                                        order = 2.5,
-                                        name = L["Option_DecimalThreshold"],
-                                        desc = L["Cooldown_ShowDecimalsThreshold_Desc"],
-                                        type = "range",
-                                        min = 1,
-                                        max = 10,
-                                        step = 0.1,
-                                        width = 0.75,
-                                        disabled = function(info) return not info.handler.db.profile.showDecimalsDR end,
-                                        get = function(info) return info.handler.db.profile.decimalThreshold or 6 end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.decimalThreshold = val
-                                            info.handler:UpdateDecimalThreshold()
-                                            info.handler:CustomizeDefaultCD()
-                                        end
-                                    },
-                                    colorDRCooldownText = {
-                                        order = 3,
-                                        name = L["Option_ColorDRCooldownText"],
-                                        desc = isMidnight and L["Option_ColorDRCooldownText_Desc_Midnight"] or L["Option_ColorDRCooldownText_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.colorDRCooldownText end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.colorDRCooldownText = val
-                                            if not val then
-                                                for i = 1, info.handler.maxArenaOpponents do
-                                                    local frame = info.handler["arena" .. i]
-                                                    frame:ResetDRCooldownTextColors()
-                                                end
-                                            end
-                                            info.handler:CustomizeDefaultCD()
-                                            info.handler:Test()
-                                        end
-                                    },
-                                    disableInstantDRCooldown = {
-                                        order = 4,
-                                        name = L["Option_DisableInstantDRCooldown"],
-                                        desc = L["Option_DisableInstantDRCooldown_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        hidden = not isMidnight,
-                                        get = function(info) return info.handler.db.profile.disableInstantDRCooldown end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.disableInstantDRCooldown = val
-                                        end,
-                                    },
-                                    drBugFixMidnight = {
-                                        order = 5,
-                                        name = L["Option_DrBugFixMidnight"],
-                                        desc = L["Option_DrBugFixMidnight_Desc"],
-                                        type = "toggle",
-                                        width = 1.3,
-                                        hidden = not isMidnight,
-                                        disabled = function(info) return info.handler.db.profile.disableInstantDRCooldown end,
-                                        get = function(info) return info.handler.db.profile.drBugFixMidnight end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.drBugFixMidnight = val
-                                        end,
-                                    },
-                                    drBugFixLonger = {
-                                        order = 5.5,
-                                        name = L["Option_DrBugFixLonger"],
-                                        desc = L["Option_DrBugFixLonger_Desc"],
-                                        type = "toggle",
-                                        width = 1.6,
-                                        hidden = not isMidnight,
-                                        disabled = function(info) return info.handler.db.profile.disableInstantDRCooldown or not info.handler.db.profile.drBugFixMidnight end,
-                                        get = function(info) return info.handler.db.profile.drBugFixLonger end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.drBugFixLonger = val
-                                        end,
-                                    },
-                                },
-                            },
-                            categories = {
-                                order = 2,
-                                name = L["Option_DRCategories"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    hideMidnightDRs = {
-                                        order = 0.1,
-                                        name = L["Option_HideDRs"],
-                                        desc = L["Option_HideDRs_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        hidden = function() return not isMidnight end,
-                                        confirm = function(info, val) info.handler.db.profile.hideMidnightDRs = val;return L["Option_HideDRs_Reload_Desc"] end,
-                                        get = function(info) return info.handler.db.profile.hideMidnightDRs end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.hideMidnightDRs = val
-                                            sArena_ReloadedDB.reOpenOptions = true
-                                            ReloadUI()
-                                        end,
-                                    },
-                                    onlyTriggerableDRs = {
-                                        order = 0.2,
-                                        name = L["Option_OnlyTriggerableDRs"],
-                                        desc = L["Option_OnlyTriggerableDRs_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        hidden = function() return not isMidnight end,
-                                        disabled = function(info) return info.handler.db.profile.hideMidnightDRs end,
-                                        get = function(info)
-                                            return C_CVar.GetCVarBool("spellDiminishPVPOnlyTriggerableByMe")
-                                        end,
-                                        set = function(info, val)
-                                            if InCombatLockdown() then return end
-                                            C_CVar.SetCVar("spellDiminishPVPOnlyTriggerableByMe", val and "1" or "0")
-                                        end,
-                                    },
-                                    midnightDRSpacer = {
-                                        order = 0.3,
-                                        type = "description",
-                                        name = " ",
-                                        width = "full",
-                                        hidden = function() return not isMidnight end,
-                                    },
-                                    drCategoriesPerClass = {
-                                        order = 1,
-                                        name = L["Option_PerClass"],
-                                        desc = L["DR_ClassSpecific_Desc"],
-                                        type = "toggle",
-                                        disabled = function() return isMidnight end,
-                                        get = function(info) return info.handler.db.profile.drCategoriesPerClass end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.drCategoriesPerClass = val
-                                            if val then
-                                                info.handler.db.profile.drCategoriesPerSpec = false
-                                            end
-                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-                                        end,
-                                    },
-                                    drCategoriesPerSpec = {
-                                        order = 2,
-                                        name = L["Option_PerSpec"],
-                                        desc = L["DR_SpecSpecific_Desc"],
-                                        type = "toggle",
-                                        disabled = function() return isMidnight end,
-                                        get = function(info) return info.handler.db.profile.drCategoriesPerSpec end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.drCategoriesPerSpec = val
-                                            if val then
-                                                info.handler.db.profile.drCategoriesPerClass = false
-                                            end
-                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-                                        end,
-                                    },
-
-                                    categoriesMultiselect = {
-                                        order = 4,
-                                        disabled = function() return isMidnight end,
-                                        name = function(info)
-                                            local db = info.handler.db
-                                            if db.profile.drCategoriesPerSpec then
-                                                local className = UnitClass("player") or L["Unknown"]
-                                                local classKey = UnitClassBase("player")
-                                                local specName = info.handler.playerSpecName or L["Unknown"]
-                                                local classColor = C_ClassColor.GetClassColor(classKey)
-                                                local coloredText = specName .. " " .. className
-                                                if classColor then
-                                                    coloredText = classColor:WrapTextInColorCode(coloredText)
-                                                end
-                                                return string.format(L["DR_CategoriesPerSpec"], coloredText)
-                                            elseif db.profile.drCategoriesPerClass then
-                                                local className = UnitClass("player") or L["Unknown"]
-                                                local classKey = UnitClassBase("player")
-                                                local classColor = C_ClassColor.GetClassColor(classKey)
-                                                local coloredText = className
-                                                if classColor then
-                                                    coloredText = classColor:WrapTextInColorCode(coloredText)
-                                                end
-                                                return string.format(L["DR_CategoriesPerClass"], coloredText)
-                                            else
-                                                return L["DR_CategoriesGlobal"]
-                                            end
-                                        end,
-                                        type = "multiselect",
-                                        get = function(info, key) 
-                                            local db = info.handler.db
-                                            if db.profile.drCategoriesPerSpec then
-                                                local specKey = info.handler.playerSpecID or 0
-                                                local perSpec = db.profile.drCategoriesSpec or {}
-                                                local specCategories = perSpec[specKey] or {}
-                                                if specCategories[key] ~= nil then
-                                                    return specCategories[key]
-                                                else
-                                                    return db.profile.drCategories[key]
-                                                end
-                                            elseif db.profile.drCategoriesPerClass then
-                                                local classKey = info.handler.playerClass
-                                                local perClass = db.profile.drCategoriesClass or {}
-                                                local classCategories = perClass[classKey] or {}
-                                                if classCategories[key] ~= nil then
-                                                    return classCategories[key]
-                                                else
-                                                    return db.profile.drCategories[key]
-                                                end
-                                            else
-                                                return db.profile.drCategories[key]
-                                            end
-                                        end,
-                                        set = function(info, key, val) 
-                                            local db = info.handler.db
-                                            if db.profile.drCategoriesPerSpec then
-                                                db.profile.drCategoriesSpec = db.profile.drCategoriesSpec or {}
-                                                local specKey = info.handler.playerSpecID or 0
-                                                db.profile.drCategoriesSpec[specKey] = db.profile.drCategoriesSpec[specKey] or {}
-                                                db.profile.drCategoriesSpec[specKey][key] = val
-                                            elseif db.profile.drCategoriesPerClass then
-                                                db.profile.drCategoriesClass = db.profile.drCategoriesClass or {}
-                                                local classKey = info.handler.playerClass
-                                                db.profile.drCategoriesClass[classKey] = db.profile.drCategoriesClass[classKey] or {}
-                                                db.profile.drCategoriesClass[classKey][key] = val
-                                            else
-                                                db.profile.drCategories[key] = val
-                                            end
-                                        end,
-                                        values = drCategoryDisplay,
-                                    },
-                                },
-                            },
-                            dynamicIcons = {
-                                order = 3,
-                                name = L["Option_DRIcons"],
-                                disabled = function() return isMidnight end,
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    midnightDisclaimer = {
-                                        order = 0,
-                                        type = "description",
-                                        name = isMidnight and L["DR_MidnightDisclaimer"] or "",
-                                        fontSize = "medium",
-                                        hidden = function() return not isMidnight end,
-                                    },
-                                    drStaticIcons = {
-                                        order = 1,
-                                        name = L["Option_EnableStaticIcons"],
-                                        desc = L["DR_FixedIcons_Desc"],
-                                        type = "toggle",
-                                        get = function(info) return info.handler.db.profile.drStaticIcons end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.drStaticIcons = val
-                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-                                        end,
-                                    },
-                                    dynamicIconsPerClass = {
-                                        order = 2,
-                                        name = L["Option_PerClass"],
-                                        desc = L["DR_ClassSpecificIcons_Desc"],
-                                        type = "toggle",
-                                        disabled = function(info) return not info.handler.db.profile.drStaticIcons end,
-                                        get = function(info) return info.handler.db.profile.drStaticIconsPerClass end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.drStaticIconsPerClass = val
-                                            if val then
-                                                info.handler.db.profile.drStaticIconsPerSpec = false
-                                            end
-                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-                                        end,
-                                    },
-                                    dynamicIconsPerSpec = {
-                                        order = 3,
-                                        name = L["Option_PerSpec"],
-                                        desc = L["DR_SpecSpecificIcons_Desc"],
-                                        type = "toggle",
-                                        disabled = function(info) return not info.handler.db.profile.drStaticIcons end,
-                                        get = function(info) return info.handler.db.profile.drStaticIconsPerSpec end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.drStaticIconsPerSpec = val
-                                            if val then
-                                                info.handler.db.profile.drStaticIconsPerClass = false
-                                            end
-                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-                                        end,
-                                    },
-                                    staticIconsSeparator = {
-                                        order = 4,
-                                        name = "",
-                                        type = "header",
-                                    },
-                                    drIconsSection = {
-                                        order = 4,
-                                        type = "group",
-                                        name = "",
-                                        inline = true,
-                                        disabled = function(info) return not info.handler.db.profile.drStaticIcons end,
-                                        get = function(info)
-                                            local key = info[#info]
-                                            local db = info.handler.db
-                                            if db.profile.drStaticIconsPerSpec then
-                                                local specKey = info.handler.playerSpecID or 0
-                                                local perSpec = db.profile.drIconsPerSpec or {}
-                                                local specIcons = perSpec[specKey] or {}
-                                                return tostring(specIcons[key] or "")
-                                            elseif db.profile.drStaticIconsPerClass then
-                                                local classKey = info.handler.playerClass
-                                                local perClass = db.profile.drIconsPerClass or {}
-                                                local classIcons = perClass[classKey] or {}
-                                                return tostring(classIcons[key] or "")
-                                            else
-                                                return tostring(db.profile.drIcons[key] or drIcons[key])
-                                            end
-                                        end,
-                                        set = function(info, value)
-                                            local key = info[#info]
-                                            local db = info.handler.db
-                                            local num = tonumber(value)
-                                            if db.profile.drStaticIconsPerSpec then
-                                                db.profile.drIconsPerSpec = db.profile.drIconsPerSpec or {}
-                                                local specKey = info.handler.playerSpecID or 0
-                                                db.profile.drIconsPerSpec[specKey] = db.profile.drIconsPerSpec[specKey] or {}
-                                                db.profile.drIconsPerSpec[specKey][key] = num or value
-                                            elseif db.profile.drStaticIconsPerClass then
-                                                db.profile.drIconsPerClass = db.profile.drIconsPerClass or {}
-                                                local classKey = info.handler.playerClass
-                                                db.profile.drIconsPerClass[classKey] = db.profile.drIconsPerClass[classKey] or {}
-                                                db.profile.drIconsPerClass[classKey][key] = num or value
-                                            else
-                                                db.profile.drIcons = db.profile.drIcons or {}
-                                                db.profile.drIcons[key] = num or value
-                                            end
-                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-                                        end,
-                                        args = setDRIcons(),
-                                    },
-                                },
-                            },
-                            midnightDisclaimerBottom = {
-                                order = 4,
-                                type = "description",
-                                name = isMidnight and L["DR_MidnightDisclaimer"] or "",
-                                fontSize = "medium",
-                                hidden = function() return not isMidnight end,
-                            },
-                            drDebug = {
-                                order = 5,
-                                name = L["Category_Debug"],
-                                type = "group",
-                                inline = true,
-                                hidden = function() return not isMidnight end,
-                                args = {
-                                    newMidnightDRHandling = {
-                                        order = 1,
-                                        name = L["Option_NewMidnightDRHandling"],
-                                        desc = L["Option_NewMidnightDRHandling_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.newMidnightDRHandling end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.newMidnightDRHandling = val
-                                            sArena_ReloadedDB.reOpenOptions = true
-                                            ReloadUI()
-                                        end,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                    dispelGroup = {
-                        order = 6,
-                        name = L["Category_Dispels"],
-                        hidden = function() return isMidnight end,
-                        type = "group",
-                        args = (function()
-                            local args = {
-                                showDispels = {
-                                    order = 0,
-                                    name = L["Option_ShowDispels"],
-                                    desc = L["Option_ShowDispels_Desc"],
-                                    type = "toggle",
-                                    width = "full",
-                                    get = function(info) return info.handler.db.profile.showDispels end,
-                                    set = function(info, val)
-                                        info.handler.db.profile.showDispels = val
-                                        info.handler:Test()
-                                    end,
-                                },
-                                spacer0 = {
-                                    order = 0.5,
-                                    type = "description",
-                                    name = "",
-                                    width = "full",
-                                },
-                            }
-
-                            local healerDispels = {}
-                            local dpsDispels = {}
-
-                            for spellID, data in pairs(sArenaMixin.dispelData or {}) do
-                                if data.healer or data.sharedSpecSpellID then
-                                    healerDispels[spellID] = data
-                                end
-                                if not data.healer or data.sharedSpecSpellID then
-                                    dpsDispels[spellID] = data
-                                end
-                            end
-
-                            local order = 1
-
-                            if next(healerDispels) then
-                                args["healer_dispels"] = {
-                                    order = order,
-                                    name = L["Option_HealerDispels"],
+                                rangeSpellSettings = {
+                                    order = 2,
+                                    name = L["Widget_RangeCheck_Spells"],
                                     type = "group",
                                     inline = true,
-                                    disabled = function(info) return not info.handler.db.profile.showDispels end,
-                                    args = {}
-                                }
-                                order = order + 1
-
-                                local healerOrder = 1
-                                for spellID, data in pairs(healerDispels) do
-                                    -- For MoP shared spells, use separate setting key
-                                    local settingKey = spellID
-                                    if not isRetail and data.sharedSpecSpellID then
-                                        settingKey = spellID .. "_healer"
-                                    end
-
-                                    args["healer_dispels"].args["spell_" .. spellID] = {
-                                        order = healerOrder,
-                                        name = function()
-                                            local spellName = C_Spell.GetSpellName(spellID)
-                                            return "|T" .. (data.texture or "") .. ":16|t " .. (spellName or data.name)
-                                        end,
-                                        type = "toggle",
-                                        disabled = function(info) return not info.handler.db.profile.showDispels end,
-                                        get = function(info) return info.handler.db.profile.dispelCategories[settingKey] end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.dispelCategories[settingKey] = val
-                                            for i = 1, 3 do
-                                                local frame = info.handler["arena" .. i]
-                                                if frame then
-                                                    frame:UpdateDispel()
-                                                end
-                                            end
-                                        end,
-                                        desc = function()
-                                            local spellName = C_Spell.GetSpellName(spellID)
-                                            local spellDesc = C_Spell.GetSpellDescription(spellID)
-
-                                            spellName = spellName or data.name or L["Unknown_Spell"]
-                                            local cooldownText = data.cooldown and string.format(L["Cooldown_Seconds"], data.cooldown) or ""
-
-                                            local tooltipLines = {}
-                                            table.insert(tooltipLines, "|cFFFFD700" .. spellName .. "|r")
-                                            table.insert(tooltipLines, "|cFF87CEEB" .. data.classes .. "|r")
-                                            if spellDesc and spellDesc ~= "" then
-                                                table.insert(tooltipLines, spellDesc)
-                                            end
-                                            if cooldownText ~= "" then
-                                                table.insert(tooltipLines, "|cFF00FF00" .. cooldownText .. "|r")
-                                            end
-                                            table.insert(tooltipLines, "|cFF808080Spell ID: " .. spellID .. "|r")
-
-                                            return table.concat(tooltipLines, "\n\n")
-                                        end,
-                                    }
-                                    healerOrder = healerOrder + 1
-                                end
-                            end
-
-                            if next(dpsDispels) then
-                                args["dps_dispels"] = {
-                                    order = order,
-                                    name = L["Option_DPSDispels"],
-                                    type = "group",
-                                    inline = true,
-                                    disabled = function(info) return not info.handler.db.profile.showDispels end,
-                                    args = {
-                                        description = {
-                                            order = 1,
-                                            type = "description",
-                                            name = L["Option_DPSDispelsNote"],
-                                            fontSize = "medium",
-                                        }
-                                    }
-                                }
-                                order = order + 1
-
-                                local dpsOrder = 2
-                                for spellID, data in pairs(dpsDispels) do
-
-                                    local settingKey = spellID
-                                    if not sArenaMixin.isRetail and data.sharedSpecSpellID then
-                                        settingKey = spellID .. "_dps"
-                                    end
-
-                                    args["dps_dispels"].args["spell_" .. spellID] = {
-                                        order = dpsOrder,
-                                        name = function()
-                                            local spellName = C_Spell.GetSpellName(spellID)
-                                            return "|T" .. (data.texture or "134400") .. ":16|t " .. (spellName or data.name)
-                                        end,
-                                        type = "toggle",
-                                        disabled = function(info) return not info.handler.db.profile.showDispels end,
-                                        get = function(info) return info.handler.db.profile.dispelCategories[settingKey] end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.dispelCategories[settingKey] = val
-                                            for i = 1, 3 do
-                                                local frame = info.handler["arena" .. i]
-                                                if frame then
-                                                    frame:UpdateDispel()
-                                                end
-                                            end
-                                        end,
-                                        desc = function()
-                                            local spellName = C_Spell.GetSpellName(spellID)
-                                            local spellDesc = C_Spell.GetSpellDescription(spellID)
-
-                                            spellName = spellName or data.name or L["Unknown_Spell"]
-                                            local cooldownText = data.cooldown and string.format(L["Cooldown_Seconds"], data.cooldown) or ""
-
-                                            local tooltipLines = {}
-                                            table.insert(tooltipLines, "|cFFFFD700" .. spellName .. "|r")
-                                            table.insert(tooltipLines, "|cFF87CEEB" .. data.classes .. "|r")
-                                            if spellDesc and spellDesc ~= "" then
-                                                table.insert(tooltipLines, spellDesc)
-                                            end
-                                            if cooldownText ~= "" then
-                                                table.insert(tooltipLines, "|cFF00FF00" .. cooldownText .. "|r")
-                                            end
-                                            table.insert(tooltipLines, "|cFF808080Spell ID: " .. spellID .. "|r")
-                                            table.insert(tooltipLines, "|cFFFFA500" .. L["Dispel_ShowsAfterUse"] .. "|r")
-
-                                            return table.concat(tooltipLines, "\n\n")
-                                        end,
-                                    }
-                                    dpsOrder = dpsOrder + 1
-                                end
-                            end
-
-                            args["betaNotice"] = {
-                                order = 999,
-                                type = "description",
-                                name = L["Option_DispelsBetaNotice"],
-                                fontSize = "medium",
-                                width = "full",
-                            }
-
-                            return args
-                        end)(),
-                    },
-                    racialGroup = {
-                        order = 7,
-                        name = L["Category_Racials"],
-                        type = "group",
-                        args = (function()
-                            local args = {
-                                midnightTextureNotice = {
-                                    order = 0,
-                                    type = "description",
-                                    name = isMidnight and L["Racial_MidnightTextureNotice"] or "",
-                                    fontSize = "medium",
-                                    hidden = function() return not isMidnight end,
-                                },
-                                midnightDisclaimerSpacer = {
-                                    order = 0.1,
-                                    type = "description",
-                                    name = " ",
-                                    hidden = function() return not isMidnight end,
-                                },
-                                categories = {
-                                    order = 1,
-                                    name = L["Option_Categories"],
-                                    type = "group",
-                                    inline = true,
-                                    disabled = function() return isMidnight end,
+                                    disabled = function(info) return not info.handler.db.profile.rangeCheck.enabled end,
                                     args = (function()
-                                        local toggles = {}
-                                        local sortedKeys = {}
-                                        for raceKey in pairs(racialCategories) do
-                                            sortedKeys[#sortedKeys + 1] = raceKey
+                                        local rangeClassOrder = {
+                                            "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST",
+                                            "DEATHKNIGHT", "SHAMAN", "MAGE", "WARLOCK",
+                                            "MONK", "DRUID", "DEMONHUNTER", "EVOKER",
+                                        }
+                                        local rangeClassSpecs = {
+                                            WARRIOR     = { 71, 72, 73 },
+                                            PALADIN     = { 65, 66, 70 },
+                                            HUNTER      = { 253, 254, 255 },
+                                            ROGUE       = { 259, 260, 261 },
+                                            PRIEST      = { 256, 257, 258 },
+                                            DEATHKNIGHT = { 250, 251, 252 },
+                                            SHAMAN      = { 262, 263, 264 },
+                                            MAGE        = { 62, 63, 64 },
+                                            WARLOCK     = { 265, 266, 267 },
+                                            MONK        = { 268, 269, 270 },
+                                            DRUID       = { 102, 103, 104, 105 },
+                                            DEMONHUNTER = { 577, 581, 1480 },
+                                            EVOKER      = { 1467, 1468, 1473 },
+                                        }
+                                        local hiddenClasses = {}
+                                        local hiddenSpecs = {}
+                                        if sArenaMixin.isTBC then
+                                            hiddenClasses = { DEATHKNIGHT = true, MONK = true, DEMONHUNTER = true, EVOKER = true }
+                                            hiddenSpecs = { [104] = true } -- Guardian Druid
+                                        elseif sArenaMixin.isWrath then
+                                            hiddenClasses = { MONK = true, DEMONHUNTER = true, EVOKER = true }
+                                        elseif sArenaMixin.isMoP then
+                                            hiddenClasses = { DEMONHUNTER = true, EVOKER = true }
                                         end
-                                        table.sort(sortedKeys)
-                                        if C_Spell and C_Spell.RequestLoadSpellData then
-                                            for _, raceKey in ipairs(sortedKeys) do
-                                                local d = sArenaMixin.racialData and sArenaMixin.racialData[raceKey]
-                                                if d and d.spellID then
-                                                    C_Spell.RequestLoadSpellData(d.spellID)
+                                        local classIDs = {
+                                            WARRIOR = 1, PALADIN = 2, HUNTER = 3, ROGUE = 4, PRIEST = 5,
+                                            DEATHKNIGHT = 6, SHAMAN = 7, MAGE = 8, WARLOCK = 9,
+                                            MONK = 10, DRUID = 11, DEMONHUNTER = 12, EVOKER = 13,
+                                        }
+                                        local function getClassName(classKey)
+                                            return sArenaMixin:GetClassDisplayName(classKey)
+                                        end
+
+                                        local useClassIDLookup = sArenaMixin.isTBC or sArenaMixin.isWrath or sArenaMixin.isMoP
+
+                                        local function getSpecName(specID, classKey, specIndex)
+                                            if sArenaMixin:IsForceEnglish() and specID and sArenaMixin.specInfo[specID] then
+                                                return sArenaMixin.specInfo[specID].name
+                                            end
+                                            if useClassIDLookup and classKey and specIndex and GetSpecializationInfoForClassID then
+                                                local classID = classIDs[classKey]
+                                                if classID then
+                                                    local _, name = GetSpecializationInfoForClassID(classID, specIndex)
+                                                    if name then return name end
                                                 end
                                             end
-                                        end
-                                        for idx, raceKey in ipairs(sortedKeys) do
-                                            local displayName = racialCategories[raceKey]
-                                            local data = sArenaMixin.racialData and sArenaMixin.racialData[raceKey]
-                                            local spellID = data and data.spellID
-                                            local capturedSpellID = spellID
-                                            local capturedData = data
-                                            toggles[raceKey] = {
-                                                order = idx,
-                                                name = displayName,
-                                                type = "toggle",
-                                                desc = function()
-                                                    if not capturedSpellID then return "" end
-                                                    local spellName = C_Spell.GetSpellName(capturedSpellID)
-                                                    local spellDesc = C_Spell.GetSpellDescription(capturedSpellID)
-                                                    spellName = spellName or raceKey
-                                                    local lines = {}
-                                                    table.insert(lines, "|cFFFFD700" .. spellName .. "|r")
-                                                    if spellDesc and spellDesc ~= "" then
-                                                        table.insert(lines, spellDesc)
-                                                    end
-                                                    local cd = capturedData and capturedData.sharedCD
-                                                    if cd and cd > 0 then
-                                                        table.insert(lines, "|cFF00FF00" .. string.format(L["Cooldown_Shared_Seconds"], cd) .. "|r")
-                                                    end
-                                                    table.insert(lines, "|cFF808080Spell ID: " .. capturedSpellID .. "|r")
-                                                    return table.concat(lines, "\n\n")
-                                                end,
-                                                get = function(info) return info.handler.db.profile.racialCategories[raceKey] end,
-                                                set = function(info, val) info.handler.db.profile.racialCategories[raceKey] = val end,
-                                            }
-                                        end
-                                        return toggles
-                                    end)(),
-                                },
-                                enableAll = {
-                                    order = 1.1,
-                                    name = L["Racial_EnableAll"],
-                                    type = "execute",
-                                    width = 1.2,
-                                    disabled = function() return isMidnight end,
-                                    func = function(info)
-                                        for key in pairs(racialCategories) do
-                                            info.handler.db.profile.racialCategories[key] = true
-                                        end
-                                    end,
-                                },
-                                disableAll = {
-                                    order = 1.2,
-                                    name = L["Racial_DisableAll"],
-                                    type = "execute",
-                                    width = 1.2,
-                                    disabled = function() return isMidnight end,
-                                    func = function(info)
-                                        for key in pairs(racialCategories) do
-                                            info.handler.db.profile.racialCategories[key] = false
-                                        end
-                                    end,
-                                },
-                            }
-                            args.racialOptions = {
-                                order = 2,
-                                type = "group",
-                                name = L["Options"],
-                                inline = true,
-                                disabled = function() return isMidnight end,
-                                args = {
-                                    swapRacialTrinket = {
-                                        order = 1,
-                                        name = L["Option_SwapMissingTrinketWithRacial"],
-                                        desc = L["Racial_ShowInTrinketSlot_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.swapRacialTrinket end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.swapRacialTrinket = val
-                                        end,
-                                    },
-                                    forceShowTrinketOnHuman = {
-                                        order = 2,
-                                        name = L["Option_ForceShowTrinketOnHuman"],
-                                        desc = L["Human_AlwaysShowTrinket_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        hidden = function() return isRetail or isTBC end,
-                                        get = function(info) return info.handler.db.profile.forceShowTrinketOnHuman end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.forceShowTrinketOnHuman = val
-                                            if val then
-                                                info.handler.db.profile.replaceHumanRacialWithTrinket = false
-                                            end
-                                        end,
-                                    },
-                                    replaceHumanRacialWithTrinket = {
-                                        order = 3,
-                                        name = L["Option_ReplaceHumanRacialWithTrinket"],
-                                        desc = L["Option_ReplaceHumanRacialWithTrinket_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        hidden = function() return isRetail or isTBC end,
-                                        get = function(info) return info.handler.db.profile.replaceHumanRacialWithTrinket end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.replaceHumanRacialWithTrinket = val
-                                            if val then
-                                                info.handler.db.profile.forceShowTrinketOnHuman = false
-                                            end
-                                        end,
-                                    },
-                                }
-                            }
-
-                            return args
-                        end)(),
-                    },
-                    rangeCheckGroup = {
-                        order = 8,
-                        name = L["Category_RangeCheck"],
-                        desc = L["Category_RangeCheck_Desc"],
-                        type = "group",
-                        args = {
-                            rangeCheckSettings = {
-                                order = 1,
-                                name = L["Widget_RangeCheck"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    enabled = {
-                                        order = 1,
-                                        name = L["Widget_RangeCheck_Enable"],
-                                        desc = L["Widget_RangeCheck_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.rangeCheck.enabled end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.rangeCheck.enabled = val
-                                            info.handler:UnregisterRangeCheckEvents()
-                                            if not val then
-                                                info.handler:ResetRangeChecks()
-                                            end
-                                            info.handler:Test()
-                                        end,
-                                    },
-                                    mode = {
-                                        order = 2,
-                                        name = L["Mode"],
-                                        desc = L["Widget_RangeCheck_Mode_Desc"],
-                                        type = "select",
-                                        width = 1,
-                                        values = {
-                                            ["transparency"] = L["Transparency"],
-                                            ["icon"] = L["Icon"],
-                                            ["both"] = L["Widget_RangeCheck_Mode_Both"],
-                                        },
-                                        get = function(info) return info.handler.db.profile.rangeCheck.mode end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.rangeCheck.mode = val
-                                            info.handler:UpdateRangeSettings()
-                                            info.handler:Test()
-                                        end,
-                                        disabled = function(info) return not info.handler.db.profile.rangeCheck.enabled end,
-                                    },
-                                    notInRangeAlpha = {
-                                        order = 3,
-                                        name = L["Widget_RangeCheck_NotInRangeAlpha"],
-                                        desc = L["Widget_RangeCheck_NotInRangeAlpha_Desc"],
-                                        type = "range",
-                                        min = 0,
-                                        max = 1,
-                                        step = 0.01,
-                                        isPercent = true,
-                                        width = 1.2,
-                                        get = function(info) return info.handler.db.profile.rangeCheck.notInRangeAlpha end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.rangeCheck.notInRangeAlpha = val
-                                            info.handler.rangeNotInRangeAlpha = val
-                                            local frame = info.handler["arena3"]
-                                            if frame and frame:IsShown() and frame.notInRange then
-                                                frame:SetAlpha(val)
-                                            end
-                                        end,
-                                        disabled = function(info)
-                                            local rc = info.handler.db.profile.rangeCheck
-                                            return not rc.enabled or rc.mode == "icon"
-                                        end,
-                                    },
-                                    notInRangeGroup = {
-                                        order = 5,
-                                        name = L["Widget_RangeCheck_NotInRange"],
-                                        type = "group",
-                                        inline = true,
-                                        disabled = function(info)
-                                            local rc = info.handler.db.profile.rangeCheck
-                                            return not rc.enabled or rc.mode == "transparency"
-                                        end,
-                                        args = {
-                                            notInRangeAtlas = {
-                                                order = 1,
-                                                name = L["Widget_RangeCheck_NotInRangeTexture"],
-                                                desc = L["Widget_RangeCheck_NotInRangeTexture_Desc"],
-                                                type = "select",
-                                                width = 1.2,
-                                                values = sArenaMixin.rangeTextures,
-                                                sorting = sArenaMixin.rangeTexturesSorting,
-                                                get = function(info) return info.handler.db.profile.rangeCheck.notInRangeAtlas end,
-                                                set = function(info, val)
-                                                    info.handler.db.profile.rangeCheck.notInRangeAtlas = val
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                    info.handler:Test()
-                                                end,
-                                            },
-                                            notInRangeCustomAtlas = {
-                                                order = 2,
-                                                name = L["Widget_RangeCheck_CustomAtlas"],
-                                                desc = L["Widget_RangeCheck_CustomAtlas_Desc"],
-                                                type = "input",
-                                                width = 1.0,
-                                                get = function(info) return info.handler.db.profile.rangeCheck.notInRangeCustomAtlas end,
-                                                set = function(info, val)
-                                                    info.handler.db.profile.rangeCheck.notInRangeCustomAtlas = val
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                    info.handler:Test()
-                                                end,
-                                                hidden = function(info) return info.handler.db.profile.rangeCheck.notInRangeAtlas ~= "custom" end,
-                                            },
-                                            notInRangeColorEnabled = {
-                                                order = 3,
-                                                name = L["Color"],
-                                                desc = L["Widget_RangeCheck_ColorEnabled_Desc"],
-                                                type = "toggle",
-                                                width = 0.4,
-                                                get = function(info) return info.handler.db.profile.rangeCheck.notInRangeColorEnabled end,
-                                                set = function(info, val)
-                                                    info.handler.db.profile.rangeCheck.notInRangeColorEnabled = val
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                    info.handler:Test()
-                                                end,
-                                                hidden = function(info) return info.handler.db.profile.rangeCheck.notInRangeAtlas == "" end,
-                                            },
-                                            notInRangeColor = {
-                                                order = 4,
-                                                name = "",
-                                                type = "color",
-                                                hasAlpha = true,
-                                                width = 0.3,
-                                                get = function(info)
-                                                    local c = info.handler.db.profile.rangeCheck.notInRangeColor
-                                                    return c[1], c[2], c[3], c[4]
-                                                end,
-                                                set = function(info, r, g, b, a)
-                                                    info.handler.db.profile.rangeCheck.notInRangeColor = { r, g, b, a }
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                    info.handler:Test()
-                                                end,
-                                                disabled = function(info)
-                                                    local rc = info.handler.db.profile.rangeCheck
-                                                    return not rc.enabled or rc.mode == "transparency" or not rc.notInRangeColorEnabled
-                                                end,
-                                                hidden = function(info) return info.handler.db.profile.rangeCheck.notInRangeAtlas == "" end,
-                                            },
-                                            notInRangeSpacer = {
-                                                order = 5,
-                                                name = "",
-                                                type = "description",
-                                                width = "full",
-                                            },
-                                            notInRangePosX = {
-                                                order = 6,
-                                                name = L["Horizontal"],
-                                                type = "range",
-                                                min = -200,
-                                                max = 200,
-                                                step = 0.1,
-                                                bigStep = 1,
-                                                width = 0.95,
-                                                get = function(info) return info.handler.db.profile.rangeCheck.notInRangePosX end,
-                                                set = function(info, val)
-                                                    info.handler.db.profile.rangeCheck.notInRangePosX = val
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                end,
-                                            },
-                                            notInRangePosY = {
-                                                order = 7,
-                                                name = L["Vertical"],
-                                                type = "range",
-                                                min = -200,
-                                                max = 200,
-                                                step = 0.1,
-                                                bigStep = 1,
-                                                width = 0.95,
-                                                get = function(info) return info.handler.db.profile.rangeCheck.notInRangePosY end,
-                                                set = function(info, val)
-                                                    info.handler.db.profile.rangeCheck.notInRangePosY = val
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                end,
-                                            },
-                                            notInRangeScale = {
-                                                order = 8,
-                                                name = L["Scale"],
-                                                type = "range",
-                                                min = 0.1,
-                                                max = 3.0,
-                                                step = 0.01,
-                                                bigStep = 0.01,
-                                                isPercent = true,
-                                                width = 0.95,
-                                                get = function(info) return info.handler.db.profile.rangeCheck.notInRangeScale end,
-                                                set = function(info, val)
-                                                    info.handler.db.profile.rangeCheck.notInRangeScale = val
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                end,
-                                            },
-                                        },
-                                    },
-                                    inRangeGroup = {
-                                        order = 4,
-                                        name = L["Widget_RangeCheck_InRange"],
-                                        type = "group",
-                                        inline = true,
-                                        disabled = function(info)
-                                            local rc = info.handler.db.profile.rangeCheck
-                                            return not rc.enabled or rc.mode == "transparency"
-                                        end,
-                                        args = {
-                                            inRangeAtlas = {
-                                                order = 1,
-                                                name = L["Widget_RangeCheck_InRangeTexture"],
-                                                desc = L["Widget_RangeCheck_InRangeTexture_Desc"],
-                                                type = "select",
-                                                width = 1.2,
-                                                values = sArenaMixin.rangeTextures,
-                                                sorting = sArenaMixin.rangeTexturesSorting,
-                                                get = function(info) return info.handler.db.profile.rangeCheck.inRangeAtlas end,
-                                                set = function(info, val)
-                                                    info.handler.db.profile.rangeCheck.inRangeAtlas = val
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                    info.handler:Test()
-                                                end,
-                                            },
-                                            inRangeCustomAtlas = {
-                                                order = 2,
-                                                name = L["Widget_RangeCheck_CustomAtlas"],
-                                                desc = L["Widget_RangeCheck_CustomAtlas_Desc"],
-                                                type = "input",
-                                                width = 1.0,
-                                                get = function(info) return info.handler.db.profile.rangeCheck.inRangeCustomAtlas end,
-                                                set = function(info, val)
-                                                    info.handler.db.profile.rangeCheck.inRangeCustomAtlas = val
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                    info.handler:Test()
-                                                end,
-                                                hidden = function(info) return info.handler.db.profile.rangeCheck.inRangeAtlas ~= "custom" end,
-                                            },
-                                            inRangeColorEnabled = {
-                                                order = 3,
-                                                name = L["Color"],
-                                                desc = L["Widget_RangeCheck_ColorEnabled_Desc"],
-                                                type = "toggle",
-                                                width = 0.4,
-                                                get = function(info) return info.handler.db.profile.rangeCheck.inRangeColorEnabled end,
-                                                set = function(info, val)
-                                                    info.handler.db.profile.rangeCheck.inRangeColorEnabled = val
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                    info.handler:Test()
-                                                end,
-                                                hidden = function(info) return info.handler.db.profile.rangeCheck.inRangeAtlas == "" end,
-                                            },
-                                            inRangeColor = {
-                                                order = 4,
-                                                name = "",
-                                                type = "color",
-                                                hasAlpha = true,
-                                                width = 0.3,
-                                                get = function(info)
-                                                    local c = info.handler.db.profile.rangeCheck.inRangeColor
-                                                    return c[1], c[2], c[3], c[4]
-                                                end,
-                                                set = function(info, r, g, b, a)
-                                                    info.handler.db.profile.rangeCheck.inRangeColor = { r, g, b, a }
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                    info.handler:Test()
-                                                end,
-                                                disabled = function(info)
-                                                    local rc = info.handler.db.profile.rangeCheck
-                                                    return not rc.enabled or rc.mode == "transparency" or not rc.inRangeColorEnabled
-                                                end,
-                                                hidden = function(info) return info.handler.db.profile.rangeCheck.inRangeAtlas == "" end,
-                                            },
-                                            inRangeSpacer = {
-                                                order = 5,
-                                                name = "",
-                                                type = "description",
-                                                width = "full",
-                                            },
-                                            inRangePosX = {
-                                                order = 6,
-                                                name = L["Horizontal"],
-                                                type = "range",
-                                                min = -200,
-                                                max = 200,
-                                                step = 0.1,
-                                                bigStep = 1,
-                                                width = 0.95,
-                                                get = function(info) return info.handler.db.profile.rangeCheck.inRangePosX end,
-                                                set = function(info, val)
-                                                    info.handler.db.profile.rangeCheck.inRangePosX = val
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                end,
-                                            },
-                                            inRangePosY = {
-                                                order = 7,
-                                                name = L["Vertical"],
-                                                type = "range",
-                                                min = -200,
-                                                max = 200,
-                                                step = 0.1,
-                                                bigStep = 1,
-                                                width = 0.95,
-                                                get = function(info) return info.handler.db.profile.rangeCheck.inRangePosY end,
-                                                set = function(info, val)
-                                                    info.handler.db.profile.rangeCheck.inRangePosY = val
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                end,
-                                            },
-                                            inRangeScale = {
-                                                order = 8,
-                                                name = L["Scale"],
-                                                type = "range",
-                                                min = 0.1,
-                                                max = 3.0,
-                                                step = 0.01,
-                                                bigStep = 0.01,
-                                                isPercent = true,
-                                                width = 0.95,
-                                                get = function(info) return info.handler.db.profile.rangeCheck.inRangeScale end,
-                                                set = function(info, val)
-                                                    info.handler.db.profile.rangeCheck.inRangeScale = val
-                                                    info.handler:ApplyRangeCheckTextures()
-                                                end,
-                                            },
-                                        },
-                                    },
-                                    resetRangeCheck = {
-                                        order = 6,
-                                        name = L["Reset"],
-                                        width = 0.4,
-                                        type = "execute",
-                                        func = function(info)
-                                            local defaults = sArenaMixin.defaultSettings.profile.rangeCheck
-                                            local rc = info.handler.db.profile.rangeCheck
-                                            local currentEnabled = rc.enabled
-                                            for k, v in pairs(defaults) do
-                                                if k ~= "enabled" then
-                                                    if type(v) == "table" then
-                                                        rc[k] = { unpack(v) }
-                                                    else
-                                                        rc[k] = v
-                                                    end
-                                                end
-                                            end
-                                            rc.enabled = currentEnabled
-                                            info.handler:ApplyRangeCheckTextures()
-                                            info.handler:Test()
-                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-                                        end,
-                                        disabled = function(info) return not info.handler.db.profile.rangeCheck.enabled end,
-                                    },
-                                },
-                            },
-                            rangeSpellSettings = {
-                                order = 2,
-                                name = "Range Check Spells",
-                                type = "group",
-                                inline = true,
-                                disabled = function(info) return not info.handler.db.profile.rangeCheck.enabled end,
-                                args = (function()
-                                    local rangeClassOrder = {
-                                        "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST",
-                                        "DEATHKNIGHT", "SHAMAN", "MAGE", "WARLOCK",
-                                        "MONK", "DRUID", "DEMONHUNTER", "EVOKER",
-                                    }
-                                    local rangeClassSpecs = {
-                                        WARRIOR     = { 71, 72, 73 },
-                                        PALADIN     = { 65, 66, 70 },
-                                        HUNTER      = { 253, 254, 255 },
-                                        ROGUE       = { 259, 260, 261 },
-                                        PRIEST      = { 256, 257, 258 },
-                                        DEATHKNIGHT = { 250, 251, 252 },
-                                        SHAMAN      = { 262, 263, 264 },
-                                        MAGE        = { 62, 63, 64 },
-                                        WARLOCK     = { 265, 266, 267 },
-                                        MONK        = { 268, 269, 270 },
-                                        DRUID       = { 102, 103, 104, 105 },
-                                        DEMONHUNTER = { 577, 581, 1480 },
-                                        EVOKER      = { 1467, 1468, 1473 },
-                                    }
-                                    local hiddenClasses = {}
-                                    local hiddenSpecs = {}
-                                    if sArenaMixin.isTBC then
-                                        hiddenClasses = { DEATHKNIGHT = true, MONK = true, DEMONHUNTER = true, EVOKER = true }
-                                        hiddenSpecs = { [104] = true } -- Guardian Druid
-                                    elseif sArenaMixin.isWrath then
-                                        hiddenClasses = { MONK = true, DEMONHUNTER = true, EVOKER = true }
-                                    elseif sArenaMixin.isMoP then
-                                        hiddenClasses = { DEMONHUNTER = true, EVOKER = true }
-                                    end
-                                    local classIDs = {
-                                        WARRIOR = 1, PALADIN = 2, HUNTER = 3, ROGUE = 4, PRIEST = 5,
-                                        DEATHKNIGHT = 6, SHAMAN = 7, MAGE = 8, WARLOCK = 9,
-                                        MONK = 10, DRUID = 11, DEMONHUNTER = 12, EVOKER = 13,
-                                    }
-                                    local function getClassName(classKey)
-                                        if LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[classKey] then
-                                            return LOCALIZED_CLASS_NAMES_MALE[classKey]
-                                        end
-                                        return classKey
-                                    end
-
-                                    local useClassIDLookup = sArenaMixin.isTBC or sArenaMixin.isWrath or sArenaMixin.isMoP
-
-                                    local function getSpecName(specID, classKey, specIndex)
-                                        if useClassIDLookup and classKey and specIndex and GetSpecializationInfoForClassID then
-                                            local classID = classIDs[classKey]
-                                            if classID then
-                                                local _, name = GetSpecializationInfoForClassID(classID, specIndex)
+                                            if specID and GetSpecializationInfoByID then
+                                                local _, name = GetSpecializationInfoByID(specID)
                                                 if name then return name end
                                             end
+                                            return tostring(specID or "?")
                                         end
-                                        if specID and GetSpecializationInfoByID then
-                                            local _, name = GetSpecializationInfoByID(specID)
-                                            if name then return name end
-                                        end
-                                        return tostring(specID or "?")
-                                    end
 
-                                    local function specIconLabel(specID, classKey, specIndex)
-                                        if not specID then return "" end
-                                        if useClassIDLookup and classKey and specIndex and GetSpecializationInfoForClassID then
-                                            local classID = classIDs[classKey]
-                                            if classID then
-                                                local _, _, _, specTexture = GetSpecializationInfoForClassID(classID, specIndex)
+                                        local function specIconLabel(specID, classKey, specIndex)
+                                            if not specID then return "" end
+                                            if useClassIDLookup and classKey and specIndex and GetSpecializationInfoForClassID then
+                                                local classID = classIDs[classKey]
+                                                if classID then
+                                                    local _, _, _, specTexture = GetSpecializationInfoForClassID(classID, specIndex)
+                                                    if specTexture then
+                                                        return "|T" .. specTexture .. ":14|t "
+                                                    end
+                                                end
+                                            end
+                                            if GetSpecializationInfoByID then
+                                                local _, _, _, specTexture = GetSpecializationInfoByID(specID)
                                                 if specTexture then
                                                     return "|T" .. specTexture .. ":14|t "
                                                 end
                                             end
+                                            return ""
                                         end
-                                        if GetSpecializationInfoByID then
-                                            local _, _, _, specTexture = GetSpecializationInfoByID(specID)
-                                            if specTexture then
-                                                return "|T" .. specTexture .. ":14|t "
+
+                                        local function spellTooltip(activeID, defaultID)
+                                            if not activeID then return L["Widget_RangeCheck_SpellID_Desc"] end
+                                            local spellInfo = C_Spell.GetSpellInfo(activeID)
+                                            local tip = (spellInfo and spellInfo.name or L["Unknown"]) .. " (" .. activeID .. ")"
+                                            local minRange = spellInfo and spellInfo.minRange
+                                            local maxRange = spellInfo and spellInfo.maxRange
+                                            if minRange and maxRange then
+                                                if minRange > 0 then
+                                                    tip = tip .. "\n" .. string.format(L["Widget_RangeCheck_RangeYards"], minRange .. "-" .. maxRange)
+                                                elseif maxRange > 0 then
+                                                    tip = tip .. "\n" .. string.format(L["Widget_RangeCheck_RangeYards"], maxRange)
+                                                else
+                                                    tip = tip .. "\n" .. L["Widget_RangeCheck_RangeMelee"]
+                                                end
                                             end
-                                        end
-                                        return ""
-                                    end
-
-                                    local function spellTooltip(activeID, defaultID)
-                                        if not activeID then return L["Widget_RangeCheck_SpellID_Desc"] end
-                                        local spellInfo = C_Spell.GetSpellInfo(activeID)
-                                        local tip = (spellInfo and spellInfo.name or "Unknown") .. " (" .. activeID .. ")"
-                                        local minRange = spellInfo and spellInfo.minRange
-                                        local maxRange = spellInfo and spellInfo.maxRange
-                                        if minRange and maxRange then
-                                            if minRange > 0 then
-                                                tip = tip .. "\nRange: " .. minRange .. "-" .. maxRange .. " yd"
-                                            elseif maxRange > 0 then
-                                                tip = tip .. "\nRange: " .. maxRange .. " yd"
-                                            else
-                                                tip = tip .. "\nRange: Melee"
+                                            if defaultID then
+                                                local defName = C_Spell.GetSpellName(defaultID)
+                                                tip = tip .. "\n\n|cff888888" .. string.format(L["Widget_RangeCheck_DefaultSpell"], (defName or L["Unknown"]) .. " (" .. defaultID .. ")") .. "|r"
                                             end
-                                        end
-                                        if defaultID then
-                                            local defName = C_Spell.GetSpellName(defaultID)
-                                            tip = tip .. "\n\n|cff888888(default: " .. (defName or "Unknown") .. " (" .. defaultID .. "))|r"
-                                        end
-                                        return tip
-                                    end
-
-                                    local function spellNameByID(spellID)
-                                        if not spellID then return nil end
-                                        local name = C_Spell.GetSpellName(spellID)
-                                        return name
-                                    end
-
-                                    local function validateSpellID(info, value)
-                                        if value == "" then return true end
-                                        local num = tonumber(value)
-                                        if not num or num <= 0 then
-                                            return L["Widget_RangeCheck_SpellID_Desc"]
-                                        end
-                                        return true
-                                    end
-
-                                    local args = {}
-                                    local orderCounter = 1
-
-                                    for classIdx, classKey in ipairs(rangeClassOrder) do
-                                      if not hiddenClasses[classKey] then
-                                        local displayName = getClassName(classKey)
-                                        local classColor = C_ClassColor.GetClassColor(classKey)
-                                        local coloredName = displayName
-                                        if classColor then
-                                            coloredName = classColor:WrapTextInColorCode(displayName)
+                                            return tip
                                         end
 
-                                        args["header_" .. classKey] = {
-                                            order = orderCounter,
-                                            name = coloredName,
-                                            type = "description",
-                                            fontSize = "medium",
-                                            width = "full",
+                                        local function spellNameByID(spellID)
+                                            if not spellID then return nil end
+                                            local name = C_Spell.GetSpellName(spellID)
+                                            return name
+                                        end
+
+                                        local function validateSpellID(info, value)
+                                            if value == "" then return true end
+                                            local num = tonumber(value)
+                                            if not num or num <= 0 then
+                                                return L["Widget_RangeCheck_SpellID_Desc"]
+                                            end
+                                            return true
+                                        end
+
+                                        local args = {}
+                                        local orderCounter = 1
+
+                                        for classIdx, classKey in ipairs(rangeClassOrder) do
+                                          if not hiddenClasses[classKey] then
+                                            local displayName = getClassName(classKey)
+                                            local classColor = C_ClassColor.GetClassColor(classKey)
+                                            local coloredName = displayName
+                                            if classColor then
+                                                coloredName = classColor:WrapTextInColorCode(displayName)
+                                            end
+
+                                            args["header_" .. classKey] = {
+                                                order = orderCounter,
+                                                name = coloredName,
+                                                type = "description",
+                                                fontSize = "medium",
+                                                width = "full",
+                                            }
+                                            orderCounter = orderCounter + 1
+
+                                            local specs = rangeClassSpecs[classKey]
+                                            if specs then
+                                                local gameSpecIdx = 0
+                                                for specIdx, specID in ipairs(specs) do
+                                                  if not hiddenSpecs[specID] then
+                                                    gameSpecIdx = gameSpecIdx + 1
+                                                    local currentSpecIdx = gameSpecIdx
+                                                    local specName = getSpecName(specID, classKey, currentSpecIdx)
+                                                    local defaultSpecID = sArenaMixin.defaultRangeSpellsPerSpec[specID]
+
+                                                    args["spec_" .. specID] = {
+                                                        order = orderCounter,
+                                                        name = function(info)
+                                                            local icon = specIconLabel(specID, classKey, currentSpecIdx)
+                                                            local perSpec = info.handler.db.profile.rangeCheckSpellsPerSpec or {}
+                                                            local activeID = perSpec[specID] or defaultSpecID
+                                                            local sName = spellNameByID(activeID) or tostring(activeID or "?")
+                                                            return icon .. specName .. "  |cff666666(" .. sName .. ")|r"
+                                                        end,
+                                                        desc = function(info)
+                                                            local perSpec = info.handler.db.profile.rangeCheckSpellsPerSpec or {}
+                                                            local activeID = perSpec[specID] or defaultSpecID
+                                                            return spellTooltip(activeID, defaultSpecID)
+                                                        end,
+                                                        type = "input",
+                                                        width = 0.8,
+                                                        get = function(info)
+                                                            local perSpec = info.handler.db.profile.rangeCheckSpellsPerSpec or {}
+                                                            local id = perSpec[specID]
+                                                            if id then return tostring(id) end
+                                                            return defaultSpecID and tostring(defaultSpecID) or ""
+                                                        end,
+                                                        set = function(info, value)
+                                                            local db = info.handler.db
+                                                            local num = tonumber(value)
+                                                            db.profile.rangeCheckSpellsPerSpec = db.profile.rangeCheckSpellsPerSpec or {}
+                                                            if num and num ~= defaultSpecID then
+                                                                db.profile.rangeCheckSpellsPerSpec[specID] = num
+                                                            else
+                                                                db.profile.rangeCheckSpellsPerSpec[specID] = nil
+                                                            end
+                                                            info.handler:UpdatePlayerRangeSpell()
+                                                            info.handler:UpdateAllRangeChecks()
+                                                            info.handler:Test()
+                                                        end,
+                                                        validate = validateSpellID,
+                                                    }
+                                                    orderCounter = orderCounter + 1
+                                                  end
+                                                end
+                                            end
+                                          end
+                                        end
+
+                                        args["resetAllSpells"] = {
+                                            order = 999,
+                                            name = L["Reset"],
+                                            width = 0.5,
+                                            type = "execute",
+                                            func = function(info)
+                                                info.handler.db.profile.rangeCheckSpellsPerSpec = {}
+                                                info.handler:UpdatePlayerRangeSpell()
+                                                info.handler:UpdateAllRangeChecks()
+                                                LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                            end,
                                         }
-                                        orderCounter = orderCounter + 1
 
-                                        local specs = rangeClassSpecs[classKey]
-                                        if specs then
-                                            local gameSpecIdx = 0
-                                            for specIdx, specID in ipairs(specs) do
-                                              if not hiddenSpecs[specID] then
-                                                gameSpecIdx = gameSpecIdx + 1
-                                                local currentSpecIdx = gameSpecIdx
-                                                local specName = getSpecName(specID, classKey, currentSpecIdx)
-                                                local defaultSpecID = sArenaMixin.defaultRangeSpellsPerSpec[specID]
-
-                                                args["spec_" .. specID] = {
-                                                    order = orderCounter,
-                                                    name = function(info)
-                                                        local icon = specIconLabel(specID, classKey, currentSpecIdx)
-                                                        local perSpec = info.handler.db.profile.rangeCheckSpellsPerSpec or {}
-                                                        local activeID = perSpec[specID] or defaultSpecID
-                                                        local sName = spellNameByID(activeID) or tostring(activeID or "?")
-                                                        return icon .. specName .. "  |cff666666(" .. sName .. ")|r"
-                                                    end,
-                                                    desc = function(info)
-                                                        local perSpec = info.handler.db.profile.rangeCheckSpellsPerSpec or {}
-                                                        local activeID = perSpec[specID] or defaultSpecID
-                                                        return spellTooltip(activeID, defaultSpecID)
-                                                    end,
-                                                    type = "input",
-                                                    width = 0.8,
-                                                    get = function(info)
-                                                        local perSpec = info.handler.db.profile.rangeCheckSpellsPerSpec or {}
-                                                        local id = perSpec[specID]
-                                                        if id then return tostring(id) end
-                                                        return defaultSpecID and tostring(defaultSpecID) or ""
-                                                    end,
-                                                    set = function(info, value)
-                                                        local db = info.handler.db
-                                                        local num = tonumber(value)
-                                                        db.profile.rangeCheckSpellsPerSpec = db.profile.rangeCheckSpellsPerSpec or {}
-                                                        if num and num ~= defaultSpecID then
-                                                            db.profile.rangeCheckSpellsPerSpec[specID] = num
-                                                        else
-                                                            db.profile.rangeCheckSpellsPerSpec[specID] = nil
-                                                        end
-                                                        info.handler:UpdatePlayerRangeSpell()
-                                                        info.handler:UpdateAllRangeChecks()
-                                                        info.handler:Test()
-                                                    end,
-                                                    validate = validateSpellID,
-                                                }
-                                                orderCounter = orderCounter + 1
-                                              end
-                                            end
-                                        end
-                                      end
-                                    end
-
-                                    args["resetAllSpells"] = {
-                                        order = 999,
-                                        name = L["Reset"],
-                                        width = 0.5,
-                                        type = "execute",
-                                        func = function(info)
-                                            info.handler.db.profile.rangeCheckSpellsPerSpec = {}
-                                            info.handler:UpdatePlayerRangeSpell()
-                                            info.handler:UpdateAllRangeChecks()
-                                            LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-                                        end,
-                                    }
-
-                                    return args
-                                end)(),
+                                        return args
+                                    end)(),
+                                },
                             },
                         },
-                    },
-                    trinketsGroup = {
-                        order = 9,
-                        name = L["Category_Trinkets"],
-                        type = "group",
-                        args = {
-                            trinketSound = {
-                                order = 1,
-                                name = L["Option_TrinketSound"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    playTrinketSound = {
-                                        order = 1,
-                                        name = L["Option_PlayTrinketSound"],
-                                        desc = L["Option_PlayTrinketSound_Desc"],
-                                        type = "toggle",
-                                        width = 0.9,
-                                        get = function(info) return info.handler.db.profile.playTrinketSound end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.playTrinketSound = val
-                                            if val then
-                                                local channel = info.handler.db.profile.trinketSoundChannel or "Master"
-                                                local fileID = info.handler.db.profile.trinketSoundFileID
-                                                if fileID and fileID ~= 0 then
-                                                    PlaySound(fileID, channel)
-                                                else
-                                                    local path = LSM:Fetch(LSM.MediaType.SOUND, info.handler.db.profile.trinketSoundName)
-                                                    if path then PlaySoundFile(path, channel) end
-                                                end
-                                            end
-                                        end,
-                                    },
-                                    trinketSoundChannel = {
-                                        order = 1.5,
-                                        name = L["Option_TrinketSoundChannel"],
-                                        desc = L["Option_TrinketSoundChannel_Desc"],
-                                        type = "select",
-                                        width = 0.5,
-                                        values = {
-                                            ["Master"] = "Master",
-                                            ["SFX"] = "SFX",
-                                            ["Music"] = "Music",
-                                            ["Ambience"] = "Ambience",
-                                            ["Dialog"] = "Dialog",
-                                        },
-                                        disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
-                                        get = function(info) return info.handler.db.profile.trinketSoundChannel or "Master" end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.trinketSoundChannel = val
-                                        end,
-                                    },
-                                    trinketSoundChannelSpacer = {
-                                        order = 1.6,
-                                        name = "",
-                                        type = "description",
-                                        width = "full",
-                                    },
-                                    trinketSoundName = {
-                                        order = 2,
-                                        width = 1.3,
-                                        name = L["Option_TrinketSoundName"],
-                                        desc = L["Option_TrinketSoundName_Desc"],
-                                        type = "select",
-                                        dialogControl = "LSM30_Sound",
-                                        values = SoundValues,
-                                        disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
-                                        get = function(info) return info.handler.db.profile.trinketSoundName end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.trinketSoundName = val
-                                            local channel = info.handler.db.profile.trinketSoundChannel or "Master"
-                                            local path = LSM:Fetch(LSM.MediaType.SOUND, val)
-                                            if path then PlaySoundFile(path, channel) end
-                                        end,
-                                    },
-                                    trinketSoundFileID = {
-                                        order = 3,
-                                        name = L["Option_TrinketSoundFileID"],
-                                        desc = L["Option_TrinketSoundFileID_Desc"],
-                                        type = "input",
-                                        width = 1.3,
-                                        disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
-                                        get = function(info)
-                                            local val = info.handler.db.profile.trinketSoundFileID
-                                            return (val and val ~= 0) and tostring(val) or ""
-                                        end,
-                                        set = function(info, val)
-                                            local id = tonumber(val) or 0
-                                            info.handler.db.profile.trinketSoundFileID = id
-                                            if id ~= 0 then PlaySound(id, info.handler.db.profile.trinketSoundChannel or "Master") end
-                                        end,
-                                    },
-                                    trinketSoundFileIDSpacer = {
-                                        order = 3.5,
-                                        name = "",
-                                        type = "description",
-                                        width = "full",
-                                    },
-                                    healerTrinketSoundName = {
-                                        hidden = function(info) return info.handler:IsArenaSpecSecret() end,
-                                        order = 4,
-                                        width = 1.3,
-                                        name = L["Option_HealerTrinketSoundName"],
-                                        desc = L["Option_HealerTrinketSoundName_Desc"],
-                                        type = "select",
-                                        dialogControl = "LSM30_Sound",
-                                        values = SoundValues,
-                                        disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
-                                        get = function(info) return info.handler.db.profile.healerTrinketSoundName end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.healerTrinketSoundName = val
-                                            local channel = info.handler.db.profile.trinketSoundChannel or "Master"
-                                            local path = LSM:Fetch(LSM.MediaType.SOUND, val)
-                                            if path then PlaySoundFile(path, channel) end
-                                        end,
-                                    },
-                                    healerTrinketSoundFileID = {
-                                        hidden = function(info) return info.handler:IsArenaSpecSecret() end,
-                                        order = 5,
-                                        name = L["Option_HealerTrinketSoundFileID"],
-                                        desc = L["Option_HealerTrinketSoundFileID_Desc"],
-                                        type = "input",
-                                        width = 1.3,
-                                        disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
-                                        get = function(info)
-                                            local val = info.handler.db.profile.healerTrinketSoundFileID
-                                            return (val and val ~= 0) and tostring(val) or ""
-                                        end,
-                                        set = function(info, val)
-                                            local id = tonumber(val) or 0
-                                            info.handler.db.profile.healerTrinketSoundFileID = id
-                                            if id ~= 0 then PlaySound(id, info.handler.db.profile.trinketSoundChannel or "Master") end
-                                        end,
-                                    },
-                                },
-                            },
-                            trinketGlow = {
-                                order = 1.5,
-                                name = L["Option_TrinketGlow"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    trinketUseGlow = {
-                                        order = 1,
-                                        name = L["Option_TrinketUseGlow"],
-                                        desc = L["Option_TrinketUseGlow_Desc"],
-                                        type = "toggle",
-                                        width = 1.1,
-                                        get = function(info) return info.handler.db.profile.trinketUseGlow end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.trinketUseGlow = val
-                                            if val then
-                                                local LCG = LibStub("LibCustomGlow-1.0", true)
-                                                if LCG then
-                                                    local color = info.handler.db.profile.trinketUseGlowColorEnabled and info.handler.db.profile.trinketUseGlowColor or nil
-                                                    local healerOnly = info.handler:TrinketGlowHealerOnly()
-                                                    for i = 1, info.handler.maxArenaOpponents do
-                                                        local frame = info.handler["arena" .. i]
-                                                        if frame and frame.Trinket and frame.Trinket:IsVisible() and (not healerOnly or frame.isHealer) then
-                                                            LCG.ButtonGlow_Start(frame.Trinket, color)
-                                                            if frame.trinketGlowTimer then frame.trinketGlowTimer:Cancel() end
-                                                            frame.trinketGlowTimer = C_Timer.NewTimer(1, function()
-                                                                LCG.ButtonGlow_Stop(frame.Trinket)
-                                                                frame.trinketGlowTimer = nil
-                                                            end)
-                                                        end
-                                                    end
-                                                end
-                                            end
-                                        end,
-                                    },
-                                    trinketUseGlowHealerOnly = {
-                                        hidden = function(info) return info.handler:IsArenaSpecSecret() end,
-                                        order = 2,
-                                        name = L["Option_TrinketUseGlowHealerOnly"],
-                                        desc = L["Option_TrinketUseGlowHealerOnly_Desc"],
-                                        type = "toggle",
-                                        width = "normal",
-                                        disabled = function(info) return not info.handler.db.profile.trinketUseGlow end,
-                                        get = function(info) return info.handler.db.profile.trinketUseGlowHealerOnly end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.trinketUseGlowHealerOnly = val
-                                        end,
-                                    },
-                                    spacer = {
-                                        order = 2.5,
-                                        type = "description",
-                                        name = "",
-                                    },
-                                    trinketUseGlowColorEnabled = {
-                                        order = 3,
-                                        name = L["Option_TrinketUseGlowColorEnabled"],
-                                        desc = L["Option_TrinketUseGlowColorEnabled_Desc"],
-                                        type = "toggle",
-                                        width = "normal",
-                                        disabled = function(info) return not info.handler.db.profile.trinketUseGlow end,
-                                        get = function(info) return info.handler.db.profile.trinketUseGlowColorEnabled end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.trinketUseGlowColorEnabled = val
-                                            if info.handler.db.profile.trinketUseGlow then
-                                                local LCG = LibStub("LibCustomGlow-1.0", true)
-                                                if LCG then
-                                                    local healerOnly = info.handler:TrinketGlowHealerOnly()
-                                                    local glowColor = val and info.handler.db.profile.trinketUseGlowColor or nil
-                                                    for i = 1, info.handler.maxArenaOpponents do
-                                                        local frame = info.handler["arena" .. i]
-                                                        if frame and frame.Trinket and frame.Trinket:IsVisible() and (not healerOnly or frame.isHealer) then
-                                                            LCG.ButtonGlow_Start(frame.Trinket, glowColor)
-                                                            if frame.trinketGlowTimer then frame.trinketGlowTimer:Cancel() end
-                                                            frame.trinketGlowTimer = C_Timer.NewTimer(1, function()
-                                                                LCG.ButtonGlow_Stop(frame.Trinket)
-                                                                frame.trinketGlowTimer = nil
-                                                            end)
-                                                        end
-                                                    end
-                                                end
-                                            end
-                                        end,
-                                    },
-                                    trinketUseGlowColor = {
-                                        order = 4,
-                                        name = L["Option_TrinketUseGlowColor"],
-                                        type = "color",
-                                        hasAlpha = true,
-                                        width = "normal",
-                                        disabled = function(info) return not info.handler.db.profile.trinketUseGlow or not info.handler.db.profile.trinketUseGlowColorEnabled end,
-                                        get = function(info)
-                                            local c = info.handler.db.profile.trinketUseGlowColor or { 1, 1, 1, 1 }
-                                            return c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 1
-                                        end,
-                                        set = function(info, r, g, b, a)
-                                            info.handler.db.profile.trinketUseGlowColor = { r, g, b, a }
-                                            if info.handler.db.profile.trinketUseGlow then
-                                                local LCG = LibStub("LibCustomGlow-1.0", true)
-                                                if LCG then
-                                                    local healerOnly = info.handler:TrinketGlowHealerOnly()
-                                                    for i = 1, info.handler.maxArenaOpponents do
-                                                        local frame = info.handler["arena" .. i]
-                                                        if frame and frame.Trinket and frame.Trinket:IsVisible() and (not healerOnly or frame.isHealer) then
-                                                            LCG.ButtonGlow_Start(frame.Trinket, { r, g, b, a })
-                                                            if frame.trinketGlowTimer then frame.trinketGlowTimer:Cancel() end
-                                                            frame.trinketGlowTimer = C_Timer.NewTimer(1, function()
-                                                                LCG.ButtonGlow_Stop(frame.Trinket)
-                                                                frame.trinketGlowTimer = nil
-                                                            end)
-                                                        end
-                                                    end
-                                                end
-                                            end
-                                        end,
-                                    },
-                                },
-                            },
-                            trinketColors = {
-                                order = 2,
-                                name = L["Option_ColorTrinket"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    colorTrinket = {
-                                        order = 1,
-                                        name = L["Option_ColorTrinket"],
-                                        type = "toggle",
-                                        width = 0.6,
-                                        desc = L["Trinket_MinimalistDesign_Desc"],
-                                        get = function(info) return info.handler.db.profile.colorTrinket end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.colorTrinket = val
-                                            local colors = info.handler.db.profile.trinketColors
-                                            local keepTexture = info.handler.db.profile.colorTrinketKeepTexture
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
+                        trinketsGroup = {
+                            order = 9,
+                            name = L["Category_Trinkets"],
+                            type = "group",
+                            args = {
+                                trinketSound = {
+                                    order = 1,
+                                    name = L["Option_TrinketSound"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        playTrinketSound = {
+                                            order = 1,
+                                            name = L["Option_PlayTrinketSound"],
+                                            desc = L["Option_PlayTrinketSound_Desc"],
+                                            type = "toggle",
+                                            width = 0.9,
+                                            get = function(info) return info.handler.db.profile.playTrinketSound end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.playTrinketSound = val
                                                 if val then
-                                                    if keepTexture then
-                                                        frame.Trinket.Texture:SetDesaturated(true)
+                                                    local channel = info.handler.db.profile.trinketSoundChannel or "Master"
+                                                    local fileID = info.handler.db.profile.trinketSoundFileID
+                                                    if fileID and fileID ~= 0 then
+                                                        PlaySound(fileID, channel)
                                                     else
-                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
-                                                    end
-                                                    if i <= 2 then
-                                                        frame.Trinket.Texture:SetVertexColor(unpack(colors.available))
-                                                        frame.Trinket.Cooldown:Clear()
-                                                    else
-                                                        frame.Trinket.Texture:SetVertexColor(unpack(colors.used))
-                                                    end
-                                                else
-                                                    frame.Trinket.Texture:SetTexture(info.handler.trinketTexture)
-                                                    frame.Trinket.Texture:SetDesaturated(false)
-                                                    frame.Trinket.Texture:SetVertexColor(1, 1, 1)
-                                                end
-                                            end
-                                        end,
-                                    },
-                                    trinketColorAvailable = {
-                                        order = 2,
-                                        type = "color",
-                                        name = L["Option_TrinketColorAvailable"],
-                                        width = 0.5,
-                                        disabled = function(info) return not info.handler.db.profile.colorTrinket end,
-                                        get = function(info)
-                                            return unpack(info.handler.db.profile.trinketColors.available)
-                                        end,
-                                        set = function(info, r, g, b)
-                                            info.handler.db.profile.trinketColors.available = {r, g, b}
-                                            local used = info.handler.db.profile.trinketColors.used
-                                            local keepTexture = info.handler.db.profile.colorTrinketKeepTexture
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                if frame and info.handler.db.profile.colorTrinket then
-                                                    if not keepTexture then
-                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
-                                                    end
-                                                    if i <= 2 then
-                                                        frame.Trinket.Texture:SetVertexColor(r, g, b)
-                                                    else
-                                                        frame.Trinket.Texture:SetVertexColor(unpack(used))
+                                                        local path = LSM:Fetch(LSM.MediaType.SOUND, info.handler.db.profile.trinketSoundName)
+                                                        if path then PlaySoundFile(path, channel) end
                                                     end
                                                 end
-                                            end
-                                        end,
+                                            end,
+                                        },
+                                        trinketSoundChannel = {
+                                            order = 1.5,
+                                            name = L["Option_TrinketSoundChannel"],
+                                            desc = L["Option_TrinketSoundChannel_Desc"],
+                                            type = "select",
+                                            width = 0.5,
+                                            values = {
+                                                ["Master"] = "Master",
+                                                ["SFX"] = "SFX",
+                                                ["Music"] = "Music",
+                                                ["Ambience"] = "Ambience",
+                                                ["Dialog"] = "Dialog",
+                                            },
+                                            disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
+                                            get = function(info) return info.handler.db.profile.trinketSoundChannel or "Master" end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.trinketSoundChannel = val
+                                            end,
+                                        },
+                                        trinketSoundChannelSpacer = {
+                                            order = 1.6,
+                                            name = "",
+                                            type = "description",
+                                            width = "full",
+                                        },
+                                        trinketSoundName = {
+                                            order = 2,
+                                            width = 1.3,
+                                            name = L["Option_TrinketSoundName"],
+                                            desc = L["Option_TrinketSoundName_Desc"],
+                                            type = "select",
+                                            dialogControl = "LSM30_Sound",
+                                            values = SoundValues,
+                                            disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
+                                            get = function(info) return info.handler.db.profile.trinketSoundName end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.trinketSoundName = val
+                                                local channel = info.handler.db.profile.trinketSoundChannel or "Master"
+                                                local path = LSM:Fetch(LSM.MediaType.SOUND, val)
+                                                if path then PlaySoundFile(path, channel) end
+                                            end,
+                                        },
+                                        trinketSoundFileID = {
+                                            order = 3,
+                                            name = L["Option_TrinketSoundFileID"],
+                                            desc = L["Option_TrinketSoundFileID_Desc"],
+                                            type = "input",
+                                            width = 1.3,
+                                            disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
+                                            get = function(info)
+                                                local val = info.handler.db.profile.trinketSoundFileID
+                                                return (val and val ~= 0) and tostring(val) or ""
+                                            end,
+                                            set = function(info, val)
+                                                local id = tonumber(val) or 0
+                                                info.handler.db.profile.trinketSoundFileID = id
+                                                if id ~= 0 then PlaySound(id, info.handler.db.profile.trinketSoundChannel or "Master") end
+                                            end,
+                                        },
+                                        trinketSoundFileIDSpacer = {
+                                            order = 3.5,
+                                            name = "",
+                                            type = "description",
+                                            width = "full",
+                                        },
+                                        healerTrinketSoundName = {
+                                            hidden = function(info) return info.handler:IsArenaSpecSecret() end,
+                                            order = 4,
+                                            width = 1.3,
+                                            name = L["Option_HealerTrinketSoundName"],
+                                            desc = L["Option_HealerTrinketSoundName_Desc"],
+                                            type = "select",
+                                            dialogControl = "LSM30_Sound",
+                                            values = SoundValues,
+                                            disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
+                                            get = function(info) return info.handler.db.profile.healerTrinketSoundName end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.healerTrinketSoundName = val
+                                                local channel = info.handler.db.profile.trinketSoundChannel or "Master"
+                                                local path = LSM:Fetch(LSM.MediaType.SOUND, val)
+                                                if path then PlaySoundFile(path, channel) end
+                                            end,
+                                        },
+                                        healerTrinketSoundFileID = {
+                                            hidden = function(info) return info.handler:IsArenaSpecSecret() end,
+                                            order = 5,
+                                            name = L["Option_HealerTrinketSoundFileID"],
+                                            desc = L["Option_HealerTrinketSoundFileID_Desc"],
+                                            type = "input",
+                                            width = 1.3,
+                                            disabled = function(info) return not info.handler.db.profile.playTrinketSound end,
+                                            get = function(info)
+                                                local val = info.handler.db.profile.healerTrinketSoundFileID
+                                                return (val and val ~= 0) and tostring(val) or ""
+                                            end,
+                                            set = function(info, val)
+                                                local id = tonumber(val) or 0
+                                                info.handler.db.profile.healerTrinketSoundFileID = id
+                                                if id ~= 0 then PlaySound(id, info.handler.db.profile.trinketSoundChannel or "Master") end
+                                            end,
+                                        },
                                     },
-                                    trinketColorUsed = {
-                                        order = 3,
-                                        type = "color",
-                                        name = L["Option_TrinketColorUsed"],
-                                        width = 0.6,
-                                        disabled = function(info) return not info.handler.db.profile.colorTrinket end,
-                                        get = function(info)
-                                            return unpack(info.handler.db.profile.trinketColors.used)
-                                        end,
-                                        set = function(info, r, g, b)
-                                            info.handler.db.profile.trinketColors.used = {r, g, b}
-                                            local available = info.handler.db.profile.trinketColors.available
-                                            local keepTexture = info.handler.db.profile.colorTrinketKeepTexture
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                if frame and info.handler.db.profile.colorTrinket then
-                                                    if not keepTexture then
-                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
-                                                    end
-                                                    if i <= 2 then
-                                                        frame.Trinket.Texture:SetVertexColor(unpack(available))
-                                                    else
-                                                        frame.Trinket.Texture:SetVertexColor(r, g, b)
+                                },
+                                trinketGlow = {
+                                    order = 1.5,
+                                    name = L["Option_TrinketGlow"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        trinketUseGlow = {
+                                            order = 1,
+                                            name = L["Option_TrinketUseGlow"],
+                                            desc = L["Option_TrinketUseGlow_Desc"],
+                                            type = "toggle",
+                                            width = 1.1,
+                                            get = function(info) return info.handler.db.profile.trinketUseGlow end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.trinketUseGlow = val
+                                                if val then
+                                                    local LCG = LibStub("LibCustomGlow-1.0", true)
+                                                    if LCG then
+                                                        local color = info.handler.db.profile.trinketUseGlowColorEnabled and info.handler.db.profile.trinketUseGlowColor or nil
+                                                        local healerOnly = info.handler:TrinketGlowHealerOnly()
+                                                        for i = 1, info.handler.maxArenaOpponents do
+                                                            local frame = info.handler["arena" .. i]
+                                                            if frame and frame.Trinket and frame.Trinket:IsVisible() and (not healerOnly or frame.isHealer) then
+                                                                LCG.ButtonGlow_Start(frame.Trinket, color)
+                                                                if frame.trinketGlowTimer then frame.trinketGlowTimer:Cancel() end
+                                                                frame.trinketGlowTimer = C_Timer.NewTimer(1, function()
+                                                                    LCG.ButtonGlow_Stop(frame.Trinket)
+                                                                    frame.trinketGlowTimer = nil
+                                                                end)
+                                                            end
+                                                        end
                                                     end
                                                 end
-                                            end
-                                        end,
+                                            end,
+                                        },
+                                        trinketUseGlowHealerOnly = {
+                                            hidden = function(info) return info.handler:IsArenaSpecSecret() end,
+                                            order = 2,
+                                            name = L["Option_TrinketUseGlowHealerOnly"],
+                                            desc = L["Option_TrinketUseGlowHealerOnly_Desc"],
+                                            type = "toggle",
+                                            width = "normal",
+                                            disabled = function(info) return not info.handler.db.profile.trinketUseGlow end,
+                                            get = function(info) return info.handler.db.profile.trinketUseGlowHealerOnly end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.trinketUseGlowHealerOnly = val
+                                            end,
+                                        },
+                                        spacer = {
+                                            order = 2.5,
+                                            type = "description",
+                                            name = "",
+                                        },
+                                        trinketUseGlowColorEnabled = {
+                                            order = 3,
+                                            name = L["Option_TrinketUseGlowColorEnabled"],
+                                            desc = L["Option_TrinketUseGlowColorEnabled_Desc"],
+                                            type = "toggle",
+                                            width = "normal",
+                                            disabled = function(info) return not info.handler.db.profile.trinketUseGlow end,
+                                            get = function(info) return info.handler.db.profile.trinketUseGlowColorEnabled end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.trinketUseGlowColorEnabled = val
+                                                if info.handler.db.profile.trinketUseGlow then
+                                                    local LCG = LibStub("LibCustomGlow-1.0", true)
+                                                    if LCG then
+                                                        local healerOnly = info.handler:TrinketGlowHealerOnly()
+                                                        local glowColor = val and info.handler.db.profile.trinketUseGlowColor or nil
+                                                        for i = 1, info.handler.maxArenaOpponents do
+                                                            local frame = info.handler["arena" .. i]
+                                                            if frame and frame.Trinket and frame.Trinket:IsVisible() and (not healerOnly or frame.isHealer) then
+                                                                LCG.ButtonGlow_Start(frame.Trinket, glowColor)
+                                                                if frame.trinketGlowTimer then frame.trinketGlowTimer:Cancel() end
+                                                                frame.trinketGlowTimer = C_Timer.NewTimer(1, function()
+                                                                    LCG.ButtonGlow_Stop(frame.Trinket)
+                                                                    frame.trinketGlowTimer = nil
+                                                                end)
+                                                            end
+                                                        end
+                                                    end
+                                                end
+                                            end,
+                                        },
+                                        trinketUseGlowColor = {
+                                            order = 4,
+                                            name = L["Option_TrinketUseGlowColor"],
+                                            type = "color",
+                                            hasAlpha = true,
+                                            width = "normal",
+                                            disabled = function(info) return not info.handler.db.profile.trinketUseGlow or not info.handler.db.profile.trinketUseGlowColorEnabled end,
+                                            get = function(info)
+                                                local c = info.handler.db.profile.trinketUseGlowColor or { 1, 1, 1, 1 }
+                                                return c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 1
+                                            end,
+                                            set = function(info, r, g, b, a)
+                                                info.handler.db.profile.trinketUseGlowColor = { r, g, b, a }
+                                                if info.handler.db.profile.trinketUseGlow then
+                                                    local LCG = LibStub("LibCustomGlow-1.0", true)
+                                                    if LCG then
+                                                        local healerOnly = info.handler:TrinketGlowHealerOnly()
+                                                        for i = 1, info.handler.maxArenaOpponents do
+                                                            local frame = info.handler["arena" .. i]
+                                                            if frame and frame.Trinket and frame.Trinket:IsVisible() and (not healerOnly or frame.isHealer) then
+                                                                LCG.ButtonGlow_Start(frame.Trinket, { r, g, b, a })
+                                                                if frame.trinketGlowTimer then frame.trinketGlowTimer:Cancel() end
+                                                                frame.trinketGlowTimer = C_Timer.NewTimer(1, function()
+                                                                    LCG.ButtonGlow_Stop(frame.Trinket)
+                                                                    frame.trinketGlowTimer = nil
+                                                                end)
+                                                            end
+                                                        end
+                                                    end
+                                                end
+                                            end,
+                                        },
                                     },
-                                    colorTrinketKeepTextureSpacer = {
-                                        order = 4,
-                                        type = "description",
-                                        name = "",
-                                    },
-                                    colorTrinketKeepTexture = {
-                                        order = 5,
-                                        name = L["Option_ColorTrinketKeepTexture"],
-                                        type = "toggle",
-                                        width = "full",
-                                        desc = L["Option_ColorTrinketKeepTexture_Desc"],
-                                        disabled = function(info) return not info.handler.db.profile.colorTrinket end,
-                                        get = function(info) return info.handler.db.profile.colorTrinketKeepTexture end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.colorTrinketKeepTexture = val
-                                            local colors = info.handler.db.profile.trinketColors
-                                            for i = 1, info.handler.maxArenaOpponents do
-                                                local frame = info.handler["arena" .. i]
-                                                if info.handler.db.profile.colorTrinket then
+                                },
+                                trinketColors = {
+                                    order = 2,
+                                    name = L["Option_ColorTrinket"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        colorTrinket = {
+                                            order = 1,
+                                            name = L["Option_ColorTrinket"],
+                                            type = "toggle",
+                                            width = 0.6,
+                                            desc = L["Trinket_MinimalistDesign_Desc"],
+                                            get = function(info) return info.handler.db.profile.colorTrinket end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.colorTrinket = val
+                                                local colors = info.handler.db.profile.trinketColors
+                                                local keepTexture = info.handler.db.profile.colorTrinketKeepTexture
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
                                                     if val then
+                                                        if keepTexture then
+                                                            frame.Trinket.Texture:SetDesaturated(true)
+                                                        else
+                                                            frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                        end
+                                                        if i <= 2 then
+                                                            frame.Trinket.Texture:SetVertexColor(unpack(colors.available))
+                                                            frame.Trinket.Cooldown:Clear()
+                                                        else
+                                                            frame.Trinket.Texture:SetVertexColor(unpack(colors.used))
+                                                        end
+                                                    else
                                                         frame.Trinket.Texture:SetTexture(info.handler.trinketTexture)
-                                                        frame.Trinket.Texture:SetDesaturated(true)
-                                                    else
-                                                        frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
                                                         frame.Trinket.Texture:SetDesaturated(false)
-                                                    end
-                                                    if i <= 2 then
-                                                        frame.Trinket.Texture:SetVertexColor(unpack(colors.available))
-                                                    else
-                                                        frame.Trinket.Texture:SetVertexColor(unpack(colors.used))
+                                                        frame.Trinket.Texture:SetVertexColor(1, 1, 1)
                                                     end
                                                 end
-                                            end
-                                        end,
+                                            end,
+                                        },
+                                        trinketColorAvailable = {
+                                            order = 2,
+                                            type = "color",
+                                            name = L["Option_TrinketColorAvailable"],
+                                            width = 0.5,
+                                            disabled = function(info) return not info.handler.db.profile.colorTrinket end,
+                                            get = function(info)
+                                                return unpack(info.handler.db.profile.trinketColors.available)
+                                            end,
+                                            set = function(info, r, g, b)
+                                                info.handler.db.profile.trinketColors.available = {r, g, b}
+                                                local used = info.handler.db.profile.trinketColors.used
+                                                local keepTexture = info.handler.db.profile.colorTrinketKeepTexture
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    if frame and info.handler.db.profile.colorTrinket then
+                                                        if not keepTexture then
+                                                            frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                        end
+                                                        if i <= 2 then
+                                                            frame.Trinket.Texture:SetVertexColor(r, g, b)
+                                                        else
+                                                            frame.Trinket.Texture:SetVertexColor(unpack(used))
+                                                        end
+                                                    end
+                                                end
+                                            end,
+                                        },
+                                        trinketColorUsed = {
+                                            order = 3,
+                                            type = "color",
+                                            name = L["Option_TrinketColorUsed"],
+                                            width = 0.6,
+                                            disabled = function(info) return not info.handler.db.profile.colorTrinket end,
+                                            get = function(info)
+                                                return unpack(info.handler.db.profile.trinketColors.used)
+                                            end,
+                                            set = function(info, r, g, b)
+                                                info.handler.db.profile.trinketColors.used = {r, g, b}
+                                                local available = info.handler.db.profile.trinketColors.available
+                                                local keepTexture = info.handler.db.profile.colorTrinketKeepTexture
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    if frame and info.handler.db.profile.colorTrinket then
+                                                        if not keepTexture then
+                                                            frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                        end
+                                                        if i <= 2 then
+                                                            frame.Trinket.Texture:SetVertexColor(unpack(available))
+                                                        else
+                                                            frame.Trinket.Texture:SetVertexColor(r, g, b)
+                                                        end
+                                                    end
+                                                end
+                                            end,
+                                        },
+                                        colorTrinketKeepTextureSpacer = {
+                                            order = 4,
+                                            type = "description",
+                                            name = "",
+                                        },
+                                        colorTrinketKeepTexture = {
+                                            order = 5,
+                                            name = L["Option_ColorTrinketKeepTexture"],
+                                            type = "toggle",
+                                            width = "full",
+                                            desc = L["Option_ColorTrinketKeepTexture_Desc"],
+                                            disabled = function(info) return not info.handler.db.profile.colorTrinket end,
+                                            get = function(info) return info.handler.db.profile.colorTrinketKeepTexture end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.colorTrinketKeepTexture = val
+                                                local colors = info.handler.db.profile.trinketColors
+                                                for i = 1, info.handler.maxArenaOpponents do
+                                                    local frame = info.handler["arena" .. i]
+                                                    if info.handler.db.profile.colorTrinket then
+                                                        if val then
+                                                            frame.Trinket.Texture:SetTexture(info.handler.trinketTexture)
+                                                            frame.Trinket.Texture:SetDesaturated(true)
+                                                        else
+                                                            frame.Trinket.Texture:SetTexture("Interface\\Buttons\\WHITE8X8")
+                                                            frame.Trinket.Texture:SetDesaturated(false)
+                                                        end
+                                                        if i <= 2 then
+                                                            frame.Trinket.Texture:SetVertexColor(unpack(colors.available))
+                                                        else
+                                                            frame.Trinket.Texture:SetVertexColor(unpack(colors.used))
+                                                        end
+                                                    end
+                                                end
+                                            end,
+                                        },
                                     },
                                 },
-                            },
-                            trinketMisc = {
-                                order = 3,
-                                name = L["Option_Miscellaneous"],
-                                type = "group",
-                                inline = true,
-                                args = {
-                                    removeUnequippedTrinketTexture = {
-                                        order = 1,
-                                        name = L["Option_RemoveUnEquippedTrinketTexture"],
-                                        desc = L["Trinket_HideWhenNoTrinket_Desc"],
-                                        type = "toggle",
-                                        width = "full",
-                                        get = function(info) return info.handler.db.profile.removeUnequippedTrinketTexture end,
-                                        set = function(info, val)
-                                            info.handler.db.profile.removeUnequippedTrinketTexture = val
-                                            info.handler:UpdateNoTrinketTexture()
-                                        end
+                                trinketMisc = {
+                                    order = 3,
+                                    name = L["Option_Miscellaneous"],
+                                    type = "group",
+                                    inline = true,
+                                    args = {
+                                        removeUnequippedTrinketTexture = {
+                                            order = 1,
+                                            name = L["Option_RemoveUnEquippedTrinketTexture"],
+                                            desc = L["Trinket_HideWhenNoTrinket_Desc"],
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.removeUnequippedTrinketTexture end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.removeUnequippedTrinketTexture = val
+                                                info.handler:UpdateNoTrinketTexture()
+                                            end
+                                        },
                                     },
                                 },
                             },
                         },
-                    },
-                    importOtherForkSettings = {
-                        order = 10,
-                        name = L["Option_OthersArena"],
-                        desc = L["Option_OthersArena_Desc"],
-                        type = "group",
-                        args = {
-                            description = {
-                                order = 1,
-                                type = "description",
-                                name = L["Option_ImportDescription"],
-                                fontSize = "medium",
-                            },
-                            convertButton = {
-                                order = 2,
-                                type = "execute",
-                                name = L["Option_ImportSettings"],
-                                desc = L["Option_ImportSettings_Desc"],
-                                func = "ImportOtherForkSettings",
-                                width = "normal",
-                                disabled = function(info) return info.handler.conversionInProgress end,
-                            },
-                            conversionStatus = {
-                                order = 2.5,
-                                type = "description",
-                                name = function(info) return info.handler.conversionStatusText or "" end,
-                                fontSize = "medium",
-                                hidden = function(info) return not info.handler.conversionStatusText or info.handler.conversionStatusText == "" end,
+                        importOtherForkSettings = {
+                            order = 10,
+                            name = L["Option_OthersArena"],
+                            desc = L["Option_OthersArena_Desc"],
+                            type = "group",
+                            args = {
+                                description = {
+                                    order = 1,
+                                    type = "description",
+                                    name = L["Option_ImportDescription"],
+                                    fontSize = "medium",
+                                },
+                                convertButton = {
+                                    order = 2,
+                                    type = "execute",
+                                    name = L["Option_ImportSettings"],
+                                    desc = L["Option_ImportSettings_Desc"],
+                                    func = "ImportOtherForkSettings",
+                                    width = "normal",
+                                    disabled = function(info) return info.handler.conversionInProgress end,
+                                },
+                                conversionStatus = {
+                                    order = 2.5,
+                                    type = "description",
+                                    name = function(info) return info.handler.conversionStatusText or "" end,
+                                    fontSize = "medium",
+                                    hidden = function(info) return not info.handler.conversionStatusText or info.handler.conversionStatusText == "" end,
+                                },
                             },
                         },
                     },
                 },
-            },
-            streamerProfiles = {
-                order = 8,
-                name = L["Option_StreamerProfilesHeader"],
-                desc = L["Option_StreamerProfiles_Desc_Tab"],
-                type = "group",
-                args = {
-                    streamerProfilesDesc = {
-                        order = 1,
-                        type = "description",
-                        name = function(info)
-                            local name, realm = UnitName("player")
-                            realm = realm or GetRealmName()
-                            local fullKey = name .. " - " .. realm
-                            local currentProfileKey = sArena_ReloadedDB.profileKeys[fullKey] or "Default"
-                            return string.format(L["Option_StreamerProfiles_Desc"], currentProfileKey)
-                        end,
-                        fontSize = "medium",
-                    },
-                    streamerProfilesGroup = {
-                        order = 2,
-                        type = "group",
-                        name = "",
-                        inline = true,
-                        args = sArenaMixin:BuildStreamerProfileArgs(),
-                    },
-                    streamerProfilesSpacer = {
-                        order = 3,
-                        type = "description",
-                        name = " ",
-                    },
-                    streamerProfilesMissing = {
-                        order = 4,
-                        type = "description",
-                        name = L["Option_StreamerProfiles_Missing"],
-                        fontSize = "medium",
-                    },
-                    discordSpacer = {
-                        order = 5,
-                        type = "description",
-                        name = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
-                    },
-                    discordTitle = {
-                        order = 5.5,
-                        type = "description",
-                        name = L["Option_DiscordLink"],
-                        fontSize = "large",
-                    },
-                    discordLink = {
-                        order = 6,
-                        name = "",
-                        type = "input",
-                        width = 1.5,
-                        dialogControl = "EditBox",
-                        get = function()
-                            return "https://discord.gg/cjqVaEMm25"
-                        end,
-                        set = function() end,
-                    },
-                    discordTitleTip = {
-                        order = 6.5,
-                        type = "description",
-                        name = L["Option_DiscordLink_Desc"],
-                        fontSize = "medium",
-                    },
-                    discordTitleAddons = {
-                        order = 6.6,
-                        type = "description",
-                        name = L["Option_DiscordLink_Addons"],
-                        fontSize = "medium",
+                streamerProfiles = {
+                    order = 8,
+                    name = L["Option_StreamerProfilesHeader"],
+                    desc = L["Option_StreamerProfiles_Desc_Tab"],
+                    type = "group",
+                    args = {
+                        streamerProfilesDesc = {
+                            order = 1,
+                            type = "description",
+                            name = function(info)
+                                local name, realm = UnitName("player")
+                                realm = realm or GetRealmName()
+                                local fullKey = name .. " - " .. realm
+                                local currentProfileKey = sArena_ReloadedDB.profileKeys[fullKey] or "Default"
+                                return string.format(L["Option_StreamerProfiles_Desc"], currentProfileKey)
+                            end,
+                            fontSize = "medium",
+                        },
+                        streamerProfilesGroup = {
+                            order = 2,
+                            type = "group",
+                            name = "",
+                            inline = true,
+                            args = sArenaMixin:BuildStreamerProfileArgs(),
+                        },
+                        streamerProfilesSpacer = {
+                            order = 3,
+                            type = "description",
+                            name = " ",
+                        },
+                        streamerProfilesMissing = {
+                            order = 4,
+                            type = "description",
+                            name = L["Option_StreamerProfiles_Missing"],
+                            fontSize = "medium",
+                        },
+                        discordSpacer = {
+                            order = 5,
+                            type = "description",
+                            name = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+                        },
+                        discordTitle = {
+                            order = 5.5,
+                            type = "description",
+                            name = L["Option_DiscordLink"],
+                            fontSize = "large",
+                        },
+                        discordLink = {
+                            order = 6,
+                            name = "",
+                            type = "input",
+                            width = 1.5,
+                            dialogControl = "EditBox",
+                            get = function()
+                                return "https://discord.gg/cjqVaEMm25"
+                            end,
+                            set = function() end,
+                        },
+                        discordTitleTip = {
+                            order = 6.5,
+                            type = "description",
+                            name = L["Option_DiscordLink_Desc"],
+                            fontSize = "medium",
+                        },
+                        discordTitleAddons = {
+                            order = 6.6,
+                            type = "description",
+                            name = L["Option_DiscordLink_Addons"],
+                            fontSize = "medium",
+                        },
                     },
                 },
-            },
-            importExport = {
-                order = 9,
-                name = L["Option_ImportExport"],
-                desc = L["Option_ImportExport_Desc"],
-                type = "group",
-                args = {
-                    exportHeader = {
-                        order = 0,
-                        type = "description",
-                        name = L["Option_ExportProfileHeader"],
-                        fontSize = "large",
-                    },
-                    exportButton = {
-                        order = 1,
-                        name = L["Option_ExportCurrentProfile"],
-                        type = "execute",
-                        func = function(info)
-                            local exportString, err = info.handler:ExportProfile()
-                            if not err then
-                                info.handler.exportString = exportString
-                                info.handler.importInputText = ""
-                                LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
-                                C_Timer.After(0.1, function()
-                                    local AceGUI = LibStub("AceGUI-3.0")
-                                    for i = 1, AceGUI:GetWidgetCount("MultiLineEditBox") do
-                                        local editBox = _G[("MultiLineEditBox%dEdit"):format(i)]
-                                        if editBox and editBox:IsVisible() then
-                                            local text = editBox:GetText()
-                                            if text and text:match("^!sArena:") then
-                                                editBox:SetFocus()
-                                                editBox:HighlightText(0, text:len())
-                                                break
+                importExport = {
+                    order = 9,
+                    name = L["Option_ImportExport"],
+                    desc = L["Option_ImportExport_Desc"],
+                    type = "group",
+                    args = {
+                        exportHeader = {
+                            order = 0,
+                            type = "description",
+                            name = L["Option_ExportProfileHeader"],
+                            fontSize = "large",
+                        },
+                        exportButton = {
+                            order = 1,
+                            name = L["Option_ExportCurrentProfile"],
+                            type = "execute",
+                            func = function(info)
+                                local exportString, err = info.handler:ExportProfile()
+                                if not err then
+                                    info.handler.exportString = exportString
+                                    info.handler.importInputText = ""
+                                    LibStub("AceConfigRegistry-3.0"):NotifyChange("sArena")
+                                    C_Timer.After(0.1, function()
+                                        local AceGUI = LibStub("AceGUI-3.0")
+                                        for i = 1, AceGUI:GetWidgetCount("MultiLineEditBox") do
+                                            local editBox = _G[("MultiLineEditBox%dEdit"):format(i)]
+                                            if editBox and editBox:IsVisible() then
+                                                local text = editBox:GetText()
+                                                if text and text:match("^!sArena:") then
+                                                    editBox:SetFocus()
+                                                    editBox:HighlightText(0, text:len())
+                                                    break
+                                                end
                                             end
                                         end
-                                    end
-                                end)
-                            else
-                                info.handler:Print(L["Message_ExportFailed"] .. " " .. err)
-                            end
-                        end,
-                        width = "normal",
+                                    end)
+                                else
+                                    info.handler:Print(L["Message_ExportFailed"] .. " " .. err)
+                                end
+                            end,
+                            width = "normal",
+                        },
+                        exportText = {
+                            order = 2,
+                            name = L["Option_ExportString"],
+                            type = "input",
+                            desc = L["Option_ExportString_Desc"],
+                            width = "full",
+                            multiline = 5,
+                            get = function(info)
+                                return info.handler.exportString or ""
+                            end,
+                            set = function() end,
+                        },
+                        spacer = {
+                            order = 3,
+                            type = "description",
+                            name = " ",
+                        },
+                        importHeader = {
+                            order = 4,
+                            type = "description",
+                            name = L["Option_ImportProfileHeader"],
+                            fontSize = "large",
+                        },
+                        importInput = {
+                            order = 5,
+                            name = L["Option_PasteProfileString"],
+                            desc = L["Option_PasteProfileString_Desc"],
+                            type = "input",
+                            width = "full",
+                            multiline = 5,
+                            get = function(info)
+                                return info.handler.importInputText or ""
+                            end,
+                            set = function(info, val)
+                                info.handler.importInputText = val
+                                local str = info.handler.importInputText
+                                local success, err = info.handler:ImportProfile(str)
+                                if not success then
+                                    info.handler:Print(L["Message_ImportFailed"] .. " " .. err)
+                                else
+                                    sArena_ReloadedDB.reOpenOptions = true
+                                end
+                            end,
+                        },
                     },
-                    exportText = {
-                        order = 2,
-                        name = L["Option_ExportString"],
-                        type = "input",
-                        desc = L["Option_ExportString_Desc"],
-                        width = "full",
-                        multiline = 5,
-                        get = function(info)
-                            return info.handler.exportString or ""
-                        end,
-                        set = function() end,
-                    },
-                    spacer = {
-                        order = 3,
-                        type = "description",
-                        name = " ",
-                    },
-                    importHeader = {
-                        order = 4,
-                        type = "description",
-                        name = L["Option_ImportProfileHeader"],
-                        fontSize = "large",
-                    },
-                    importInput = {
-                        order = 5,
-                        name = L["Option_PasteProfileString"],
-                        desc = L["Option_PasteProfileString_Desc"],
-                        type = "input",
-                        width = "full",
-                        multiline = 5,
-                        get = function(info)
-                            return info.handler.importInputText or ""
-                        end,
-                        set = function(info, val)
-                            info.handler.importInputText = val
-                            local str = info.handler.importInputText
-                            local success, err = info.handler:ImportProfile(str)
-                            if not success then
-                                info.handler:Print(L["Message_ImportFailed"] .. " " .. err)
-                            else
-                                sArena_ReloadedDB.reOpenOptions = true
-                            end
-                        end,
-                    },
-                },
-            }
-        },
-    }
+                }
+            },
+        }
+    end
+
+    self.optionsTable = sArenaMixin.optionsTable
+    self:AddSettingsSearchOptions()
 end

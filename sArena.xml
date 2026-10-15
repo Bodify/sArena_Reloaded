@@ -40,6 +40,7 @@
     <Script file="Modules\ImportExport.lua"/>
     <Script file="GUI\AceGUIExtras.lua"/>
     <Script file="Config.lua"/>
+    <Script file="GUI\SettingsSearch.lua"/>
     <Script file="Modules\Auras_Midnight.lua"/>
     <Script file="Modules\Trinkets.lua"/>
     <Script file="Modules\ModernCastbar.lua"/>

@@ -19,6 +19,7 @@
     <Script file="Data\Profiles.lua"/>
     <Script file="Data\RangeSpells\RangeSpells_MoP.lua"/>
     <Script file="Data\Auras\AuraList_MoP.lua"/>
+    <Script file="Data\DispelSpells\Dispels_Classics.lua"/>
     <Script file="Modules\Functions.lua"/>
     <Script file="Modules\CooldownFrame.lua"/>
     <Script file="Modules\Clicks.lua"/>
@@ -41,6 +42,7 @@
     <Script file="Modules\ImportExport.lua"/>
     <Script file="GUI\AceGUIExtras.lua"/>
     <Script file="Config.lua"/>
+    <Script file="GUI\SettingsSearch.lua"/>
     <Script file="Modules\Auras.lua"/>
     <Script file="Modules\Trinkets.lua"/>
     <Script file="Modules\ModernCastbar.lua"/>

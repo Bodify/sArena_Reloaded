@@ -1,4 +1,3 @@
-local L = sArenaMixin.L
 
 sArenaMixin.rangeTextures = {
     ["common-icon-checkmark-yellow"] = "|A:common-icon-checkmark-yellow:14:14|a Icon 1",
@@ -16,9 +15,6 @@ sArenaMixin.rangeTextures = {
     ["bags-glow-artifact"] = "|A:bags-glow-artifact:14:14|a Icon 13",
     ["GM-icon-visible-hover"] = "|A:GM-icon-visible-hover:14:14|a Icon 14",
     ["GM-icon-visibleDis-hover"] = "|A:GM-icon-visibleDis-hover:14:14|a Icon 15",
-
-    [""] = L["Widget_RangeCheck_PresetNone"],
-    ["custom"] = L["Widget_RangeCheck_CustomAtlas"],
 }
 
 sArenaMixin.rangeTexturesSorting = {

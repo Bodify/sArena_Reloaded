@@ -318,14 +318,14 @@ function sArenaMixin:UpdateShadowsightDisplay()
     local text = ""
 
     if availableCount == 2 then
-        text = "Shadowsights Ready " .. iconTexture .. " " .. iconTexture
+        text = L["Shadowsight_Ready"] .. " " .. iconTexture .. " " .. iconTexture
     elseif availableCount == 1 then
-        text = "Shadowsight Ready " .. iconTexture
+        text = L["Shadowsight_ReadyOne"] .. " " .. iconTexture
     elseif shortestTimer < math.huge then
         local timeLeft = math.ceil(shortestTimer - currentTime)
-        text = string.format("Shadowsight spawns in %d sec", timeLeft)
+        text = string.format(L["Shadowsight_SpawnsIn"], timeLeft)
     else
-        text = "Shadowsight"
+        text = L["Shadowsight"]
     end
 
     self.ShadowsightTimer.Text:SetText(text)
@@ -1968,9 +1968,9 @@ function sArenaMixin:GladTracker()
 
         -- map rows -> {id, name}
         local tracked = {
-            [ConquestFrame.Arena3v3]         = { id = 62930, name = "Gladiator" },
-            [ConquestFrame.RatedSoloShuffle] = { id = 62932, name = "Legend" },
-            [ConquestFrame.RatedBGBlitz]     = { id = 62950, name = "Strategist" },
+            [ConquestFrame.Arena3v3]         = { id = 62930, name = L["GladTracker_Gladiator"] },
+            [ConquestFrame.RatedSoloShuffle] = { id = 62932, name = L["GladTracker_Legend"] },
+            [ConquestFrame.RatedBGBlitz]     = { id = 62950, name = L["GladTracker_Strategist"] },
         }
 
         local function BuildTooltip(holder)
@@ -1983,12 +1983,12 @@ function sArenaMixin:GladTracker()
             if req > 0 and qty >= req then
                 local playerName = UnitName("player")
                 GameTooltip:AddLine(("%s %s!"):format(holder._name or "?", playerName), 1, 0.82, 0, true)
-                GameTooltip:AddLine("Has a nice ring to it, doesn't it?", 1, 1, 1, true)
+                GameTooltip:AddLine(L["GladTracker_NiceRing"], 1, 1, 1, true)
             else
-                GameTooltip:AddLine(("%d/%d %s Wins"):format(qty, req, holder._name or "?"), 1, 0.82, 0, true)
+                GameTooltip:AddLine(string.format(L["GladTracker_Wins"], qty, req, holder._name or "?"), 1, 0.82, 0, true)
             end
 
-            GameTooltip:AddLine("|cff777777By sArena Reloaded|r", 1, 1, 1, true)
+            GameTooltip:AddLine("|cff777777" .. L["GladTracker_BySArena"] .. "|r", 1, 1, 1, true)
             GameTooltip:Show()
         end
 

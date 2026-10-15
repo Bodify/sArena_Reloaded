@@ -47,7 +47,7 @@ local function ProfileDisplayText(profile)
 end
 
 local POPUP_DEFAULTS = {
-    button1 = "Yes", button2 = "No", timeout = 0,
+    timeout = 0,
     whileDead = true, preferredIndex = 3,
     OnAccept = function(_, data) if data and data.func then data.func() end end,
     OnCancel = function(_, data) if data and data.cancel then data.cancel() end end,
@@ -120,7 +120,7 @@ function sArenaMixin:ShowWelcomePopup()
     for _, name in ipairs({ "SARENA_INTRO_CONFIRM_LAYOUT", "SARENA_INTRO_CONFIRM_PROFILE" }) do
         StaticPopupDialogs[name] = {
             text = "",
-            button1 = POPUP_DEFAULTS.button1, button2 = POPUP_DEFAULTS.button2,
+            button1 = L["Yes"], button2 = L["No"],
             OnAccept = POPUP_DEFAULTS.OnAccept, OnCancel = POPUP_DEFAULTS.OnCancel,
             OnHide = POPUP_DEFAULTS.OnHide,
             timeout = POPUP_DEFAULTS.timeout, whileDead = POPUP_DEFAULTS.whileDead,

@@ -151,7 +151,7 @@ local FEIGN_DEATH = GetSpellName(feignDeathID) -- Localized name for Feign Death
 local db
 local emptyLayoutOptionsTable = {
     notice = {
-        name = L["Message_NoLayoutSettings"],
+        name = function() return L["Message_NoLayoutSettings"] end,
         type = "description",
     }
 }
@@ -726,6 +726,7 @@ end
 function sArenaMixin:Initialize()
     if (db) then return end
 
+    self:ApplyLocale()
     local conflictType = self:ConflictCheck()
 
     self.isFirstUse = (sArena_ReloadedDB == nil)
@@ -742,6 +743,7 @@ function sArenaMixin:Initialize()
     db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
     db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
     db.RegisterCallback(self, "OnProfileReset", "RefreshConfig")
+    self:BuildOptionsTable()
     self.optionsTable.handler = self
     self.optionsTable.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(db)
     LibStub("AceConfig-3.0"):RegisterOptionsTable("sArena", self.optionsTable)
@@ -1394,7 +1396,7 @@ function sArenaFrameMixin:OnEvent(event, eventUnit, arg1)
                 if db.profile.arenaNumberIdOnly then
                     self.Name:SetText(id)
                 else
-                    self.Name:SetText("Arena " .. id)
+                    self.Name:SetText(string.format(L["ArenaFrame_Name"], id))
                 end
             elseif (db.profile.showNames) then
                 self.Name:SetText(UnitFullName(unit))
@@ -1848,7 +1850,7 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
         if db.profile.arenaNumberIdOnly then
             self.Name:SetText(id)
         else
-            self.Name:SetText("Arena " .. id)
+            self.Name:SetText(string.format(L["ArenaFrame_Name"], id))
         end
         self.Name:SetShown(true)
         self:UpdateNameColor()
@@ -2236,10 +2238,11 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
 
     if (texture == "class") then
 
-        if db.profile.replaceHealerIcon and self.isHealer then
+        if db.profile.replaceHealerIcon and self.isHealer and not db.profile.onlyShowAuras then
             useHealerTexture = true
         end
 
+        local useAtlas
         if db.profile.onlyShowAuras then
             texture = nil
             if self.ClassIconMsq then
@@ -2256,7 +2259,8 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
                 self.ClassIconMsq:Show()
             end
         else
-            texture = self.secretClass and GetClassAtlas(self.class) or self.parent.classIcons[self.class]
+            useAtlas = self.secretClass
+            texture = useAtlas and GetClassAtlas(self.class) or self.parent.classIcons[self.class]
             if self.ClassIconMsq then
                 self.ClassIconMsq:Show()
             end
@@ -2264,12 +2268,10 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
 
         if useHealerTexture then
             self.ClassIcon.Texture:SetAtlas("UI-LFG-RoleIcon-Healer")
+        elseif useAtlas then
+            self.ClassIcon.Texture:SetAtlas(texture)
         else
-            if self.secretClass then
-                self.ClassIcon.Texture:SetAtlas(GetClassAtlas(self.class))
-            else
-                self.ClassIcon.Texture:SetTexture(texture)
-            end
+            self.ClassIcon.Texture:SetTexture(texture)
         end
 
         local cropType = useHealerTexture and "healer" or "class"

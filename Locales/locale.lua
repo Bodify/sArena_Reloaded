@@ -1,22 +1,62 @@
 -- Locale system for sArena Reloaded
--- Initializes the localization table and fallback system
+-- enUS.lua fills L. The other locale files fill L_native, which ApplyLocale merges into L
+-- once saved variables are loaded, unless Force English GUI is on.
 
--- Initialize locale table
 sArenaMixin.L = sArenaMixin.L or {}
+sArenaMixin.L_native = {}
+sArenaMixin.locale = GetLocale()
 
--- Get the client's locale
-local locale = GetLocale()
-
--- Store the current locale
-sArenaMixin.locale = locale
-
--- Create metatable for fallback to English (enUS)
-local L_mt = {
+-- Missing keys show the key name
+setmetatable(sArenaMixin.L, {
 	__index = function(t, key)
-		-- If key doesn't exist in current locale, try to return the key itself as fallback
-		-- This will show the key name if translation is missing
 		return key
 	end
+})
+
+sArenaMixin.englishClassNames = {
+	WARRIOR = "Warrior",
+	PALADIN = "Paladin",
+	HUNTER = "Hunter",
+	ROGUE = "Rogue",
+	PRIEST = "Priest",
+	DEATHKNIGHT = "Death Knight",
+	SHAMAN = "Shaman",
+	MAGE = "Mage",
+	WARLOCK = "Warlock",
+	MONK = "Monk",
+	DRUID = "Druid",
+	DEMONHUNTER = "Demon Hunter",
+	EVOKER = "Evoker",
 }
 
-setmetatable(sArenaMixin.L, L_mt)
+function sArenaMixin:IsForceEnglish()
+	return sArena_ReloadedDB and sArena_ReloadedDB.forceEnglish and true or false
+end
+
+-- Class name for the settings, English when Force English GUI is on
+function sArenaMixin:GetClassDisplayName(classToken)
+	if self:IsForceEnglish() then
+		return self.englishClassNames[classToken] or classToken
+	end
+	return LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[classToken] or classToken
+end
+
+function sArenaMixin:ApplyLocale()
+	local native = sArenaMixin.L_native
+	if not native then return end
+	if not sArenaMixin:IsForceEnglish() then
+		local L = sArenaMixin.L
+		for key, value in pairs(native) do
+			L[key] = value
+		end
+	end
+	sArenaMixin.L_native = nil
+end
+
+local loader = CreateFrame("Frame")
+loader:RegisterEvent("ADDON_LOADED")
+loader:SetScript("OnEvent", function(self, _, addonName)
+	if addonName ~= "sArena_Reloaded" then return end
+	self:UnregisterEvent("ADDON_LOADED")
+	sArenaMixin:ApplyLocale()
+end)

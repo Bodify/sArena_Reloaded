@@ -186,20 +186,24 @@ local function NewInterruptSlot(frame)
     slot:SetAllPoints(frame.ClassIcon)
     slot:Hide()
 
-    local icon = slot:CreateTexture(nil, "BACKGROUND")
-    icon:SetAllPoints(slot)
+    local button = CreateFrame("Frame", nil, slot)
+    button:SetAllPoints(slot)
+
+    local icon = button:CreateTexture(nil, "BACKGROUND")
+    icon:SetAllPoints(button)
     if frame.auraSlotMask then
         icon:AddMaskTexture(frame.auraSlotMask)
     end
 
-    local cooldown = CreateFrame("Cooldown", nil, slot, "CooldownFrameTemplate")
-    cooldown:SetAllPoints(slot)
+    local cooldown = CreateFrame("Cooldown", nil, button, "CooldownFrameTemplate")
+    cooldown:SetAllPoints(button)
     cooldown:SetUsingParentLevel(true)
     StyleCooldown(frame, cooldown, icon)
 
-    frame:CreateAuraSlotGlow(slot, "cc")
-    frame:CreateAuraSlotFramePulse(slot, "cc")
+    frame:CreateAuraSlotGlow(button, "cc")
+    frame:CreateAuraSlotFramePulse(button, "cc")
 
+    slot.Button = button
     slot.Icon = icon
     slot.Cooldown = cooldown
     return slot
@@ -215,6 +219,8 @@ local function ApplyContainerLayering(frame)
         container:SetFrameStrata(strata)
         container:SetFrameLevel(level + index)
     end
+
+    frame.AuraInterrupt.Button:SetFrameLevel(frame.AuraInterrupt:GetFrameLevel() + 1)
 end
 
 function sArenaFrameMixin:SetupAuraDisplay()

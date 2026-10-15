@@ -1,3 +1,9 @@
+# sArena Reloaded 2.6.7
+## New
+- Search feature. You can now search settings and jump to them at the very top in /sarena
+## Bugfix
+- Fix Class Icons showing when "Only show Auras" and similar settings were enabled after the 12.1.5 rework due to new Blizzard restrictions.
+
 # sArena Reloaded 2.6.6
 ## CHANGES:
 - With 12.1.5 Blizzard has now also restricted some arena specific API making it so some features can no longer work. Things related to class, and healer specific things.
