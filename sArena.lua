@@ -2274,12 +2274,14 @@ function sArenaFrameMixin:UpdateClassIcon(continue)
             self.ClassIcon.Texture:SetTexture(texture)
         end
 
+        self.ClassIcon.Texture.isClassAtlas = useAtlas and not useHealerTexture
         local cropType = useHealerTexture and "healer" or "class"
         self:SetTextureCrop(self.ClassIcon.Texture, db.profile.layoutSettings[db.profile.currentLayout].cropIcons, cropType)
         self:SetSecretHealerIcon(db.profile.replaceHealerIcon and self.secretSpec and not db.profile.onlyShowAuras)
 		return
 	end
 	self:SetSecretHealerIcon(false)
+	self.ClassIcon.Texture.isClassAtlas = nil
 	self:SetTextureCrop(self.ClassIcon.Texture, db and db.profile.layoutSettings[db.profile.currentLayout].cropIcons, "class")
 	self.ClassIcon.Texture:SetTexture(texture)
     if self.ClassIconMsq then

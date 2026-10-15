@@ -788,6 +788,7 @@ function sArenaMixin:Test()
         frame.PowerBar:SetValue(100)
 
         -- Class Icon and Spec Icon + Spec Name
+        local showsClassAtlas
         if hideClassIcon then
             frame.ClassIcon.Texture:SetTexture(nil)
             frame.ClassIcon.Cooldown:Clear()
@@ -835,14 +836,24 @@ function sArenaMixin:Test()
                 if frame.SpecIconMsq then
                     frame.SpecIconMsq:Hide()
                 end
-                frame.ClassIcon.Texture:SetTexture(self.classIcons[data.class])
+                if isRetail then
+                    frame.ClassIcon.Texture:SetAtlas(GetClassAtlas(data.class))
+                else
+                    frame.ClassIcon.Texture:SetTexture(self.classIcons[data.class])
+                end
+                showsClassAtlas = isRetail
             else
                 frame.SpecIcon:Show()
                 frame.SpecIcon.Texture:SetTexture(data.specIcon)
                 if frame.SpecIconMsq then
                     frame.SpecIconMsq:Show()
                 end
-                frame.ClassIcon.Texture:SetTexture(self.classIcons[data.class])
+                if isRetail then
+                    frame.ClassIcon.Texture:SetAtlas(GetClassAtlas(data.class))
+                else
+                    frame.ClassIcon.Texture:SetTexture(self.classIcons[data.class])
+                end
+                showsClassAtlas = isRetail
             end
             if frame.ClassIconMsq then
                 frame.ClassIconMsq:Show()
@@ -855,10 +866,12 @@ function sArenaMixin:Test()
         if db.profile.replaceHealerIcon and frame.testIsHealer then
             frame.ClassIcon.Texture:SetAtlas("UI-LFG-RoleIcon-Healer")
             cropType = "healer"
+            showsClassAtlas = nil
         else
             cropType = "class"
         end
 
+        frame.ClassIcon.Texture.isClassAtlas = showsClassAtlas
         frame:SetTextureCrop(frame.ClassIcon.Texture, cropIcons, cropType)
 
         frame.SpecNameText:SetText(data.specName)

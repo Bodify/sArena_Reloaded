@@ -337,6 +337,8 @@ function sArenaFrameMixin:SetTextureCrop(texture, crop, type)
         texture:SetTexCoord(0.03, 0.97, 0.03, 0.93)
     elseif type == "healer" then
         texture:SetTexCoord(0.205, 0.765, 0.22, 0.745)
+    elseif texture.isClassAtlas then
+        texture:SetTexCoord(0, 1, 0, 1)
     else
         if crop then
             texture:SetTexCoord(0.08, 0.92, 0.08, 0.92)
