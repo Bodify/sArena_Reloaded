@@ -440,14 +440,22 @@ function sArenaFrameMixin:DarkModeFrame()
 end
 
 function sArenaFrameMixin:GetPrepClassColor()
-    return self.secretSpec and self.secretSpecColor or nil
+    return self.blizzClassColor or (self.secretSpec and self.secretSpecColor) or nil
+end
+
+function sArenaFrameMixin:GetFrameClassColor(class)
+    if self.parent.waitingForMatch and self.GetPreMatchClassColor then
+        local color = self:GetPreMatchClassColor()
+        if color then return color end
+    end
+    return class and C_ClassColor.GetClassColor(class) or self:GetPrepClassColor()
 end
 
 function sArenaFrameMixin:ClassColorFrameTexture()
     if not self.parent.db.profile.classColorFrameTexture then return end
 
     local class = self.class or self.tempClass
-    local color = class and C_ClassColor.GetClassColor(class) or self:GetPrepClassColor()
+    local color = self:GetFrameClassColor(class)
     if not color then return end
 
     local onlyClassIcon = self.parent.db.profile.classColorFrameTextureOnlyClassIcon and self.parent.db.profile.currentLayout == "BlizzCompact"
@@ -604,7 +612,7 @@ function sArenaFrameMixin:ResetPixelBorders()
 end
 
 function sArenaFrameMixin:UpdateFrameColors()
-    if self.parent.db.profile.classColorFrameTexture and (self.class or self.tempClass or self.secretSpec) then
+    if self.parent.db.profile.classColorFrameTexture and (self.class or self.tempClass or self.secretSpec or self.blizzClassColor) then
         self:ClassColorFrameTexture()
     elseif self.parent:DarkMode() then
         self:DarkModeFrame()
@@ -1424,6 +1432,70 @@ end
 
 -- Midnight only
 if not isMidnight then return end
+
+local function StoreBlizzClassColor(frame, r, g, b)
+    local color = frame.blizzClassColor or {}
+    color.r, color.g, color.b = r, g, b
+    frame.blizzClassColor = color
+end
+
+local function GetPreMatchFrame(id)
+    local container = CompactArenaFrame and CompactArenaFrame.PreMatchFramesContainer
+    return container and container["PreMatchFrame" .. id]
+end
+
+function sArenaFrameMixin:HookBlizzClassColor()
+    local healthBar = _G["CompactArenaFrameMember" .. self:GetID()].healthBar
+    hooksecurefunc(healthBar, "SetStatusBarColor", function(_, r, g, b)
+        if not UnitExists(self.unit) then return end
+        StoreBlizzClassColor(self, r, g, b)
+        self:ApplyBlizzClassColor()
+    end)
+
+    local preMatchFrame = GetPreMatchFrame(self:GetID())
+    if preMatchFrame then
+        hooksecurefunc(preMatchFrame, "Update", function()
+            if self.parent.waitingForMatch then
+                self:ApplyBlizzClassColor()
+            end
+        end)
+    end
+end
+
+function sArenaFrameMixin:GetPreMatchClassColor()
+    if GetNumArenaOpponentSpecs() < self:GetID() then return end
+    local preMatchFrame = GetPreMatchFrame(self:GetID())
+    if not preMatchFrame then return end
+    local color = self.preMatchClassColor or {}
+    color.r, color.g, color.b = preMatchFrame.BarTexture:GetVertexColor()
+    self.preMatchClassColor = color
+    return color
+end
+
+function sArenaFrameMixin:CopyBlizzClassColor()
+    if self.blizzClassColor or not UnitExists(self.unit) then return end
+    local healthBar = _G["CompactArenaFrameMember" .. self:GetID()].healthBar
+    StoreBlizzClassColor(self, healthBar:GetStatusBarColor())
+end
+
+function sArenaFrameMixin:ApplyBlizzClassColor()
+    local db = self.parent.db
+    if not db then return end
+    local profile = db.profile
+
+    local mystery = UnitGUID(self.unit) == nil
+    if profile.classColors and not (mystery and profile.colorMysteryGray) then
+        local color = self:GetFrameClassColor(mystery and (self.class or self.tempClass) or UnitClassBase(self.unit))
+        if color then
+            self.HealthBar:SetStatusBarColor(color.r, color.g, color.b, 1)
+        end
+    end
+    self:UpdateNameColor()
+    self:UpdateSpecNameColor()
+    if profile.classColorFrameTexture then
+        self:UpdateFrameColors()
+    end
+end
 
 function sArenaFrameMixin:HookPlayerConnectionStatus()
     -- UNIT_CONNECT doesnt trigger for arena frames. Update on status text update instead.

@@ -403,6 +403,7 @@ local function UnitIsProbablyUnit(unit1, unit2)
 
     return name1 == name2
 end
+sArenaMixin.UnitIsProbablyUnit = UnitIsProbablyUnit
 
 local function UpdateIndicator(frame, unit, widgetSettings, key, unitType, stateKey)
     local ind = widgetSettings and widgetSettings[key]

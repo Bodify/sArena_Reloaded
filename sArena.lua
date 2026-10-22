@@ -1241,6 +1241,7 @@ function sArenaFrameMixin:OnLoad()
     else
         local blizzArenaFrame = _G["CompactArenaFrameMember" .. self:GetID()]
         self:HookPlayerConnectionStatus()
+        self:HookBlizzClassColor()
         self.CastBar = blizzArenaFrame.CastingBarFrame
         self.CastBar:SetFrameStrata("HIGH")
         self.totalAbsorbBar:Hide()
@@ -1711,7 +1712,7 @@ function sArenaFrameMixin:UpdateNameColor()
     local class = self.class or self.tempClass
 
     local db = self.parent.db.profile
-    local color = class and C_ClassColor.GetClassColor(class) or self:GetPrepClassColor()
+    local color = self:GetFrameClassColor(class)
 
     if db.colorNameEnabled and db.colorNameColor then
         if not self.oldNameColor then
@@ -1776,7 +1777,7 @@ function sArenaFrameMixin:UpdateSpecNameColor()
     local class = self.class or self.tempClass
 
     local db = self.parent.db.profile
-    local color = class and C_ClassColor.GetClassColor(class) or self:GetPrepClassColor()
+    local color = self:GetFrameClassColor(class)
 
     if db.colorSpecNameEnabled and db.colorSpecNameColor then
         if not self.oldSpecNameColor then
@@ -1816,6 +1817,9 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
     end
     self.isDead = UnitIsDeadOrGhost(unit)
     self:StopStealthHealthTicker()
+    if isMidnight then
+        self:CopyBlizzClassColor()
+    end
     C_PvP.RequestCrowdControlSpell(unit)
 
     self:UpdateRacial()
@@ -1870,7 +1874,7 @@ function sArenaFrameMixin:UpdatePlayer(unitEvent)
 
     if db.profile.classColors then
         local class = UnitClassBase(unit)
-        local color = class and C_ClassColor.GetClassColor(class)
+        local color = self:GetFrameClassColor(class)
         if color then
             self.HealthBar:SetStatusBarColor(color.r, color.g, color.b, 1)
         end
@@ -1942,7 +1946,7 @@ function sArenaFrameMixin:SetMysteryPlayer(unitEvent)
             pp:SetStatusBarColor(0.5, 0.5, 0.5)
         else
             local class = self.class or self.tempClass
-            local color = class and C_ClassColor.GetClassColor(class) or self:GetPrepClassColor()
+            local color = self:GetFrameClassColor(class)
 
             if self.parent.db.profile.classColors then
                 if color then
@@ -2029,6 +2033,7 @@ function sArenaFrameMixin:ResetUnitInfo()
     self.secretSpec = nil
     self.secretSpecName = nil
     self.secretSpecColor = nil
+    self.blizzClassColor = nil
     self:SetHealerBarTexture(nil)
     self:SetSecretHealerIcon(false)
     self:UpdateAuraHighlightEnabled()

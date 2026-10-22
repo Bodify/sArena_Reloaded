@@ -65,26 +65,27 @@ function sArenaMixin:ApplyAllClickActions()
 end
 
 function sArenaMixin:RebuildClickActionsOptions()
-    if not self.ClickActionsArgs or not self.BuildClickActionOption then return end
+    local clickArgs = sArenaMixin.ClickActionsArgs
+    if not clickArgs or not sArenaMixin.BuildClickActionOption then return end
     local profile = self.db and self.db.profile
 
     local listArgs = {}
     local order = 1
     local clickAttributes = profile and profile.clickAttributes or {}
     for key, _ in pairs(clickAttributes) do
-        listArgs[key] = self:BuildClickActionOption(key, order, "clickAttributes")
+        listArgs[key] = sArenaMixin:BuildClickActionOption(key, order, "clickAttributes")
         order = order + 1
     end
-    self.ClickActionsArgs.attributeList.args = listArgs
+    clickArgs.attributeList.args = listArgs
 
-    if self.ClickActionsArgs.petFrameGroup and self.ClickActionsArgs.petFrameGroup.args.attributeList then
+    if clickArgs.petFrameGroup and clickArgs.petFrameGroup.args.attributeList then
         local petListArgs = {}
         local petOrder = 1
         local petAttrs = profile and profile.petFrameClickAttributes or {}
         for key, _ in pairs(petAttrs) do
-            petListArgs[key] = self:BuildClickActionOption(key, petOrder, "petFrameClickAttributes")
+            petListArgs[key] = sArenaMixin:BuildClickActionOption(key, petOrder, "petFrameClickAttributes")
             petOrder = petOrder + 1
         end
-        self.ClickActionsArgs.petFrameGroup.args.attributeList.args = petListArgs
+        clickArgs.petFrameGroup.args.attributeList.args = petListArgs
     end
 end

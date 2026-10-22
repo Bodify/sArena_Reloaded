@@ -119,6 +119,20 @@ local function ShowImportConfirmDialog(message, onAccept, data)
     confirmDialog:Show()
 end
 
+local function WithoutDefaults(input, defaults)
+    local out = {}
+    for k, v in pairs(input) do
+        local default = defaults and defaults[k]
+        if type(v) == "table" and type(default) == "table" then
+            local sub = WithoutDefaults(v, default)
+            if next(sub) ~= nil then out[k] = sub end
+        elseif v ~= default then
+            out[k] = v
+        end
+    end
+    return out
+end
+
 function sArenaMixin:ExportProfile(profileKeySupplied)
     local name, realm = UnitName("player")
     realm = realm or GetRealmName()
@@ -137,7 +151,7 @@ function sArenaMixin:ExportProfile(profileKeySupplied)
     local exportTable = {
         dataType = "sArenaProfile",
         profileName = profileKey,
-        data = profileTable,
+        data = WithoutDefaults(profileTable, sArenaMixin.defaultSettings.profile),
     }
 
     local serialized = LibSerialize:Serialize(exportTable)
@@ -259,7 +273,7 @@ end
 
 function sArenaMixin:GetProfileLayoutName(encodedString)
     local data = decodeProfileString(encodedString)
-    return data and data.currentLayout or nil
+    return data and (data.currentLayout or sArenaMixin.defaultSettings.profile.currentLayout) or nil
 end
 
 function sArenaMixin:PreviewProfile(encodedString)

@@ -56,6 +56,17 @@ sArenaMixin.specInterrupts = {
     [71] = 6552, [72] = 6552, [73] = 6552,
 }
 
+sArenaMixin.meleeInterrupts = {
+    [1766]   = true, -- Kick
+    [6552]   = true, -- Pummel
+    [47528]  = true, -- Mind Freeze
+    [96231]  = true, -- Rebuke
+    [106839] = true, -- Skull Bash
+    [116705] = true, -- Spear Hand Strike
+    [183752] = true, -- Disrupt
+    [187707] = true, -- Muzzle
+}
+
 -- Fallback if spec not found
 sArenaMixin.classInterrupts = {
     DEATHKNIGHT = 47528,

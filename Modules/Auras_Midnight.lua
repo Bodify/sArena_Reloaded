@@ -22,6 +22,8 @@ local ccBlacklist = sArenaMixin.ccBlacklist
 local interruptList = sArenaMixin.interruptList
 local specInterrupts = sArenaMixin.specInterrupts
 local classInterrupts = sArenaMixin.classInterrupts
+local meleeInterrupts = sArenaMixin.meleeInterrupts
+local UnitIsProbablyUnit = sArenaMixin.UnitIsProbablyUnit
 local GetSpellTexture = C_Spell.GetSpellTexture
 
 local defaultInterruptTexture = 132219
@@ -394,9 +396,14 @@ local function GetPartyInterrupt(unit)
     return class and classInterrupts[class]
 end
 
-local function GuessAllyInterrupt()
-    local onlyInterrupt
-    local count = 0
+local function InterruptGuess(spellID)
+    return GetSpellTexture(spellID) or defaultInterruptTexture, interruptList[spellID] or defaultInterruptDuration
+end
+
+local function GuessAllyInterrupt(kickedUnit)
+    local onlyInterrupt, onlyMelee, onlyRanged
+    local count, meleeOnTarget, rangedCount = 0, 0, 0
+    local targetsKnown = true
 
     for i = 1, 4 do
         local unit = "party" .. i
@@ -405,23 +412,43 @@ local function GuessAllyInterrupt()
             if interrupt then
                 count = count + 1
                 onlyInterrupt = interrupt
+                if meleeInterrupts[interrupt] then
+                    local onTarget = UnitIsProbablyUnit(unit .. "target", kickedUnit)
+                    if onTarget == nil and UnitExists(unit .. "target") then
+                        targetsKnown = false
+                    elseif onTarget then
+                        meleeOnTarget = meleeOnTarget + 1
+                        onlyMelee = interrupt
+                    end
+                else
+                    rangedCount = rangedCount + 1
+                    onlyRanged = interrupt
+                end
             end
         end
     end
 
     if count == 1 then
-        return GetSpellTexture(onlyInterrupt) or defaultInterruptTexture, interruptList[onlyInterrupt] or defaultInterruptDuration
+        return InterruptGuess(onlyInterrupt)
+    end
+
+    if meleeOnTarget == 1 then
+        return InterruptGuess(onlyMelee)
+    end
+
+    if meleeOnTarget == 0 and targetsKnown and rangedCount == 1 then
+        return InterruptGuess(onlyRanged)
     end
 
     return defaultInterruptTexture, defaultInterruptDuration
 end
 
-function sArenaMixin:GetInterruptGuess()
+function sArenaMixin:GetInterruptGuess(kickedUnit)
     local last = self.lastPlayerInterrupt
     if last.texture and GetTime() - last.time <= last.window then
         return last.texture, last.duration
     end
-    return GuessAllyInterrupt()
+    return GuessAllyInterrupt(kickedUnit)
 end
 
 function sArenaFrameMixin:CreateInterruptWatcher()
@@ -452,7 +479,7 @@ function sArenaFrameMixin:CreateInterruptWatcher()
         self.interruptCounted = true
 
         C_Timer.After(0, function()
-            self:SetInterrupt(self.parent:GetInterruptGuess())
+            self:SetInterrupt(self.parent:GetInterruptGuess(self.unit))
         end)
     end)
 
