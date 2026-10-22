@@ -1,3 +1,8 @@
+# sArena Reloaded 2.6.8
+## Bugfix
+- Midnight: Fix attempt for class colors on names being stale between solo shuffle rounds.
+- Fix the Click Actions bugging out after 2.6.7 due to gui changes.
+
 # sArena Reloaded 2.6.7
 ## New
 - Search feature. You can now search settings and jump to them at the very top in /sarena
