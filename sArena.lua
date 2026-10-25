@@ -637,6 +637,14 @@ function sArenaMixin:OnEvent(event, ...)
                     frame:ResetDR()
                 end
             end
+            if IsSoloShuffle() and self:IsArenaSpecSecret() and C_PvP.GetActiveMatchState() ~= Enum.PvPMatchState.Complete then
+                for i = 1, self.maxArenaOpponents do
+                    local frame = self["arena" .. i]
+                    if frame then
+                        frame:ResetRoundClass()
+                    end
+                end
+            end
         end
         if self:IsInArena() then
             if db and db.profile.shadowSightTimer and self.engagedInMatch and not IsSoloShuffle() then
@@ -2042,6 +2050,22 @@ function sArenaFrameMixin:ResetUnitInfo()
     self.DeathIcon:Hide()
 end
 
+function sArenaFrameMixin:ResetRoundClass()
+    self.class = nil
+    self.classLocal = nil
+    self.secretClass = nil
+    self.secretSpec = nil
+    self.secretSpecName = nil
+    self.secretSpecColor = nil
+    self.specTexture = nil
+    self.isHealer = nil
+    self.blizzClassColor = nil
+    self:GetClass()
+    if not self.secretSpec then
+        self:UpdateClassIcon(true)
+    end
+end
+
 function sArenaFrameMixin:RestoreClassIcon()
     self.ClassIcon.Texture:SetDesaturated(false)
     self.ClassIcon.Texture:SetVertexColor(1, 1, 1)
@@ -2100,7 +2124,7 @@ function sArenaFrameMixin:GetClass()
                     self:ApplySpec()
                 end
 
-                if not UnitExists(self.unit) then return end
+                if not (self.parent.engagedInMatch and UnitExists(self.unit)) then return end
 
                 local classLocal, class = UnitClass(self.unit)
                 if issecretvalue(class) or class then

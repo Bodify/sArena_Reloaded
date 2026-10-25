@@ -1,3 +1,7 @@
+# sArena Reloaded 2.6.9
+## Bugfix
+- Midnight: Fix classes between shuffle rounds
+
 # sArena Reloaded 2.6.8
 ## Bugfix
 - Midnight: Fix attempt for class colors on names being stale between solo shuffle rounds.
