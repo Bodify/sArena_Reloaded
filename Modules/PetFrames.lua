@@ -241,8 +241,7 @@ function sArenaPetFrameMixin:Setup()
     for i = 1, 4 do
         local pt = pwo["partyTarget" .. i]
         if pt and pt.Texture then
-            pt.Texture:SetTexture(owner.parent:GetPartyTargetIndicatorTexture())
-            pt.Texture:SetDesaturated(true)
+            owner.parent:SetPartyTargetIndicatorTexture(pt.Texture)
         end
     end
 

@@ -3869,6 +3869,36 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             disabled = function(info)
                                 local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
                                 local pti = widgets and widgets.partyTargetIndicators
+                                return not (pti and pti.enabled) or select(2, info.handler:GetPartyTargetIndicatorTexture())
+                            end,
+                        },
+                        icon = {
+                            order = 0.2,
+                            name = L["Icon"],
+                            type = "select",
+                            width = 0.9,
+                            values = function(info)
+                                return (info.handler:GetPartyTargetIconValues())
+                            end,
+                            sorting = function(info)
+                                return select(2, info.handler:GetPartyTargetIconValues())
+                            end,
+                            get = function(info)
+                                local path, isAtlas = info.handler:GetPartyTargetIndicatorTexture()
+                                return isAtlas and path or "default"
+                            end,
+                            set = function(info, val)
+                                local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                widgets = widgets or {}
+                                widgets.partyTargetIndicators = widgets.partyTargetIndicators or {}
+                                widgets.partyTargetIndicators.icon = val ~= "default" and val or nil
+                                info.handler.db.profile.layoutSettings[layoutName].widgets = widgets
+                                self:UpdateWidgetSettings(widgets, info, val)
+                                info.handler:Test()
+                            end,
+                            disabled = function(info)
+                                local widgets = info.handler.db.profile.layoutSettings[layoutName].widgets
+                                local pti = widgets and widgets.partyTargetIndicators
                                 return not (pti and pti.enabled)
                             end,
                         },

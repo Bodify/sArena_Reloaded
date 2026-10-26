@@ -27,36 +27,98 @@ local function SetTargetTextForUnit(fs, targetUnit, targetName)
     fs:SetText(targetName)
 end
 
+local partyTargetAtlases = {
+    "PlayerPartyBlip",
+    "UI-QuestPoi-QuestNumber-SuperTracked",
+    "Waypoint-MapPin-Minimap-Tracked",
+    "SquareMask",
+    "MonsterNeutral",
+    "QuestObjective",
+    "orbs-rightIcon4-state1",
+    "UI-Frame-DastardlyDuos-icon-Survival",
+    "UI-Journeys-Delve-rewardicon-square-Mask",
+    "UI-Journeys-Delve-rewardicon-ring-Mask",
+    "Ping_Chat_Attack",
+    "Navigation-Tracked-Icon",
+    "UI-Journeys-Delve-Arrow-Big-Left-pressed",
+    "UI-Journeys-Delve-Arrow-down",
+    "icon-actor-target",
+    "QuestLog-tab-icon-quest",
+    "RaidFrame-Icon-MainAssist",
+    "Soulbinds_Collection_Scrollbar_Arrow_Up",
+    "glues-characterSelect-icon-arrowDown",
+    "glues-characterSelect-icon-arrowUp",
+    "combattimeline-pip",
+    "AnimaChannel-Line-Mask",
+    "combattimeline-fx-queued-icon",
+    "GM-icon-difficulty-normal-hover",
+    "GM-icon-difficulty-normalSelected-hover",
+    "UI-HUD-MicroMenu-Achievements-Mouseover",
+    "UI-HUD-MicroMenu-StreamDLYellow-Up",
+    "VAS-tickRadial-glw",
+    "PlayerDeadBlip",
+    "communities-icon-notification",
+}
+
+local function AtlasExists(atlas)
+    return atlas and C_Texture.GetAtlasInfo(atlas) ~= nil
+end
+
+function sArenaMixin:GetPartyTargetIconValues()
+    local values = { default = "|T" .. partyTargetTexture .. ":14:14|t " .. DEFAULT }
+    local sorting = { "default" }
+    local n = 0
+    for _, atlas in ipairs(partyTargetAtlases) do
+        if AtlasExists(atlas) then
+            n = n + 1
+            values[atlas] = "|A:" .. atlas .. ":14:14|a " .. sArenaMixin.L["Icon"] .. " " .. n
+            sorting[#sorting + 1] = atlas
+        end
+    end
+    return values, sorting
+end
+
 function sArenaMixin:GetPartyTargetIndicatorTexture()
     local db = self.db
     local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
     local pti = widgetSettings and widgetSettings.partyTargetIndicators
+    if pti and AtlasExists(pti.icon) then
+        return pti.icon, true
+    end
     if pti and pti.thickOutline then
         return partyTargetTextureOutlined
     end
     return partyTargetTexture
 end
 
-local function SetIndicatorTextures(overlay, prefix, count, texturePath)
+function sArenaMixin:SetPartyTargetIndicatorTexture(texture)
+    local path, isAtlas = self:GetPartyTargetIndicatorTexture()
+    if isAtlas then
+        texture:SetAtlas(path)
+    else
+        texture:SetTexture(path)
+        texture:SetTexCoord(0, 1, 0, 1)
+    end
+    texture:SetDesaturated(true)
+end
+
+local function SetIndicatorTextures(self, overlay, prefix, count)
     if not overlay then return end
     for i = 1, count do
         local indicator = overlay[prefix .. i]
         if indicator and indicator.Texture then
-            indicator.Texture:SetTexture(texturePath)
-            indicator.Texture:SetDesaturated(true)
+            self:SetPartyTargetIndicatorTexture(indicator.Texture)
         end
     end
 end
 
 function sArenaMixin:UpdatePartyTargetIndicatorTextures()
-    local texturePath = self:GetPartyTargetIndicatorTexture()
-
     for i = 1, self.maxArenaOpponents do
         local frame = self["arena" .. i]
         if frame then
-            SetIndicatorTextures(frame.WidgetOverlay, "partyTarget", 4, texturePath)
+            SetIndicatorTextures(self, frame.WidgetOverlay, "partyTarget", 4)
             if frame.PetFrame then
-                SetIndicatorTextures(frame.PetFrame.WidgetOverlay, "partyTarget", 4, texturePath)
+                SetIndicatorTextures(self, frame.PetFrame.WidgetOverlay, "partyTarget", 4)
             end
         end
     end
@@ -64,7 +126,7 @@ function sArenaMixin:UpdatePartyTargetIndicatorTextures()
     for i = 1, 5 do
         local partyFrame = self:GetPartyFrame(i)
         if partyFrame then
-            SetIndicatorTextures(partyFrame.WidgetOverlay, "arenaTarget", self.maxArenaOpponents, texturePath)
+            SetIndicatorTextures(self, partyFrame.WidgetOverlay, "arenaTarget", self.maxArenaOpponents)
         end
     end
 end
@@ -1015,8 +1077,7 @@ function sArenaMixin:CreatePartyFrameIndicators(partyFrame)
 
         local texture = indicator:CreateTexture(nil, "OVERLAY")
         texture:SetAllPoints()
-        texture:SetTexture(self:GetPartyTargetIndicatorTexture())
-        texture:SetDesaturated(true)
+        self:SetPartyTargetIndicatorTexture(texture)
         indicator.Texture = texture
 
         overlay["arenaTarget" .. i] = indicator
