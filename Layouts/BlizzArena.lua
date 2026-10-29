@@ -290,7 +290,7 @@ function layout:Initialize(frame)
     f:SetPoint("BOTTOMLEFT", healthBar, "TOPLEFT", 2, 2)
     f:SetPoint("BOTTOMRIGHT", healthBar, "TOPRIGHT", -2, 2)
     f:SetHeight(12)
-    f:SetFont("Fonts\\FRIZQT__.TTF", 11, frame.parent:GetFontFlags(""))
+    frame.parent:SetNameFont(f, "Fonts\\FRIZQT__.TTF", 11, frame.parent:GetFontFlags(""))
 
     f = frame.CastBar
     f:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")

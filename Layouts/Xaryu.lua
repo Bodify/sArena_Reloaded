@@ -250,7 +250,7 @@ function layout:Initialize(frame)
     f:SetJustifyH("LEFT")
     f:SetJustifyV("BOTTOM")
     f:SetFontObject("SystemFont_Shadow_Med3")
-    f:SetFont("Fonts\\FRIZQT__.TTF", 14, frame.parent:GetFontFlags(""))
+    frame.parent:SetNameFont(f, "Fonts\\FRIZQT__.TTF", 14, frame.parent:GetFontFlags(""))
     f:SetHeight(12)
 
     f = frame.DeathIcon

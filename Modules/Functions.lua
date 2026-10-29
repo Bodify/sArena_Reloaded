@@ -1430,6 +1430,79 @@ function sArenaFrameMixin:SetupDisconnectedIcon(anchorTo, size, elevate, offsetX
     icon:SetSize(size, size)
 end
 
+local ALPHABETS = { "korean", "roman", "russian", "simplifiedchinese", "traditionalchinese" }
+
+local LOCALE_ALPHABET = {
+    koKR = "korean",
+    ruRU = "russian",
+    zhCN = "simplifiedchinese",
+    zhTW = "traditionalchinese",
+}
+local ownAlphabet = LOCALE_ALPHABET[GetLocale()] or "roman"
+
+local stock = GameFontNormalSmall
+local supported = type(CreateFontFamily) == "function" and stock and stock.GetFontObjectForAlphabet ~= nil
+
+local stockFiles = {}
+if supported then
+    for _, alphabet in ipairs(ALPHABETS) do
+        local member = stock:GetFontObjectForAlphabet(alphabet)
+        stockFiles[alphabet] = member and member:GetFont()
+    end
+end
+
+local families = {}
+local familyCount = 0
+
+local function GetFamily(file, flags)
+    local byFlags = families[file]
+    if not byFlags then
+        byFlags = {}
+        families[file] = byFlags
+    end
+    local family = byFlags[flags]
+    if family then return family end
+    local members = {}
+    for i, alphabet in ipairs(ALPHABETS) do
+        members[i] = {
+            alphabet = alphabet,
+            file = alphabet ~= ownAlphabet and stockFiles[alphabet] or file,
+            height = 12,
+            flags = flags,
+        }
+    end
+    familyCount = familyCount + 1
+    family = CreateFontFamily("sArenaNameFont" .. familyCount, members)
+    byFlags[flags] = family
+    return family
+end
+
+function sArenaMixin:SetNameFont(fontString, file, size, flags)
+    if not fontString then return end
+    flags = flags or ""
+    if not supported or not file or not size or not fontString.SetFontHeight then
+        fontString:SetFont(file, size, flags)
+        return
+    end
+    local family = GetFamily(file, flags)
+    if fontString:GetFontObject() ~= family then
+        local r, g, b, a = fontString:GetTextColor()
+        local sr, sg, sb, sa = fontString:GetShadowColor()
+        local sx, sy = fontString:GetShadowOffset()
+        local justifyH, justifyV = fontString:GetJustifyH(), fontString:GetJustifyV()
+        fontString:SetFontObject(family)
+        fontString:SetTextColor(r, g, b, a)
+        fontString:SetShadowColor(sr, sg, sb, sa)
+        fontString:SetShadowOffset(sx, sy)
+        fontString:SetJustifyH(justifyH)
+        fontString:SetJustifyV(justifyV)
+    end
+    local _, height = fontString:GetFont()
+    if not height or height - size > 0.01 or size - height > 0.01 then
+        fontString:SetFontHeight(size)
+    end
+end
+
 -- Midnight only
 if not isMidnight then return end
 

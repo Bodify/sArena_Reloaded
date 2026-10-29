@@ -299,7 +299,7 @@ function sArenaMixin:CreateCastbarTargetText()
             local targetText = castBar.ArenaTargetTextFrame:CreateFontString(nil, "OVERLAY")
 
             local fontFile, fontSize, fontFlags = castBar.Text:GetFont()
-            targetText:SetFont(fontFile, fontSize-2, fontFlags)
+            self:SetNameFont(targetText, fontFile, fontSize-2, fontFlags)
             local sr, sg, sb, sa = castBar.Text:GetShadowColor()
             targetText:SetShadowColor(sr, sg, sb, sa)
             local sx, sy = castBar.Text:GetShadowOffset()
