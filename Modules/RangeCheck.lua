@@ -13,6 +13,12 @@ local cachedSpellID
 local cachedIsKnown
 local rangeSpellWatcher
 
+local rangeHealerTextureMap = {
+    HEALER = "",
+    TANK = "",
+    DAMAGER = "",
+}
+
 local function IsRangeSpellKnown(spellID)
     return (IsSpellKnownOrOverridesKnown(spellID)
         or (UnitExists("pet") and IsSpellKnownOrOverridesKnown(spellID, true))
@@ -51,6 +57,18 @@ local function IsSpellInRange(spellID, unit)
     -- If the spell isnt known always show as in range
     -- for it not to display as if out of range forever
     return true, true
+end
+
+local function GateRangeIcon(icon, atlas, arenaIndex)
+    if not icon.hasAtlas then return end
+    icon.healerElements = icon.healerElements or { roleIcon = icon.Texture }
+    rangeHealerTextureMap.HEALER = tonumber(atlas) or atlas
+    UnitFrameUtil.UpdateArenaOpponentSpecDisplay(icon.healerElements, arenaIndex, rangeHealerTextureMap)
+end
+
+local function SkipsRange(self, frame)
+    local owner = frame.OwnerFrame or frame
+    return self.rangeHealerOnly and not owner.secretSpec and not owner.isHealer
 end
 
 function sArenaMixin:RegisterRangeCheckEvents()
@@ -104,6 +122,7 @@ function sArenaMixin:UpdateRangeSettings()
     self.rangeUseIcon = (mode == "icon" or mode == "both")
     self.rangeUseAlpha = (mode == "transparency" or mode == "both")
     self.rangeNotInRangeAlpha = ri.notInRangeAlpha or 0.4
+    self.rangeHealerOnly = ri.healerOnly and true or false
 
     self:UpdatePlayerRangeSpell()
     self:ApplyRangeCheckTextures()
@@ -193,6 +212,11 @@ function sArenaMixin:ApplyRangeCheckTextures()
 
         inIcon:ClearAllPoints()
         inIcon:SetPoint("CENTER", frame.HealthBar, "CENTER", ri.inRangePosX or 0, ri.inRangePosY or 0)
+
+        if ri.healerOnly and frame.secretSpec then
+            GateRangeIcon(outIcon, outAtlas, i)
+            GateRangeIcon(inIcon, inAtlas, i)
+        end
     end
 
     if self:IsPetFramesEnabled() then
@@ -253,6 +277,11 @@ function sArenaMixin:ApplyRangeCheckTextures()
                 outIcon:SetPoint("CENTER", petFrame.HealthBar, "CENTER", petPosX, petPosY)
                 inIcon:ClearAllPoints()
                 inIcon:SetPoint("CENTER", petFrame.HealthBar, "CENTER", petPosX, petPosY)
+
+                if ri.healerOnly and self["arena" .. i].secretSpec then
+                    GateRangeIcon(outIcon, outAtlas, i)
+                    GateRangeIcon(inIcon, inAtlas, i)
+                end
             end
         end
     end
@@ -317,6 +346,16 @@ function sArenaMixin:UpdateRangeCheck(frame, unit, spellID, useIcon, useAlpha)
         inRangeIcon:Hide()
         notInRangeIcon:Hide()
         frame.notInRange = nil
+        return
+    end
+
+    if SkipsRange(self, frame) then
+        inRangeIcon:Hide()
+        notInRangeIcon:Hide()
+        frame.notInRange = nil
+        if useAlpha then
+            self:ApplyRangeAlpha(frame)
+        end
         return
     end
 

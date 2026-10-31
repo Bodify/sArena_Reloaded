@@ -555,8 +555,22 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             end,
                         },
 
-                        hideCastbars = {
+                        showCastbarTimer = {
                             order = 2.86,
+                            name = L["Castbar_ShowTimer"],
+                            desc = L["Castbar_ShowTimer_Desc"],
+                            type = "toggle",
+                            get = function(info)
+                                return info.handler.db.profile.layoutSettings[layoutName].castBar.showCastbarTimer
+                            end,
+                            set = function(info, val)
+                                info.handler.db.profile.layoutSettings[layoutName].castBar.showCastbarTimer = val
+                                info.handler:UpdateCastbarTimer()
+                            end,
+                        },
+
+                        hideCastbars = {
+                            order = 2.87,
                             name = L["Option_HideCastbars"],
                             desc = L["Option_HideCastbars_Desc"],
                             type = "toggle",
@@ -1039,6 +1053,55 @@ function sArenaMixin:GetLayoutOptionsTable(layoutName)
                             bigStep = 1,
                         },
                         iconScale = {
+                            order = 3,
+                            name = L["Scale"],
+                            type = "range",
+                            min = 0.1,
+                            max = 5.0,
+                            softMin = 0.5,
+                            softMax = 3.0,
+                            step = 0.01,
+                            bigStep = 0.01,
+                            isPercent = true,
+                        },
+                    },
+                },
+                timerSettings = {
+                    order = 3,
+                    name = L["Castbar_TimerSettings"],
+                    type = "group",
+                    inline = true,
+                    disabled = function(info)
+                        return not info.handler.db.profile.layoutSettings[layoutName].castBar.showCastbarTimer
+                    end,
+                    get = function(info)
+                        local castDB = info.handler.db.profile.layoutSettings[layoutName].castBar
+                        return castDB[info[#info]] or (info[#info] == "timerScale" and 1 or 0)
+                    end,
+                    args = {
+                        timerPosX = {
+                            order = 1,
+                            name = L["Horizontal"],
+                            type = "range",
+                            min = -500,
+                            max = 500,
+                            softMin = -200,
+                            softMax = 200,
+                            step = 0.1,
+                            bigStep = 1,
+                        },
+                        timerPosY = {
+                            order = 2,
+                            name = L["Vertical"],
+                            type = "range",
+                            min = -500,
+                            max = 500,
+                            softMin = -200,
+                            softMax = 200,
+                            step = 0.1,
+                            bigStep = 1,
+                        },
+                        timerScale = {
                             order = 3,
                             name = L["Scale"],
                             type = "range",
@@ -5171,6 +5234,7 @@ function sArenaMixin:UpdateCastBarSettings(db, info, val)
     end
 
     self:UpdateCastBarPixelBorders()
+    self:UpdateCastbarTimer()
 end
 
 function sArenaMixin:UpdateCastBarPixelBorders()
@@ -9089,6 +9153,20 @@ function sArenaMixin:BuildOptionsTable()
                                                 end
                                                 info.handler:Test()
                                             end,
+                                        },
+                                        healerOnly = {
+                                            order = 1.5,
+                                            name = L["Widget_RangeCheck_HealerOnly"],
+                                            desc = function(info) return info.handler:IsArenaSpecSecret() and L["Widget_RangeCheck_HealerOnly_Desc_Midnight"] or L["Widget_RangeCheck_HealerOnly_Desc"] end,
+                                            type = "toggle",
+                                            width = "full",
+                                            get = function(info) return info.handler.db.profile.rangeCheck.healerOnly end,
+                                            set = function(info, val)
+                                                info.handler.db.profile.rangeCheck.healerOnly = val
+                                                info.handler:UpdateRangeSettings()
+                                                info.handler:Test()
+                                            end,
+                                            disabled = function(info) return not info.handler.db.profile.rangeCheck.enabled end,
                                         },
                                         mode = {
                                             order = 2,

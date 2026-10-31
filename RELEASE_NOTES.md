@@ -1,7 +1,8 @@
-# sArena Reloaded 2.7.0
+# sArena Reloaded 2.7.1
 ## New
-- Add some icon change options for Arena/Party Target Indicators (Widgets).
-
-# sArena Reloaded 2.6.9
-## Bugfix
-- Midnight: Fix classes between shuffle rounds
+- Range Check: Healer Only option.
+- Castbar Timer option, with position and scale settings in the Layout: Castbars section.
+- New Varima profile (https://www.twitch.tv/varima_)
+## Tweak
+- Font fallback for non-latin names
+- Midnight: Fix un-interruptible texture being warped on casts.

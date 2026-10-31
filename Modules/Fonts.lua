@@ -95,6 +95,7 @@ function sArenaMixin:UpdateFonts()
                 f.CastBar.Text:SetFont(fontName, s, self:GetFontFlags("OUTLINE"))
             end
         end
+        self:UpdateCastbarTimer()
         return
     end
     local frameKey = fontCfg.frameFont
@@ -195,6 +196,7 @@ function sArenaMixin:UpdateFonts()
             setFont(partyFrame.WidgetOverlay.partyTargetText, frameFontPath, false, aopFontSize, true)
         end
     end
+    self:UpdateCastbarTimer()
 end
 
 function sArenaFrameMixin:ApplyPrototypeFont()

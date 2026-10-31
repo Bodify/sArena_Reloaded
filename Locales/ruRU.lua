@@ -231,6 +231,8 @@ L["Castbar_HideIcon"] = "Скрыть значок полосы заклинан
 L["Castbar_HideIcon_Desc"] = "Скрывает значок заклинания на полосе заклинаний"
 L["Castbar_ShowID"] = "Показ. ID полосы"
 L["Castbar_ShowID_Desc"] = "Показывать номер арены на полосе заклинаний, чтобы быстро понять, чья это полоса"
+L["Castbar_ShowTimer"] = "Показ. таймер полосы"
+L["Castbar_ShowTimer_Desc"] = "Показывает оставшееся время заклинания"
 L["Castbar_ShowTarget"] = "Показ. цели заклинаний"
 L["Castbar_ShowTarget_Desc"] = "В Classic текст цели может быть неточным. Только в Midnight есть новый API, показывающий настоящую цель заклинания; в Classic проверяется лишь цель игрока, а макрос это обходит."
 L["Castbar_ShowTarget_Desc_Midnight"] = "Показывать на полосах заклинаний имя настоящей цели заклинания.\n\nПоложение и параметры - в разделе \"Текст\"."
@@ -267,6 +269,7 @@ L["Castbar_IncludeShadowWordDeath_Desc"] = "Добавить Слово Тьмы
 L["Castbar_InterruptNotReadyColor"] = "Цвет: прерывание не готово"
 L["Castbar_Settings"] = "Полоса заклинаний"
 L["Castbar_IconSettings"] = "Значок"
+L["Castbar_TimerSettings"] = "Таймер"
 
 ---------------------------------------
 -- Diminishing Returns Options
@@ -377,6 +380,9 @@ L["Widget_RangeCheck"] = "Проверка дальности"
 L["Widget_RangeCheck_Enable"] = "Проверка дальности"
 L["Widget_RangeCheck_Desc"] = "Затемняет рамку и/или показывает значок, когда противник вне дальности выбранного заклинания"
 L["Widget_RangeCheck_Mode_Desc"] = "Выберите, как отображать проверку дальности"
+L["Widget_RangeCheck_HealerOnly"] = "Только лекари"
+L["Widget_RangeCheck_HealerOnly_Desc"] = "Проверять дальность только у вражеских лекарей."
+L["Widget_RangeCheck_HealerOnly_Desc_Midnight"] = "Проверять дальность только у вражеских лекарей.\n\nВ Retail это влияет только на значок. Прозрачность по-прежнему применяется ко всем."
 L["Widget_RangeCheck_Mode_Both"] = "Значок и прозрачность"
 L["Widget_RangeCheck_NotInRangeAlpha"] = "Непрозр. вне дальности"
 L["Widget_RangeCheck_NotInRangeAlpha_Desc"] = "Непрозрачность рамок, когда противник вне дальности"

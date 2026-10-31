@@ -588,6 +588,9 @@ function sArenaMixin:Test()
         frame.replaceClassIcon = replaceClassIcon
         frame.testIsHealer = self.healerSpecNames[data.specName] or false
         frame.isHealer = frame.testIsHealer and not self:IsArenaSpecSecret()
+        local healerOnlyRange = ri and ri.healerOnly
+        local testShowsRange = not healerOnlyRange or frame.testIsHealer
+        local testOutOfRange = testShowsRange and (healerOnlyRange or i == 3)
 
         local currentLayout = self.layouts[self.db.profile.currentLayout]
         if currentLayout and currentLayout.UpdateHealthbarOrientation then
@@ -626,11 +629,11 @@ function sArenaMixin:Test()
             frame.PetFrame:ApplyTestModeWidgets()
 
             if rangeCheckOn and petRC and petRC.enabled then
-                local showIcon = (rangeMode == "icon" or rangeMode == "both")
+                local showIcon = testShowsRange and (rangeMode == "icon" or rangeMode == "both")
                 local inRangeIcon = frame.PetFrame.WidgetOverlay.inRangeIcon
                 local notInRangeIcon = frame.PetFrame.WidgetOverlay.notInRangeIcon
 
-                if showIcon and i == 3 then
+                if showIcon and testOutOfRange then
                     inRangeIcon:Hide()
                     if notInRangeIcon.hasAtlas then
                         notInRangeIcon:Show()
@@ -649,10 +652,10 @@ function sArenaMixin:Test()
                     notInRangeIcon:Hide()
                 end
 
-                if (rangeMode == "transparency" or rangeMode == "both") and i == 3 then
+                if (rangeMode == "transparency" or rangeMode == "both") and testOutOfRange then
                     frame.PetFrame:SetAlpha(ri.notInRangeAlpha or 0.4)
                 end
-                frame.PetFrame.notInRange = (i == 3)
+                frame.PetFrame.notInRange = testOutOfRange
             else
                 frame.PetFrame.WidgetOverlay.inRangeIcon:Hide()
                 frame.PetFrame.WidgetOverlay.notInRangeIcon:Hide()
@@ -751,18 +754,18 @@ function sArenaMixin:Test()
         frame.WidgetOverlay.healerIndicator:SetShown(healerIndicatorOn and (frame.testIsHealer == true))
 
         if rangeCheckOn then
-            local showIcon = (rangeMode == "icon" or rangeMode == "both")
+            local showIcon = testShowsRange and (rangeMode == "icon" or rangeMode == "both")
             local inRangeIcon = frame.WidgetOverlay.inRangeIcon
             local notInRangeIcon = frame.WidgetOverlay.notInRangeIcon
 
-            if showIcon and i == 3 then
+            if showIcon and testOutOfRange then
                 inRangeIcon:Hide()
                 if notInRangeIcon.hasAtlas then
                     notInRangeIcon:Show()
                 else
                     notInRangeIcon:Hide()
                 end
-            elseif showIcon and i ~= 3 then
+            elseif showIcon then
                 notInRangeIcon:Hide()
                 if inRangeIcon.hasAtlas then
                     inRangeIcon:Show()
@@ -774,10 +777,10 @@ function sArenaMixin:Test()
                 notInRangeIcon:Hide()
             end
 
-            if (rangeMode == "transparency" or rangeMode == "both") and i == 3 then
+            if (rangeMode == "transparency" or rangeMode == "both") and testOutOfRange then
                 frame:SetAlpha(ri.notInRangeAlpha or 0.4)
             end
-            frame.notInRange = (i == 3)
+            frame.notInRange = testOutOfRange
         else
             frame.WidgetOverlay.inRangeIcon:Hide()
             frame.WidgetOverlay.notInRangeIcon:Hide()
@@ -1296,7 +1299,19 @@ function sArenaMixin:Test()
                 end
                 frame.CastBar:SetStatusBarTexture(castPath)
             end
+
+            if frame.CastBar.unintTextureOverlay then
+                frame.CastBar.unintTextureOverlay:SetAlpha(0)
+            end
+
+            if frame.CastBar.TimerFakeText then
+                frame.CastBar.TimerCooldown:Clear()
+                frame.CastBar.TimerFakeText:SetShown(frame.CastBar.timerEnabled or false)
+            end
         else
+            if frame.CastBar.TimerFakeText then
+                frame.CastBar.TimerFakeText:Hide()
+            end
             frame.CastBar:Hide()
             frame.CastBar:SetAlpha(0)
             if frame.CastBar.ArenaTargetText then
@@ -1442,6 +1457,9 @@ function sArenaMixin:Test()
             for i = 1, self.maxArenaOpponents do
                 local frame = self["arena" .. i]
                 frame:SetAuraHighlightActive()
+                if frame.CastBar.TimerFakeText then
+                    frame.CastBar.TimerFakeText:Hide()
+                end
                 if frame.WidgetOverlay.arenaTargetText then
                     frame.WidgetOverlay.arenaTargetText:Hide()
                 end

@@ -258,6 +258,98 @@ function sArenaMixin:UpdateCastbarIDText()
     end
 end
 
+function sArenaMixin:CreateCastbarTimer()
+    for i = 1, self.maxArenaOpponents do
+        local castBar = self["arena" .. i].CastBar
+        if not castBar.TimerCooldown then
+            local cooldown = CreateFrame("Cooldown", nil, castBar, "CooldownFrameTemplate")
+            cooldown:SetAllPoints(castBar)
+            cooldown:SetDrawSwipe(false)
+            cooldown:SetDrawEdge(false)
+            cooldown:SetDrawBling(false)
+            cooldown:SetHideCountdownNumbers(false)
+            cooldown:SetMinimumCountdownDuration(0)
+            cooldown:SetCountdownMillisecondsThreshold(3600)
+            cooldown.noCooldownCount = true
+            castBar.TimerCooldown = cooldown
+            local fakeFrame = CreateFrame("Frame", nil, castBar)
+            fakeFrame:SetAllPoints(castBar)
+            fakeFrame:SetFrameLevel(castBar:GetFrameLevel() + 6)
+            castBar.TimerFakeText = fakeFrame:CreateFontString(nil, "OVERLAY")
+            castBar.TimerFakeText:Hide()
+        end
+    end
+end
+
+function sArenaMixin:UpdateCastbarTimer()
+    local db = self.db
+    if not db then return end
+
+    local castDB = db.profile.layoutSettings[db.profile.currentLayout].castBar
+    local show = castDB.showCastbarTimer
+    if show then
+        self:CreateCastbarTimer()
+    end
+
+    for i = 1, self.maxArenaOpponents do
+        local frame = self["arena" .. i]
+        local castBar = frame.CastBar
+        local cooldown = castBar.TimerCooldown
+        if cooldown then
+            castBar.timerEnabled = show
+            cooldown:SetShown(show)
+            if show then
+                local fontFile, fontSize, fontFlags = castBar.Text:GetFont()
+                for _, text in ipairs({ cooldown:GetCountdownFontString(), castBar.TimerFakeText }) do
+                    text:SetFont(fontFile, fontSize, fontFlags)
+                    text:SetTextColor(castBar.Text:GetTextColor())
+                    text:SetShadowColor(castBar.Text:GetShadowColor())
+                    text:SetShadowOffset(castBar.Text:GetShadowOffset())
+                    text:SetScale(castDB.timerScale or 1)
+                    text:ClearAllPoints()
+                    text:SetPoint("RIGHT", castBar, "RIGHT", -3 + (castDB.timerPosX or 0), castDB.timerPosY or 0)
+                end
+                castBar.TimerFakeText:SetText("1.5")
+                self:UpdateCastbarTimerOnEvent(castBar)
+            end
+            castBar.TimerFakeText:SetShown(show and self.testMode and frame.tempCast or false)
+        end
+    end
+end
+
+function sArenaMixin:UpdateCastbarTimerOnEvent(castBar)
+    if not castBar.timerEnabled then return end
+    local cooldown = castBar.TimerCooldown
+    local unit = castBar.unit
+
+    if self.testMode then
+        cooldown:Clear()
+        return
+    end
+    castBar.TimerFakeText:Hide()
+
+    if not unit then
+        cooldown:Clear()
+    elseif UnitCastingDuration then
+        local duration = UnitCastingDuration(unit) or UnitChannelDuration(unit)
+        if duration then
+            cooldown:SetCooldownFromDurationObject(duration)
+        else
+            cooldown:Clear()
+        end
+    else
+        local _, _, _, startTime, endTime = UnitCastingInfo(unit)
+        if not startTime then
+            _, _, _, startTime, endTime = UnitChannelInfo(unit)
+        end
+        if startTime then
+            cooldown:SetCooldown(startTime / 1000, (endTime - startTime) / 1000)
+        else
+            cooldown:Clear()
+        end
+    end
+end
+
 function sArenaMixin:CreateCastbarHighlight()
     if not (PlayerIsSpellTarget or (C_Spell and C_Spell.IsSpellCrowdControl)) then return end
     for i = 1, self.maxArenaOpponents do

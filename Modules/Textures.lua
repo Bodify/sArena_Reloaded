@@ -139,8 +139,13 @@ function sArenaMixin:UpdateTextures()
         if self.isMidnight then
             if not frame.CastBar.unintTextureOverlay then
                 frame.CastBar.unintTextureOverlay = frame.CastBar:CreateTexture(nil, "ARTWORK", nil, 1)
+                frame.CastBar.unintTextureOverlay:SetAllPoints(frame.CastBar)
+                frame.CastBar.unintMask = frame.CastBar:CreateMaskTexture()
+                frame.CastBar.unintMask:SetTexture("Interface\\Buttons\\WHITE8X8", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+                frame.CastBar.unintTextureOverlay:AddMaskTexture(frame.CastBar.unintMask)
             end
             frame.CastBar.unintTextureOverlay:SetTexture(castUninterruptibleTexture)
+            frame.CastBar.unintTextureOverlay:SetAlpha(0)
         end
         frame.CastBar.changeUnint = not (modernCastbars and keepDefaultModernTextures) and (castTexture ~= castUninterruptibleTexture)
 

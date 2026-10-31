@@ -1308,6 +1308,7 @@ function sArenaFrameMixin:OnLoad()
 
         self.parent:CastbarOnEvent(self.CastBar, event, interruptedByOrCastBarID)
         self.parent:UpdateCastbarTargetOnEvent(self.CastBar, event)
+        self.parent:UpdateCastbarTimerOnEvent(self.CastBar)
 
         if sArenaDebug then
             print("CBE: ", event, eventUnit, spellID, interruptedByOrCastBarID, castBar.interruptedBy, castBar.wasKicked)
@@ -2650,6 +2651,7 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
             if stoppedCast then
                 castBarTexture:SetDesaturated(false)
                 castBar:SetStatusBarColor(1, 1, 1, 1)
+                castBar.unintTextureOverlay:SetAlpha(0)
                 if castBar.barHighlight then
                     castBar.barHighlight:SetAlpha(0)
                 end
@@ -2909,10 +2911,10 @@ function sArenaMixin:CastbarOnEvent(castBar, event)
                 castBar.iconHighlight:SetAlpha(0)
             end
         end
-        if notInterruptible ~= nil and castBar.changeUnint then
-            castBar.unintTextureOverlay:SetAllPoints(castBarTexture)
-            castBar.unintTextureOverlay:SetAlphaFromBoolean(notInterruptible, 1, 0)
+        if castBar.changeUnint and (castBar.casting or castBar.channeling) and notInterruptible ~= nil then
+            castBar.unintMask:SetAllPoints(castBarTexture)
             castBar.unintTextureOverlay:SetVertexColor(castBar:GetStatusBarColor())
+            castBar.unintTextureOverlay:SetAlphaFromBoolean(notInterruptible, 1, 0)
         else
             castBar.unintTextureOverlay:SetAlpha(0)
         end

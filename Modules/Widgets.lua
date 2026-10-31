@@ -432,6 +432,10 @@ end
 
 function sArenaFrameMixin:UpdateHealerStatus()
     local db = self.parent and self.parent.db
+    local rc = db and db.profile.rangeCheck
+    if rc and rc.enabled and rc.healerOnly then
+        self.parent:ApplyRangeCheckTextures()
+    end
     local widgetSettings = db and db.profile.layoutSettings[db.profile.currentLayout].widgets
     if not widgetSettings or not widgetSettings.healerIndicator or not widgetSettings.healerIndicator.enabled then
         self.WidgetOverlay.healerIndicator:Hide()
