@@ -1945,7 +1945,7 @@ function sArenaFrameMixin:SetMysteryPlayer(unitEvent)
         hp:SetMinMaxValues(0, 100)
         hp:SetValue(100)
         pp:SetMinMaxValues(0, 100)
-        pp:SetValue(100)
+        pp:SetValue((self.class or self.tempClass) and 100 or 0)
     end
 
     if self.parent.db then -- TODO: Figure out cleaner fix, why db is nil here.
