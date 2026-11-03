@@ -1,3 +1,9 @@
+# sArena Reloaded 2.7.1b
+## Tweak
+- Retail: Hide mana during spawn cuz cant color it properly anymore with new restrictions and a rogue with mana etc is just confusing.
+## Bugfix
+- Retail: Fix issue with fast evoker channels into cast potentially hiding the cast castbar unintentionally.
+
 # sArena Reloaded 2.7.1
 ## New
 - Range Check: Healer Only option.
