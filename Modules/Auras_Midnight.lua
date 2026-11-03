@@ -374,7 +374,7 @@ local function GetPartySpec(unit)
 
     for _, line in ipairs(tooltipData.lines) do
         local text = line.leftText
-        if line.type == Enum.TooltipDataLineType.None and text and not issecretvalue(text) then
+        if text and not issecretvalue(text) then
             local id = tooltipSpecs[text]
             if id then
                 if canCache then

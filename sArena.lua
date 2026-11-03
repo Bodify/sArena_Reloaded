@@ -51,6 +51,17 @@ sArenaMixin.classPowerType = {
     EVOKER = "ESSENCE",
 }
 
+function sArenaMixin:CastBarHasCast(castBar)
+    return castBar.casting or castBar.channeling or castBar.reverseChanneling
+end
+
+function sArenaMixin:UnitHasCast(unit)
+    local cast = UnitCastingInfo(unit)
+    if issecretvalue(cast) or cast then return true end
+    local channel = UnitChannelInfo(unit)
+    return issecretvalue(channel) or channel
+end
+
 function sArenaMixin:Print(msg)
     if msg then
         print("|cffffffffsArena |cffff8000Reloaded|r |T135884:13:13|t: " .. msg)
@@ -1292,14 +1303,8 @@ function sArenaFrameMixin:OnLoad()
                     castBar.wasKicked = true
                 end
             end
-            if not (castBar.interruptedBy or castBar.wasKicked) then
-                local cast = UnitCastingInfo(unit) or UnitChannelInfo(unit)
-                if not cast then
-                    castBar:Hide()
-                    if sArenaDebug then
-                        print("CBE: Hiding Castbar")
-                    end
-                end
+            if not (castBar.interruptedBy or castBar.wasKicked) and not sArenaMixin:CastBarHasCast(castBar) then
+                castBar:Hide()
             end
         elseif CastStartEvents[event] then
             castBar.wasKicked = nil
@@ -1309,10 +1314,6 @@ function sArenaFrameMixin:OnLoad()
         self.parent:CastbarOnEvent(self.CastBar, event, interruptedByOrCastBarID)
         self.parent:UpdateCastbarTargetOnEvent(self.CastBar, event)
         self.parent:UpdateCastbarTimerOnEvent(self.CastBar)
-
-        if sArenaDebug then
-            print("CBE: ", event, eventUnit, spellID, interruptedByOrCastBarID, castBar.interruptedBy, castBar.wasKicked)
-        end
     end)
 
     hooksecurefunc(self.CastBar.BorderShield, "SetShown", function()
@@ -1321,14 +1322,8 @@ function sArenaFrameMixin:OnLoad()
 
     if self.CastBar.PlayFinishAnim then
         hooksecurefunc(self.CastBar, "PlayFinishAnim", function(castBar)
-            if not (castBar.interruptedBy or castBar.wasKicked) then
-                local cast = UnitCastingInfo(unit) or UnitChannelInfo(unit)
-                if not cast then
-                    castBar:Hide()
-                    if sArenaDebug then
-                        print("CBE: Hiding Castbar2")
-                    end
-                end
+            if not (castBar.interruptedBy or castBar.wasKicked) and not sArenaMixin:UnitHasCast(unit) then
+                castBar:Hide()
             end
             if not castBar.activeTexture then return end
             self.parent:CastbarOnEvent(castBar)

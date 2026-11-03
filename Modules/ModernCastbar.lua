@@ -644,8 +644,7 @@ local function ApplyModern(bar, simpleCastbar, frame, unit)
                 if castBar.interruptedBy then
                     castBar:Show()
                 else
-                    local cast = UnitCastingInfo(unit) or UnitChannelInfo(unit)
-                    if not cast then
+                    if not sArenaMixin:CastBarHasCast(castBar) then
                         castBar:Hide()
                         -- no return cuz sometimes castbar still fades idk and we need the color
                     end

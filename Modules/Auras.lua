@@ -36,15 +36,9 @@ function sArenaFrameMixin:FindInterrupt(event, spellID, sourceName, sourceGUID)
         castBar.interruptedBy = interruptedByName
         castBar.Text:SetText(interruptedByName)
         castBar:Show()
-        if sArenaDebug then
-            print("Kicked ", self.unit, "showing castbar")
-        end
         C_Timer.After(1.2, function()
-            if not (UnitCastingInfo(unit) or UnitChannelInfo(unit)) then
+            if not sArenaMixin:CastBarHasCast(castBar) then
                 castBar:Hide()
-                if sArenaDebug then
-                    print("Kicked ", self.unit, "hiding castbar after 1.2s")
-                end
             end
         end)
         C_Timer.After(1, function()
