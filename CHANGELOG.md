@@ -1,3 +1,7 @@
+# sArena Reloaded 2.7.1c
+## Tweak
+- Tweak font fallback sometimes leaving a name larger size than intended.
+
 # sArena Reloaded 2.7.1b
 ## Tweak
 - Retail: Hide mana during spawn cuz cant color it properly anymore with new restrictions and a rogue with mana etc is just confusing.
