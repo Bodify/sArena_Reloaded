@@ -1452,55 +1452,66 @@ if supported then
 end
 
 local families = {}
-local familyCount = 0
+local familiesCount = 0
 
-local function GetFamily(file, flags)
+local function FindFamily(file, flags, size)
     local byFlags = families[file]
-    if not byFlags then
-        byFlags = {}
-        families[file] = byFlags
-    end
-    local family = byFlags[flags]
-    if family then return family end
+    local bySize = byFlags and byFlags[flags]
+    return bySize and bySize[size]
+end
+
+local function CreateFamily(file, flags, size)
     local members = {}
     for i, alphabet in ipairs(ALPHABETS) do
         members[i] = {
             alphabet = alphabet,
             file = alphabet ~= ownAlphabet and stockFiles[alphabet] or file,
-            height = 12,
+            height = size,
             flags = flags,
         }
     end
-    familyCount = familyCount + 1
-    family = CreateFontFamily("sArenaNameFont" .. familyCount, members)
-    byFlags[flags] = family
+    familiesCount = familiesCount + 1
+    local family = CreateFontFamily("sArenaNameFont" .. familiesCount, members)
+    local byFlags = families[file]
+    if not byFlags then
+        byFlags = {}
+        families[file] = byFlags
+    end
+    local bySize = byFlags[flags]
+    if not bySize then
+        bySize = {}
+        byFlags[flags] = bySize
+    end
+    bySize[size] = family
     return family
 end
 
 function sArenaMixin:SetNameFont(fontString, file, size, flags)
     if not fontString then return end
     flags = flags or ""
-    if not supported or not file or not size or not fontString.SetFontHeight then
+    if not supported or not file or not size then
         fontString:SetFont(file, size, flags)
         return
     end
-    local family = GetFamily(file, flags)
-    if fontString:GetFontObject() ~= family then
-        local r, g, b, a = fontString:GetTextColor()
-        local sr, sg, sb, sa = fontString:GetShadowColor()
-        local sx, sy = fontString:GetShadowOffset()
-        local justifyH, justifyV = fontString:GetJustifyH(), fontString:GetJustifyV()
-        fontString:SetFontObject(family)
-        fontString:SetTextColor(r, g, b, a)
-        fontString:SetShadowColor(sr, sg, sb, sa)
-        fontString:SetShadowOffset(sx, sy)
-        fontString:SetJustifyH(justifyH)
-        fontString:SetJustifyV(justifyV)
-    end
+    size = math.floor(size * 100 + 0.5) / 100
+    local family = FindFamily(file, flags, size) or CreateFamily(file, flags, size)
     local _, height = fontString:GetFont()
-    if not height or height - size > 0.01 or size - height > 0.01 then
-        fontString:SetFontHeight(size)
+    local resized = not height or height - size > 0.01 or size - height > 0.01
+    local current = fontString:GetFontObject()
+    if current == family and not resized then return end
+    local r, g, b, a = fontString:GetTextColor()
+    local sr, sg, sb, sa = fontString:GetShadowColor()
+    local sx, sy = fontString:GetShadowOffset()
+    local justifyH, justifyV = fontString:GetJustifyH(), fontString:GetJustifyV()
+    if current == family then
+        fontString:SetFont(file, size, flags)
     end
+    fontString:SetFontObject(family)
+    fontString:SetTextColor(r, g, b, a)
+    fontString:SetShadowColor(sr, sg, sb, sa)
+    fontString:SetShadowOffset(sx, sy)
+    fontString:SetJustifyH(justifyH)
+    fontString:SetJustifyV(justifyV)
 end
 
 -- Midnight only
