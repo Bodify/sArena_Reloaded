@@ -1,3 +1,7 @@
+# sArena Reloaded 2.7.1d
+## Tweak
+- Fix version number. Accidentally uploaded as wrong tag.
+
 # sArena Reloaded 2.7.1c
 ## Tweak
 - Tweak font fallback sometimes leaving a name larger size than intended.
